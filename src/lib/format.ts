@@ -5,8 +5,11 @@
 export function formatPhoneBR(phone: string | null | undefined): string {
   if (!phone) return '';
   
-  // Remove all non-digit characters
-  const digits = phone.replace(/\D/g, '');
+  // Remove all non-digit characters and strip the international code if present
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('55')) {
+    digits = digits.substring(2);
+  }
   
   // Format according to Brazilian patterns
   if (digits.length <= 2) {

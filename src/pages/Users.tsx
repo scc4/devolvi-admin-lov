@@ -52,32 +52,58 @@ export default function Users() {
   const { toast } = useToast();
 
   // Buscar usuários do Supabase
-  useEffect(() => {
-    async function loadUsers() {
-      setLoading(true);
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
       // Perfis
       const { data: profiles, error: pfErr } = await supabase
         .from("profiles")
         .select("id, name, created_at");
+
+      if (pfErr) {
+        console.error("Error fetching profiles:", pfErr);
+        toast({ title: "Erro ao carregar perfis", description: pfErr.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
 
       // E-mails e roles
       const { data: roles, error: rlErr } = await supabase
         .from("user_roles")
         .select("user_id, role");
 
-      // Vamos buscar a coluna de email e telefone do usuário pela API de auth
+      if (rlErr) {
+        console.error("Error fetching roles:", rlErr);
+        toast({ title: "Erro ao carregar roles", description: rlErr.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      // Try to use service role token for admin APIs if available
       const { data: authList, error: auErr } = await supabase.auth.admin.listUsers();
 
-      // status: se excluído, será Inativo, se criado e sem convite aceito, será "Convidado"
+      if (auErr) {
+        console.error("Error fetching users:", auErr);
+        toast({ 
+          title: "Erro ao carregar dados de usuário", 
+          description: "Não foi possível acessar detalhes dos usuários. Verificar permissões de administrador.", 
+          variant: "destructive" 
+        });
+      }
+
+      // Combinar os dados
       let userList: UserRow[] = [];
-      if (profiles && roles && authList?.users) {
+      if (profiles) {
         for (const profile of profiles) {
-          const roleRow = roles.find(r => r.user_id === profile.id);
-          const userAuth = authList.users.find(u => u.id === profile.id);
-          const email = userAuth?.email ?? null;
+          const roleRow = roles?.find(r => r.user_id === profile.id);
+          const userAuth = authList?.users?.find(u => u.id === profile.id);
+          
           // Exemplo de lógica simplificada de status:
           let status: StatusType = "Convidado";
+          let email = null;
+          
           if (userAuth) {
+            email = userAuth.email || null;
             // Check if banned status by looking for the banned_until property
             // Use type assertion to access the property safely
             const authUserAny = userAuth as any;
@@ -92,7 +118,7 @@ export default function Users() {
           userList.push({
             id: profile.id,
             name: profile.name,
-            email,
+            email: email,
             phone: userAuth?.phone ?? null,
             created_at: profile.created_at,
             role: roleRow?.role ?? "user",
@@ -101,8 +127,14 @@ export default function Users() {
         }
       }
       setUsers(userList);
-      setLoading(false);
+    } catch (error) {
+      console.error("Unexpected error loading users:", error);
+      toast({ title: "Erro inesperado", description: "Ocorreu um erro ao carregar os dados dos usuários.", variant: "destructive" });
     }
+    setLoading(false);
+  };
+  
+  useEffect(() => {
     loadUsers();
   }, []);
 
@@ -116,45 +148,69 @@ export default function Users() {
   const handleInvite = async (form: { name: string, email: string, phone?: string, role: RoleValue }) => {
     // Registrar usuário via signUp
     const { name, email, phone, role } = form;
-    const { error, data } = await supabase.auth.admin.createUser({
-      email,
-      phone,
-      email_confirm: false,
-      user_metadata: { name, phone },
-    });
-    if (error) {
-      toast({ title: "Erro ao convidar", description: error.message, variant: "destructive" });
-      return;
-    }
-    // Atualizar perfil
-    if (data.user) {
-      await supabase.from("profiles").update({ name }).eq("id", data.user.id);
-      // Atribuir role
-      await supabase.from("user_roles").insert({ user_id: data.user.id, role });
-      toast({ title: "Convite enviado!", description: "O usuário foi convidado para a equipe." });
-      
-      // Recarregar usuários
-      window.location.reload();
+    try {
+      const { error, data } = await supabase.auth.admin.createUser({
+        email,
+        phone,
+        email_confirm: false,
+        user_metadata: { name, phone },
+      });
+      if (error) {
+        toast({ title: "Erro ao convidar", description: error.message, variant: "destructive" });
+        return;
+      }
+      // Atualizar perfil
+      if (data.user) {
+        await supabase.from("profiles").upsert({ 
+          id: data.user.id, 
+          name 
+        });
+        
+        // Atribuir role
+        await supabase.from("user_roles").upsert({ 
+          user_id: data.user.id, 
+          role 
+        });
+        
+        toast({ title: "Convite enviado!", description: "O usuário foi convidado para a equipe." });
+        
+        // Recarregar usuários
+        await loadUsers();
+      }
+    } catch (error) {
+      console.error("Error inviting user:", error);
+      toast({ title: "Erro ao convidar usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
     }
     setInviteOpen(false);
   };
 
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: RoleValue }) => {
-    await supabase.from("profiles").update({ name: updates.name }).eq("id", userId);
-    await supabase.from("user_roles").update({ role: updates.role }).eq("user_id", userId);
-    
-    // Atualizar o phone no auth
-    if (updates.phone) {
-      await supabase.auth.admin.updateUserById(userId, {
-        phone: updates.phone
+    try {
+      // Atualizar o perfil com o nome
+      await supabase.from("profiles").update({ name: updates.name }).eq("id", userId);
+      
+      // Atualizar a role
+      await supabase.from("user_roles").upsert({ 
+        user_id: userId,
+        role: updates.role 
       });
+      
+      // Atualizar o phone no auth
+      if (updates.phone) {
+        await supabase.auth.admin.updateUserById(userId, {
+          phone: updates.phone
+        });
+      }
+      
+      toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados com sucesso." });
+      setEditUser(null);
+      
+      // Recarregar usuários
+      await loadUsers();
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast({ title: "Erro ao atualizar usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
     }
-    
-    toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados." });
-    setEditUser(null);
-    
-    // Recarregar usuários
-    window.location.reload();
   };
 
   const handleDelete = async (user: UserRow) => {
@@ -163,11 +219,19 @@ export default function Users() {
       setConfirmModal(null);
       return;
     }
-    const { error } = await supabase.auth.admin.deleteUser(user.id);
-    if (!error) {
-      toast({ title: "Usuário excluído", description: "Usuário removido da equipe." });
-    } else {
-      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+    
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      if (!error) {
+        toast({ title: "Usuário excluído", description: "Usuário removido da equipe." });
+        // Recarregar lista de usuários
+        await loadUsers();
+      } else {
+        toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({ title: "Erro ao excluir usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
     }
     setConfirmModal(null);
   };
@@ -179,21 +243,25 @@ export default function Users() {
       return;
     }
     
-    // O correto é usar banned_until com uma data futura distante para inativar
-    // Usando um objeto para banned_until para satisfazer o tipo AdminUserAttributes
-    const { error } = await supabase.auth.admin.updateUserById(user.id, {
-      ban_duration: "87600h" // Ban for 10 years (using ban_duration instead of banned_until)
-    });
-    
-    if (!error) {
-      toast({ title: "Usuário inativado", description: "O usuário foi marcado como inativo." });
-    } else {
-      toast({ title: "Erro ao inativar", description: error.message, variant: "destructive" });
+    try {
+      // O correto é usar banned_until com uma data futura distante para inativar
+      // Usando um objeto para banned_until para satisfazer o tipo AdminUserAttributes
+      const { error } = await supabase.auth.admin.updateUserById(user.id, {
+        ban_duration: "87600h" // Ban for 10 years (using ban_duration instead of banned_until)
+      });
+      
+      if (!error) {
+        toast({ title: "Usuário inativado", description: "O usuário foi marcado como inativo." });
+        // Recarregar usuários
+        await loadUsers();
+      } else {
+        toast({ title: "Erro ao inativar", description: error.message, variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      toast({ title: "Erro ao inativar usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
     }
     setConfirmModal(null);
-    
-    // Recarregar usuários
-    window.location.reload();
   };
 
   const handleResendInvite = async (user: UserRow) => {
@@ -203,11 +271,16 @@ export default function Users() {
       return;
     }
     
-    const { error } = await supabase.auth.admin.inviteUserByEmail(user.email);
-    if (!error) {
-      toast({ title: "Convite reenviado", description: "Novo convite enviado para o e-mail." });
-    } else {
-      toast({ title: "Erro ao reenviar convite", description: error.message, variant: "destructive" });
+    try {
+      const { error } = await supabase.auth.admin.inviteUserByEmail(user.email);
+      if (!error) {
+        toast({ title: "Convite reenviado", description: "Novo convite enviado para o e-mail." });
+      } else {
+        toast({ title: "Erro ao reenviar convite", description: error.message, variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Error resending invitation:", error);
+      toast({ title: "Erro ao reenviar convite", description: "Ocorreu um erro inesperado.", variant: "destructive" });
     }
     setConfirmModal(null);
   };
@@ -261,7 +334,7 @@ export default function Users() {
                     <TableRow key={user.id}>
                       <TableCell className="font-mono text-xs">{user.id}</TableCell>
                       <TableCell className="">{user.name || <span className="text-muted-foreground">—</span>}</TableCell>
-                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.email || <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell>{user.phone || <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>{ROLES.find(r => r.value === user.role)?.label ?? user.role}</TableCell>
