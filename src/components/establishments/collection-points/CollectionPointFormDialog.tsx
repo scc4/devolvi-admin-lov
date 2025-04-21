@@ -15,6 +15,9 @@ interface CollectionPointFormDialogProps {
   onSubmit: (point: Partial<CollectionPoint>) => Promise<void>;
   initialData?: CollectionPoint;
   isLoading?: boolean;
+  carrierContext?: {
+    carrierId?: string;
+  };
 }
 
 const defaultOperatingHours = {
@@ -32,7 +35,8 @@ export function CollectionPointFormDialog({
   onOpenChange,
   onSubmit,
   initialData,
-  isLoading = false
+  isLoading = false,
+  carrierContext
 }: CollectionPointFormDialogProps) {
   const [form, setForm] = useState<Partial<CollectionPoint>>({
     name: initialData?.name || "",
@@ -50,16 +54,24 @@ export function CollectionPointFormDialog({
     is_active: initialData?.is_active ?? true,
     operating_hours: initialData?.operating_hours || defaultOperatingHours,
     ...(initialData?.id ? { id: initialData.id } : {}),
-    ...(initialData?.carrier_id ? { carrier_id: initialData.carrier_id } : {}),
+    // Set carrier_id from carrierContext if available, or from initialData
+    ...(carrierContext?.carrierId ? { carrier_id: carrierContext.carrierId } : {}),
+    ...(initialData?.carrier_id && !carrierContext?.carrierId ? { carrier_id: initialData.carrier_id } : {}),
   });
 
   const handleSubmit = async () => {
-    if (!form.name || !form.address || !form.carrier_id) {
+    if (!form.name || !form.address || (!form.carrier_id && !carrierContext?.carrierId)) {
       alert("Por favor, preencha os campos obrigatórios: Nome, Endereço");
       return;
     }
     
-    await onSubmit(form);
+    // If we have a carrierId in the context but not in the form, add it
+    const pointData = {
+      ...form,
+      ...(carrierContext?.carrierId && !form.carrier_id ? { carrier_id: carrierContext.carrierId } : {})
+    };
+    
+    await onSubmit(pointData);
     if (!initialData) {
       // Reset form if it's a new entry
       setForm({
@@ -77,6 +89,7 @@ export function CollectionPointFormDialog({
         longitude: null,
         is_active: true,
         operating_hours: defaultOperatingHours,
+        ...(carrierContext?.carrierId ? { carrier_id: carrierContext.carrierId } : {}),
       });
     }
   };

@@ -6,17 +6,25 @@ import type { CollectionPoint } from "@/types/collection-point";
 
 export function useCollectionPoints(establishmentId: string | undefined) {
   const queryClient = useQueryClient();
+  
+  // Determine if we're querying by establishment or carrier
+  const isCarrierContext = !establishmentId;
 
-  const { data: collectionPoints = [], isLoading } = useQuery({
+  const { data: collectionPoints = [], isLoading, refetch } = useQuery({
     queryKey: ['collection-points', establishmentId],
     queryFn: async () => {
-      if (!establishmentId) return [];
+      let query = supabase.from('collection_points').select('*');
       
-      const { data, error } = await supabase
-        .from('collection_points')
-        .select('*')
-        .eq('establishment_id', establishmentId)
-        .order('name');
+      if (establishmentId) {
+        // Filter by establishment
+        query = query.eq('establishment_id', establishmentId);
+      } else {
+        // If no establishmentId is provided, assume we want carrier collection points
+        // with establishment_id = null
+        query = query.is('establishment_id', null);
+      }
+      
+      const { data, error } = await query.order('name');
 
       if (error) {
         toast.error('Erro ao carregar pontos de coleta');
@@ -25,20 +33,19 @@ export function useCollectionPoints(establishmentId: string | undefined) {
 
       return data as CollectionPoint[];
     },
-    enabled: !!establishmentId
+    enabled: true // Always enabled as we might want carrier collection points
   });
 
   const createMutation = useMutation({
     mutationFn: async (newPoint: Partial<CollectionPoint>) => {
-      if (!establishmentId && !newPoint.establishment_id) throw new Error('ID do estabelecimento não fornecido');
+      if (!newPoint.carrier_id) throw new Error('ID da transportadora não fornecido');
       if (!newPoint.name) throw new Error('Nome do ponto de coleta não fornecido');
       if (!newPoint.address) throw new Error('Endereço não fornecido');
-      if (!newPoint.carrier_id) throw new Error('ID da transportadora não fornecido');
       
       const { data, error } = await supabase
         .from('collection_points')
         .insert({
-          establishment_id: newPoint.establishment_id || establishmentId,
+          establishment_id: newPoint.establishment_id || null,
           name: newPoint.name,
           address: newPoint.address,
           carrier_id: newPoint.carrier_id,
@@ -122,6 +129,7 @@ export function useCollectionPoints(establishmentId: string | undefined) {
     deleteCollectionPoint: deleteMutation.mutateAsync,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
-    isDeleting: deleteMutation.isPending
+    isDeleting: deleteMutation.isPending,
+    refetch
   };
 }

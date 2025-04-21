@@ -26,6 +26,7 @@ export function CollectionPointsTab({
     deleteCollectionPoint,
     isCreating,
     isUpdating,
+    refetch
   } = useCollectionPoints(carrierContext?.carrierId ? undefined : establishmentId);
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -53,7 +54,8 @@ export function CollectionPointsTab({
     } else {
       await createCollectionPoint({
         ...point,
-        // Default carrier_id if available from context
+        // Default establishment_id or carrier_id if available from context
+        establishment_id: carrierContext?.carrierId ? null : establishmentId,
         carrier_id: carrierContext?.carrierId || point.carrier_id || '',
       });
     }
@@ -65,7 +67,7 @@ export function CollectionPointsTab({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Pontos de Coleta</h2>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => {}}>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCcw className="h-4 w-4 mr-2" />
             Atualizar
           </Button>

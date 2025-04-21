@@ -16,7 +16,7 @@ export function ManageCollectionPointsDialog({
 }: ManageCollectionPointsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Pontos de Coleta - {establishment.name}</DialogTitle>
         </DialogHeader>
