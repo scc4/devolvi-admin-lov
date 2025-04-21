@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,7 +88,7 @@ export function useUsers() {
 
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: "admin" | "owner" }) => {
     try {
-      // First update the profile
+      // Update the profile with new data
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
