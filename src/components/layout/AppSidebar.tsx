@@ -1,3 +1,4 @@
+
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -10,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
@@ -21,10 +23,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppSidebar() {
   const location = useLocation();
   const { profile, logout } = useAuth();
+  const { open } = useSidebar();
+  const { isMobile } = useIsMobile();
 
   const menu = [
     {
@@ -55,7 +60,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar>
+    <Sidebar className={isMobile && !open ? "hidden" : ""}>
       <SidebarHeader>
         <div className="flex w-full items-center gap-2">
           <div className="flex items-center justify-center rounded-md bg-primary p-1">
@@ -74,6 +79,7 @@ export function AppSidebar() {
                   <SidebarMenuButton 
                     asChild
                     isActive={location.pathname === item.url}
+                    onClick={() => isMobile && useSidebar().setOpen(false)}
                   >
                     <Link to={item.url}>
                       <item.icon className="h-5 w-5" />

@@ -21,6 +21,7 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
           value={form.name || ''}
           onChange={(e) => onInputChange('name', e.target.value)}
           disabled={isLoading}
+          className="h-12 md:h-10" // Taller on mobile for better touch target
         />
       </div>
       
@@ -29,20 +30,24 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
         <Input
           id="phone"
           placeholder="Telefone de contato"
+          type="tel" // Better mobile keyboard for phone numbers
+          inputMode="tel" // Better mobile keyboard for phone numbers
           value={form.phone || ''}
           onChange={(e) => onInputChange('phone', e.target.value)}
           disabled={isLoading}
+          className="h-12 md:h-10" // Taller on mobile for better touch target
         />
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 py-2">
         <Switch 
           id="is_active" 
           checked={form.is_active || false}
           onCheckedChange={(checked) => onInputChange('is_active', checked)}
           disabled={isLoading}
+          className="data-[state=checked]:bg-green-600" // Green for better visual indication
         />
-        <Label htmlFor="is_active">Ponto de coleta ativo</Label>
+        <Label htmlFor="is_active" className="text-base md:text-sm">Ponto de coleta ativo</Label>
       </div>
     </div>
   );

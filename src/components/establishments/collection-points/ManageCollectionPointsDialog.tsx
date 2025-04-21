@@ -1,7 +1,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CollectionPointsTab } from "./CollectionPointsTab";
 import type { EstablishmentWithDetails } from "@/types/establishment";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ManageCollectionPointsDialogProps {
   open: boolean;
@@ -14,6 +16,26 @@ export function ManageCollectionPointsDialog({
   onOpenChange,
   establishment
 }: ManageCollectionPointsDialogProps) {
+  const { isMobile } = useIsMobile();
+
+  // Mobile view uses full-screen Sheet
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="h-[90vh] sm:h-[95vh]">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Pontos de Coleta - {establishment.name}</SheetTitle>
+          </SheetHeader>
+          <CollectionPointsTab
+            establishmentId={establishment.id}
+            carrierContext={{ carrierId: establishment.carrier_id || undefined }}
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop view uses Dialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px]">

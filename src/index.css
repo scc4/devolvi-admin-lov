@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,5 +99,53 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Mobile-first focus */
+  html, body {
+    @apply text-base min-h-screen w-full overscroll-none;
+  }
+  
+  input, select, textarea {
+    @apply text-base md:text-sm;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  /* Better tap targets on mobile */
+  button, 
+  [role="button"],
+  a.button,
+  .clickable {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+/* Mobile-first components */
+@layer components {
+  .mobile-container {
+    @apply w-full px-4 md:px-6;
+  }
+  
+  .mobile-card {
+    @apply rounded-lg border shadow-sm p-4 md:p-6;
+  }
+  
+  .mobile-section {
+    @apply py-4 md:py-6;
+  }
+}
+
+/* Mobile-first utilities */
+@layer utilities {
+  .mobile-visible {
+    @apply block md:hidden;
+  }
+  
+  .desktop-visible {
+    @apply hidden md:block;
+  }
+  
+  .touch-scroll {
+    @apply overflow-auto overscroll-contain -webkit-overflow-scrolling-touch;
   }
 }

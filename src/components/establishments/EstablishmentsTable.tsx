@@ -11,6 +11,7 @@ import type { EstablishmentWithDetails } from "@/types/establishment";
 import { EstablishmentsTableLoading } from "./EstablishmentsTableLoading";
 import { EstablishmentsTableEmpty } from "./EstablishmentsTableEmpty";
 import { EstablishmentTableRow } from "./EstablishmentTableRow";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EstablishmentsTableProps {
   establishments: EstablishmentWithDetails[];
@@ -27,10 +28,67 @@ export function EstablishmentsTable({
   onDelete,
   onManageCollectionPoints,
 }: EstablishmentsTableProps) {
+  const { isMobile } = useIsMobile();
+
   if (loading) {
     return <EstablishmentsTableLoading />;
   }
 
+  // Mobile view for establishments
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {establishments.length === 0 ? (
+          <EstablishmentsTableEmpty />
+        ) : (
+          establishments.map((establishment) => (
+            <div 
+              key={establishment.id}
+              className="border rounded-md p-4 space-y-3 bg-card"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium">{establishment.name}</h3>
+                  <p className="text-sm text-muted-foreground">{establishment.type === 'public' ? 'Público' : 'Privado'}</p>
+                </div>
+                <div className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                  {establishment.collection_points_count} pontos
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center pt-2 border-t">
+                <div className="text-xs text-muted-foreground">
+                  ID: {establishment.id.slice(0, 8)}
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => onEdit(establishment)}
+                    className="text-xs text-primary"
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    onClick={() => onManageCollectionPoints(establishment)}
+                    className="text-xs text-primary"
+                  >
+                    Pontos
+                  </button>
+                  <button 
+                    onClick={() => onDelete(establishment)}
+                    className="text-xs text-destructive"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    );
+  }
+
+  // Desktop view
   return (
     <div className="border rounded-md">
       <Table>
