@@ -5,12 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CollectionPointsTab } from "./collection-points/CollectionPointsTab";
 import type { EstablishmentWithDetails } from "@/types/establishment";
 
 interface EstablishmentFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (establishment: Partial<EstablishmentWithDetails>) => Promise<void>;
+  initialData?: EstablishmentWithDetails;
   isLoading?: boolean;
 }
 
@@ -18,49 +21,75 @@ export function EstablishmentFormDialog({
   open,
   onOpenChange,
   onSubmit,
+  initialData,
   isLoading = false
 }: EstablishmentFormDialogProps) {
   const [form, setForm] = useState<{
     name: string;
     type: 'public' | 'private';
   }>({
-    name: "",
-    type: "public"
+    name: initialData?.name || "",
+    type: initialData?.type as 'public' | 'private' || "public"
   });
 
   const handleSubmit = async () => {
-    await onSubmit(form);
-    setForm({ name: "", type: "public" });
+    await onSubmit({
+      ...form,
+      ...(initialData?.id ? { id: initialData.id } : {})
+    });
+    if (!initialData) {
+      setForm({ name: "", type: "public" });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Cadastrar Estabelecimento</DialogTitle>
+          <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Estabelecimento</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 py-2">
-          <Input
-            placeholder="Nome do Estabelecimento"
-            value={form.name}
-            onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
-            disabled={isLoading}
-          />
-          
-          <Select
-            value={form.type}
-            onValueChange={(value: 'public' | 'private') => setForm(f => ({ ...f, type: value }))}
-            disabled={isLoading}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="public">Público</SelectItem>
-              <SelectItem value="private">Privado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+
+        <Tabs defaultValue="basic" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
+            {initialData?.id && (
+              <TabsTrigger value="collection-points">Pontos de Coleta</TabsTrigger>
+            )}
+          </TabsList>
+
+          <TabsContent value="basic" className="space-y-3 py-4">
+            <Input
+              placeholder="Nome do Estabelecimento"
+              value={form.name}
+              onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
+              disabled={isLoading}
+            />
+            
+            <Select
+              value={form.type}
+              onValueChange={(value: 'public' | 'private') => setForm(prev => ({ ...prev, type: value }))}
+              disabled={isLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Público</SelectItem>
+                <SelectItem value="private">Privado</SelectItem>
+              </SelectContent>
+            </Select>
+          </TabsContent>
+
+          {initialData?.id && (
+            <TabsContent value="collection-points">
+              <CollectionPointsTab
+                establishmentId={initialData.id}
+                carrierContext={{ carrierId: initialData.carrier_id || undefined }}
+              />
+            </TabsContent>
+          )}
+        </Tabs>
+        
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancelar
@@ -75,7 +104,7 @@ export function EstablishmentFormDialog({
                 Salvando...
               </>
             ) : (
-              'Cadastrar'
+              initialData ? 'Salvar' : 'Cadastrar'
             )}
           </Button>
         </DialogFooter>

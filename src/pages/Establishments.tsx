@@ -8,7 +8,7 @@ import { EstablishmentFormDialog } from "@/components/establishments/Establishme
 import { useEstablishments } from "@/hooks/useEstablishments";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
-import type { Establishment } from "@/types/establishment";
+import type { EstablishmentWithDetails } from "@/types/establishment";
 
 export default function Establishments() {
   const {
@@ -23,6 +23,7 @@ export default function Establishments() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedEstablishment, setSelectedEstablishment] = useState<EstablishmentWithDetails | undefined>(undefined);
 
   const filteredEstablishments = establishments.filter((establishment) =>
     establishment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -30,11 +31,33 @@ export default function Establishments() {
     establishment.type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleOpenCreate = () => {
+    setSelectedEstablishment(undefined);
+    setDialogOpen(true);
+  };
+
+  const handleOpenEdit = (establishment: EstablishmentWithDetails) => {
+    setSelectedEstablishment(establishment);
+    setDialogOpen(true);
+  };
+
+  const handleFormSubmit = async (data: Partial<EstablishmentWithDetails>) => {
+    if (selectedEstablishment) {
+      await handleEdit({
+        ...selectedEstablishment,
+        ...data
+      });
+    } else {
+      await handleCreate(data);
+    }
+    setDialogOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-md">
         <CardHeader>
-          <EstablishmentsHeader onAdd={() => setDialogOpen(true)} />
+          <EstablishmentsHeader onAdd={handleOpenCreate} />
         </CardHeader>
         <CardContent>
           <EstablishmentsSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
@@ -55,7 +78,7 @@ export default function Establishments() {
             <EstablishmentsTable
               establishments={filteredEstablishments}
               loading={loading}
-              onEdit={handleEdit}
+              onEdit={handleOpenEdit}
               onDelete={handleDelete}
             />
           )}
@@ -65,10 +88,9 @@ export default function Establishments() {
       <EstablishmentFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSubmit={async (data) => {
-          await handleCreate(data);
-          setDialogOpen(false);
-        }}
+        onSubmit={handleFormSubmit}
+        initialData={selectedEstablishment}
+        isLoading={false}
       />
     </div>
   );
