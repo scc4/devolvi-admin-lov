@@ -10,6 +10,7 @@ import { UsersTable } from "@/components/users/UsersTable";
 import { useUsers } from "@/hooks/useUsers";
 import { UserRow } from "@/types/user";
 import { useAuth } from "@/context/AuthContext";
+import { useUserInvite } from "@/hooks/useUserInvite";
 
 export default function Users() {
   const { user: currentUser, roles: currentUserRoles } = useAuth();
@@ -21,10 +22,10 @@ export default function Users() {
     loadUsers,
     handleEdit,
     handleDelete,
-    handleDeactivate,
-    handleInvite,
-    handleResendInvite
+    handleDeactivate
   } = useUsers();
+  
+  const { sendInvite, resendInvite, isLoading: isInviteLoading } = useUserInvite();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -33,13 +34,29 @@ export default function Users() {
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
   const filteredUsers = users.filter((user) =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.id.includes(searchTerm)
   );
+
+  const handleInviteUser = async (form: { name: string; email: string; phone?: string; role: "admin" | "owner" }) => {
+    const result = await sendInvite(form);
+    if (result.success) {
+      setInviteOpen(false);
+      loadUsers();
+    }
+  };
+
+  const handleResendInviteUser = async (user: UserRow) => {
+    const result = await resendInvite(user);
+    if (result.success) {
+      setConfirmModal(null);
+      loadUsers();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -61,7 +78,13 @@ export default function Users() {
       </Card>
 
       {/* Modais */}
-      <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} onInvite={handleInvite} />
+      <InviteDialog 
+        open={inviteOpen} 
+        onOpenChange={setInviteOpen} 
+        onInvite={handleInviteUser} 
+        isLoading={isInviteLoading}
+      />
+      
       {editUser && (
         <EditDialog
           user={{
@@ -74,6 +97,7 @@ export default function Users() {
           onEdit={handleEdit}
         />
       )}
+      
       {confirmModal && (
         <ConfirmActionDialog
           open={!!confirmModal}
@@ -84,7 +108,7 @@ export default function Users() {
             if (!confirmModal) return;
             if (confirmModal.action === "delete") handleDelete(confirmModal.user);
             if (confirmModal.action === "deactivate") handleDeactivate(confirmModal.user);
-            if (confirmModal.action === "invite") handleResendInvite(confirmModal.user);
+            if (confirmModal.action === "invite") handleResendInviteUser(confirmModal.user);
           }}
         />
       )}

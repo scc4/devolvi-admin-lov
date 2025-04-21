@@ -4,11 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneForStorage } from "@/lib/format";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 // Permit only admin or owner roles
 type RoleValue = "admin" | "owner";
 
-// If you want to allow inviting owners, add an easy switch below (commented here; only admin by spec)
 const ROLES = [
   { value: "admin", label: "Administrador" },
   { value: "owner", label: "Proprietário" }
@@ -18,10 +19,10 @@ interface InviteDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onInvite: (form: { name: string; email: string; phone?: string; role: RoleValue }) => Promise<void>;
+  isLoading?: boolean;
 }
 
-export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps) {
-  // If you'd like to allow switching roles, uncomment the UI change below and relevant handlers
+export function InviteDialog({ open, onOpenChange, onInvite, isLoading = false }: InviteDialogProps) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", role: "admin" as RoleValue });
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,8 +44,9 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
     setForm(f => ({ ...f, phone: maskedValue }));
   };
 
-  // You can add a dropdown to pick "admin" or "owner" here (for now: fixed)
-  const roleLabel = form.role === "admin" ? "Administrador" : "Proprietário";
+  const handleRoleChange = (value: string) => {
+    setForm(f => ({ ...f, role: value as RoleValue }));
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,24 +55,60 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
           <DialogTitle>Convidar Novo Usuário</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 py-2">
-          <Input placeholder="Nome" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          <Input placeholder="E-mail" value={form.email} type="email" onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+          <Input 
+            placeholder="Nome" 
+            value={form.name} 
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))} 
+            disabled={submitting || isLoading}
+          />
+          <Input 
+            placeholder="E-mail" 
+            value={form.email} 
+            type="email" 
+            onChange={e => setForm(f => ({ ...f, email: e.target.value }))} 
+            disabled={submitting || isLoading}
+          />
           <Input
             placeholder="Telefone"
             value={form.phone}
             onChange={handlePhoneChange}
             maxLength={15}
+            disabled={submitting || isLoading}
           />
-          {/* Perfil fixo */}
-          <Input value={roleLabel} readOnly disabled className="bg-gray-100 cursor-not-allowed" />
+          
+          <Select 
+            value={form.role} 
+            onValueChange={handleRoleChange}
+            disabled={submitting || isLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o perfil" />
+            </SelectTrigger>
+            <SelectContent>
+              {ROLES.map(role => (
+                <SelectItem key={role.value} value={role.value}>
+                  {role.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting || isLoading}>
+            Cancelar
+          </Button>
           <Button
             onClick={handleInvite}
-            disabled={submitting || !form.email || !form.name}
+            disabled={submitting || isLoading || !form.email || !form.name}
           >
-            Convidar
+            {(submitting || isLoading) ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              'Convidar'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
