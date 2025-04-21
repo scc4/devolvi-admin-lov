@@ -54,7 +54,6 @@ export function CollectionPointsTab({
     } else {
       await createCollectionPoint({
         ...point,
-        // Default establishment_id or carrier_id if available from context
         establishment_id: carrierContext?.carrierId ? null : establishmentId,
         carrier_id: carrierContext?.carrierId || point.carrier_id || '',
       });
@@ -71,28 +70,32 @@ export function CollectionPointsTab({
             <RefreshCcw className="h-4 w-4 mr-2" />
             Atualizar
           </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Ponto de Coleta
-          </Button>
+          {!carrierContext?.carrierId && (
+            <Button size="sm" onClick={handleOpenCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Ponto de Coleta
+            </Button>
+          )}
         </div>
       </div>
 
       <CollectionPointsTable
         collectionPoints={collectionPoints}
         isLoading={isLoading}
-        onEdit={handleOpenEdit}
-        onDelete={handleConfirmDelete}
+        onEdit={!carrierContext?.carrierId ? handleOpenEdit : undefined}
+        onDelete={!carrierContext?.carrierId ? handleConfirmDelete : undefined}
       />
 
-      <CollectionPointFormDialog
-        open={formDialogOpen}
-        onOpenChange={setFormDialogOpen}
-        onSubmit={handleFormSubmit}
-        initialData={selectedPoint}
-        isLoading={isCreating || isUpdating}
-        carrierContext={carrierContext}
-      />
+      {!carrierContext?.carrierId && (
+        <CollectionPointFormDialog
+          open={formDialogOpen}
+          onOpenChange={setFormDialogOpen}
+          onSubmit={handleFormSubmit}
+          initialData={selectedPoint}
+          isLoading={isCreating || isUpdating}
+          carrierContext={carrierContext}
+        />
+      )}
     </div>
   );
 }
