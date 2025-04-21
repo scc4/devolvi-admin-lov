@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { maskPhoneBR } from "@/lib/format";
+import { maskPhoneBR, formatPhoneForStorage } from "@/lib/format";
 
 // Types passed as props
 type RoleValue = "owner" | "admin" | "carrier" | "dropoff" | "user";
@@ -29,13 +29,12 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
     setSubmitting(true);
     
     // Format phone for database with international code
-    const phoneDigits = form.phone ? form.phone.replace(/\D/g, '') : "";
-    const phoneFormatted = phoneDigits ? `+55${phoneDigits}` : undefined;
+    const phoneFormatted = formatPhoneForStorage(form.phone);
     
     await onInvite({
       name: form.name,
       email: form.email,
-      phone: phoneFormatted,
+      phone: phoneFormatted || undefined,
       role: form.role
     });
     setForm({ name: "", email: "", phone: "", role: "user" });

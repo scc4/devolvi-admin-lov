@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { maskPhoneBR, formatPhoneBR } from "@/lib/format";
+import { maskPhoneBR, formatPhoneBR, formatPhoneForStorage } from "@/lib/format";
 
 // Types passed via props
 type RoleValue = "owner" | "admin" | "carrier" | "dropoff" | "user";
@@ -37,9 +37,8 @@ export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
     
-    // Extract raw phone number for database
-    const phoneDigits = form.phone ? form.phone.replace(/\D/g, '') : null;
-    const phoneFormatted = phoneDigits ? `+55${phoneDigits}` : null;
+    // Format phone for storage
+    const phoneFormatted = formatPhoneForStorage(form.phone);
     
     await onEdit(user.id, {
       name: form.name,

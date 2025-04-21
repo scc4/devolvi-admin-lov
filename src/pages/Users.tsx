@@ -11,12 +11,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, UsersIcon, Edit, Trash, Ban, Mail, UserPlus } from "lucide-react";
+import { User, UsersIcon, Edit, Trash, Ban, Mail, UserPlus, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InviteDialog } from "@/components/users/InviteDialog";
 import { EditDialog } from "@/components/users/EditDialog";
 import { ConfirmActionDialog } from "@/components/users/ConfirmActionDialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { formatPhoneBR } from "@/lib/format";
 
 // Lista de perfis permitidos
 const ROLES = [
@@ -44,6 +46,8 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
 
   // Modais e ações
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -54,6 +58,7 @@ export default function Users() {
   // Buscar usuários do Supabase
   const loadUsers = async () => {
     setLoading(true);
+    setPermissionError(null);
     try {
       // Perfis
       const { data: profiles, error: pfErr } = await supabase
@@ -79,16 +84,24 @@ export default function Users() {
         return;
       }
 
-      // Try to use service role token for admin APIs if available
-      const { data: authList, error: auErr } = await supabase.auth.admin.listUsers();
-
-      if (auErr) {
-        console.error("Error fetching users:", auErr);
-        toast({ 
-          title: "Erro ao carregar dados de usuário", 
-          description: "Não foi possível acessar detalhes dos usuários. Verificar permissões de administrador.", 
-          variant: "destructive" 
-        });
+      // Check if we can access admin APIs
+      let authUsers: any[] = [];
+      try {
+        const { data: authList, error: auErr } = await supabase.auth.admin.listUsers();
+        
+        if (auErr) {
+          console.error("Error fetching users:", auErr);
+          setHasAdminAccess(false);
+          setPermissionError("Não foi possível acessar detalhes dos usuários. Verificar permissões de administrador.");
+        } else {
+          setHasAdminAccess(true);
+          // Type safety for authList
+          authUsers = authList?.users || [];
+        }
+      } catch (err) {
+        console.error("Admin API access error:", err);
+        setHasAdminAccess(false);
+        setPermissionError("Não foi possível acessar detalhes dos usuários. Verificar permissões de administrador.");
       }
 
       // Combinar os dados
@@ -96,21 +109,22 @@ export default function Users() {
       if (profiles) {
         for (const profile of profiles) {
           const roleRow = roles?.find(r => r.user_id === profile.id);
-          // Fixed: Type safety for authList
-          const authUsers = authList?.users || [];
+          
+          // Find user auth data if available
           const userAuth = authUsers.find(u => u.id === profile.id);
           
           // Exemplo de lógica simplificada de status:
           let status: StatusType = "Convidado";
           let email = null;
+          let phone = null;
           
           if (userAuth) {
             email = userAuth.email || null;
-            // Check if banned status by looking for the banned_until property
-            // Use type assertion to access the property safely
-            const authUserAny = userAuth as any;
-            const hasBan = authUserAny.banned_until !== null && authUserAny.banned_until !== undefined;
-            if (hasBan) {
+            phone = userAuth.phone || null;
+            
+            // Use type assertion to safely check ban status
+            const banned = userAuth.banned_until !== null && userAuth.banned_until !== undefined;
+            if (banned) {
               status = "Inativo";
             } else if (userAuth.email_confirmed_at) {
               status = "Ativo";
@@ -121,7 +135,7 @@ export default function Users() {
             id: profile.id,
             name: profile.name,
             email: email,
-            phone: userAuth?.phone ?? null,
+            phone: formatPhoneBR(phone),
             created_at: profile.created_at,
             role: roleRow?.role ?? "user",
             status,
@@ -148,6 +162,15 @@ export default function Users() {
 
   // Funções de ações
   const handleInvite = async (form: { name: string, email: string, phone?: string, role: RoleValue }) => {
+    if (!hasAdminAccess) {
+      toast({
+        title: "Permissão negada",
+        description: "Você não tem permissão para convidar usuários. Verifique as permissões de administrador.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Registrar usuário via signUp
     const { name, email, phone, role } = form;
     try {
@@ -157,10 +180,12 @@ export default function Users() {
         email_confirm: false,
         user_metadata: { name, phone },
       });
+      
       if (error) {
         toast({ title: "Erro ao convidar", description: error.message, variant: "destructive" });
         return;
       }
+      
       // Atualizar perfil
       if (data.user) {
         await supabase.from("profiles").upsert({ 
@@ -179,9 +204,13 @@ export default function Users() {
         // Recarregar usuários
         await loadUsers();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error inviting user:", error);
-      toast({ title: "Erro ao convidar usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
+      toast({ 
+        title: "Erro ao convidar usuário", 
+        description: error?.message || "Ocorreu um erro inesperado. Verifique permissões de administrador.", 
+        variant: "destructive" 
+      });
     }
     setInviteOpen(false);
   };
@@ -189,19 +218,47 @@ export default function Users() {
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: RoleValue }) => {
     try {
       // Atualizar o perfil com o nome
-      await supabase.from("profiles").update({ name: updates.name }).eq("id", userId);
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ name: updates.name })
+        .eq("id", userId);
+        
+      if (profileError) {
+        toast({ title: "Erro ao atualizar perfil", description: profileError.message, variant: "destructive" });
+        return;
+      }
       
       // Atualizar a role
-      await supabase.from("user_roles").upsert({ 
-        user_id: userId,
-        role: updates.role 
-      });
-      
-      // Atualizar o phone no auth
-      if (updates.phone) {
-        await supabase.auth.admin.updateUserById(userId, {
-          phone: updates.phone
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .upsert({ 
+          user_id: userId,
+          role: updates.role 
         });
+        
+      if (roleError) {
+        toast({ title: "Erro ao atualizar função", description: roleError.message, variant: "destructive" });
+        return;
+      }
+      
+      // Atualizar o phone no auth se tivermos acesso admin
+      if (hasAdminAccess && updates.phone) {
+        try {
+          const { error: phoneError } = await supabase.auth.admin.updateUserById(userId, {
+            phone: updates.phone
+          });
+          
+          if (phoneError) {
+            toast({ title: "Erro ao atualizar telefone", description: phoneError.message, variant: "destructive" });
+          }
+        } catch (error: any) {
+          console.error("Error updating phone:", error);
+          toast({ 
+            title: "Erro ao atualizar telefone", 
+            description: "Verificar permissões de administrador.", 
+            variant: "destructive" 
+          });
+        }
       }
       
       toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados com sucesso." });
@@ -209,13 +266,27 @@ export default function Users() {
       
       // Recarregar usuários
       await loadUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating user:", error);
-      toast({ title: "Erro ao atualizar usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
+      toast({ 
+        title: "Erro ao atualizar usuário", 
+        description: error?.message || "Ocorreu um erro inesperado.", 
+        variant: "destructive" 
+      });
     }
   };
 
   const handleDelete = async (user: UserRow) => {
+    if (!hasAdminAccess) {
+      toast({
+        title: "Permissão negada",
+        description: "Você não tem permissão para excluir usuários. Verifique as permissões de administrador.",
+        variant: "destructive"
+      });
+      setConfirmModal(null);
+      return;
+    }
+    
     if (user.status === "Inativo") {
       toast({ title: "Ação inválida", description: "Não é possível excluir um usuário inativo.", variant: "destructive" });
       setConfirmModal(null);
@@ -231,14 +302,28 @@ export default function Users() {
       } else {
         toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting user:", error);
-      toast({ title: "Erro ao excluir usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
+      toast({ 
+        title: "Erro ao excluir usuário", 
+        description: error?.message || "Erro de permissão. Verifique permissões de administrador.", 
+        variant: "destructive" 
+      });
     }
     setConfirmModal(null);
   };
 
   const handleDeactivate = async (user: UserRow) => {
+    if (!hasAdminAccess) {
+      toast({
+        title: "Permissão negada",
+        description: "Você não tem permissão para inativar usuários. Verifique as permissões de administrador.",
+        variant: "destructive"
+      });
+      setConfirmModal(null);
+      return;
+    }
+    
     if (user.status === "Inativo") {
       toast({ title: "Usuário já está inativo.", variant: "destructive" });
       setConfirmModal(null);
@@ -246,10 +331,9 @@ export default function Users() {
     }
     
     try {
-      // O correto é usar banned_until com uma data futura distante para inativar
-      // Usando um objeto para banned_until para satisfazer o tipo AdminUserAttributes
+      // Use ban_duration instead of banned_until (which is not in the AdminUserAttributes type)
       const { error } = await supabase.auth.admin.updateUserById(user.id, {
-        ban_duration: "87600h" // Ban for 10 years (using ban_duration instead of banned_until)
+        ban_duration: "87600h" // Ban for 10 years
       });
       
       if (!error) {
@@ -259,14 +343,28 @@ export default function Users() {
       } else {
         toast({ title: "Erro ao inativar", description: error.message, variant: "destructive" });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deactivating user:", error);
-      toast({ title: "Erro ao inativar usuário", description: "Ocorreu um erro inesperado.", variant: "destructive" });
+      toast({ 
+        title: "Erro ao inativar usuário", 
+        description: error?.message || "Erro de permissão. Verifique permissões de administrador.", 
+        variant: "destructive" 
+      });
     }
     setConfirmModal(null);
   };
 
   const handleResendInvite = async (user: UserRow) => {
+    if (!hasAdminAccess) {
+      toast({
+        title: "Permissão negada",
+        description: "Você não tem permissão para reenviar convites. Verifique as permissões de administrador.",
+        variant: "destructive"
+      });
+      setConfirmModal(null);
+      return;
+    }
+    
     if (!user.email) {
       toast({ title: "Erro ao reenviar", description: "Usuário não possui email cadastrado", variant: "destructive" });
       setConfirmModal(null);
@@ -280,9 +378,13 @@ export default function Users() {
       } else {
         toast({ title: "Erro ao reenviar convite", description: error.message, variant: "destructive" });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error resending invitation:", error);
-      toast({ title: "Erro ao reenviar convite", description: "Ocorreu um erro inesperado.", variant: "destructive" });
+      toast({ 
+        title: "Erro ao reenviar convite", 
+        description: error?.message || "Erro de permissão. Verifique permissões de administrador.", 
+        variant: "destructive" 
+      });
     }
     setConfirmModal(null);
   };
@@ -295,11 +397,34 @@ export default function Users() {
             <UsersIcon className="mr-1 h-5 w-5 text-primary" />
             <CardTitle className="text-xl font-bold">Gerenciar Equipes</CardTitle>
           </div>
-          <Button className="bg-primary hover:bg-primary/90" onClick={() => setInviteOpen(true)}>
+          <Button 
+            className="bg-primary hover:bg-primary/90" 
+            onClick={() => {
+              if (!hasAdminAccess) {
+                toast({
+                  title: "Permissão negada",
+                  description: "Você não tem permissão para convidar usuários. Verifique as permissões de administrador.",
+                  variant: "destructive"
+                });
+                return;
+              }
+              setInviteOpen(true);
+            }}
+          >
             <UserPlus className="mr-2 h-4 w-4" /> Convidar Usuários
           </Button>
         </CardHeader>
         <CardContent>
+          {permissionError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Erro de permissão</AlertTitle>
+              <AlertDescription>
+                {permissionError}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="flex items-center mb-4">
             <div className="relative flex-1">
               <Input
@@ -363,7 +488,7 @@ export default function Users() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            disabled={user.status === "Inativo"}
+                            disabled={user.status === "Inativo" || !hasAdminAccess}
                             onClick={() => setConfirmModal({ action: "delete", user })}
                             title="Excluir"
                           >
@@ -372,7 +497,7 @@ export default function Users() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            disabled={user.status === "Inativo"}
+                            disabled={user.status === "Inativo" || !hasAdminAccess}
                             onClick={() => setConfirmModal({ action: "deactivate", user })}
                             title="Inativar"
                           >
@@ -382,6 +507,7 @@ export default function Users() {
                             <Button
                               variant="secondary"
                               size="icon"
+                              disabled={!hasAdminAccess}
                               onClick={() => setConfirmModal({ action: "invite", user })}
                               title="Reenviar convite"
                             >

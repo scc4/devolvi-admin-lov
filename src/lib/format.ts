@@ -30,3 +30,27 @@ export function maskPhoneBR(value: string): string {
   const digits = value.replace(/\D/g, '');
   return formatPhoneBR(digits);
 }
+
+/**
+ * Format phone for database storage with international code
+ */
+export function formatPhoneForStorage(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  
+  // Return null if no digits
+  if (!digits) return null;
+  
+  // Add international code if not present
+  return digits.startsWith('55') ? `+${digits}` : `+55${digits}`;
+}
+
+/**
+ * Extract phone digits without formatting
+ */
+export function extractPhoneDigits(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  return phone.replace(/\D/g, '');
+}
