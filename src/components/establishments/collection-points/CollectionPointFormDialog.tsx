@@ -49,11 +49,8 @@ export function CollectionPointFormDialog({
       errors.push("Endereço");
     }
     
-    // Only validate carrier_id if we're not in an establishment context
-    // This assumes that in an establishment context, the establishment_id exists
-    if (!form.establishment_id && !initialData?.establishment_id) {
-      errors.push("Estabelecimento");
-    }
+    // Não validamos o establishment_id se ele estiver vindo do contexto da tela de estabelecimentos
+    // O ponto de coleta será associado ao estabelecimento automaticamente
     
     if (errors.length > 0) {
       toast.error(`Por favor, preencha os campos obrigatórios: ${errors.join(', ')}`);
@@ -128,3 +125,4 @@ export function CollectionPointFormDialog({
     </Dialog>
   );
 }
+

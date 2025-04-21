@@ -38,9 +38,16 @@ export function useCollectionPoints(establishmentId: string | undefined) {
 
   const createMutation = useMutation({
     mutationFn: async (newPoint: Partial<CollectionPoint>) => {
-      if (!newPoint.carrier_id) throw new Error('ID da transportadora não fornecido');
+      // Validação mínima necessária
       if (!newPoint.name) throw new Error('Nome do ponto de coleta não fornecido');
       if (!newPoint.address) throw new Error('Endereço não fornecido');
+      
+      // Se establishment_id estiver definido, não precisamos de carrier_id obrigatório
+      const needsCarrierId = !newPoint.establishment_id;
+      
+      if (needsCarrierId && !newPoint.carrier_id) {
+        throw new Error('ID da transportadora não fornecido');
+      }
       
       const { data, error } = await supabase
         .from('collection_points')
@@ -48,7 +55,7 @@ export function useCollectionPoints(establishmentId: string | undefined) {
           establishment_id: newPoint.establishment_id || null,
           name: newPoint.name,
           address: newPoint.address,
-          carrier_id: newPoint.carrier_id,
+          carrier_id: newPoint.carrier_id || '', // Se não tiver carrier_id, isso será validado acima
           phone: newPoint.phone || null,
           street: newPoint.street || null,
           number: newPoint.number || null,

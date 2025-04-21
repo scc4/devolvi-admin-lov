@@ -27,7 +27,7 @@ export function CollectionPointsTab({
     isCreating,
     isUpdating,
     refetch
-  } = useCollectionPoints(carrierContext?.carrierId ? undefined : establishmentId);
+  } = useCollectionPoints(establishmentId);
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
@@ -52,10 +52,11 @@ export function CollectionPointsTab({
     if (selectedPoint) {
       await updateCollectionPoint(point);
     } else {
+      // Garantir que o establishment_id está sendo passado na criação
       await createCollectionPoint({
         ...point,
-        establishment_id: carrierContext?.carrierId ? null : establishmentId,
-        carrier_id: carrierContext?.carrierId || point.carrier_id || '',
+        establishment_id: establishmentId,
+        carrier_id: carrierContext?.carrierId || point.carrier_id,
       });
     }
     setFormDialogOpen(false);
@@ -70,32 +71,28 @@ export function CollectionPointsTab({
             <RefreshCcw className="h-4 w-4 mr-2" />
             Atualizar
           </Button>
-          {!carrierContext?.carrierId && (
-            <Button size="sm" onClick={handleOpenCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Ponto de Coleta
-            </Button>
-          )}
+          <Button size="sm" onClick={handleOpenCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Ponto de Coleta
+          </Button>
         </div>
       </div>
 
       <CollectionPointsTable
         collectionPoints={collectionPoints}
         isLoading={isLoading}
-        onEdit={!carrierContext?.carrierId ? handleOpenEdit : undefined}
-        onDelete={!carrierContext?.carrierId ? handleConfirmDelete : undefined}
+        onEdit={handleOpenEdit}
+        onDelete={handleConfirmDelete}
       />
 
-      {!carrierContext?.carrierId && (
-        <CollectionPointFormDialog
-          open={formDialogOpen}
-          onOpenChange={setFormDialogOpen}
-          onSubmit={handleFormSubmit}
-          initialData={selectedPoint}
-          isLoading={isCreating || isUpdating}
-          carrierContext={carrierContext}
-        />
-      )}
+      <CollectionPointFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        onSubmit={handleFormSubmit}
+        initialData={selectedPoint}
+        isLoading={isCreating || isUpdating}
+        carrierContext={carrierContext}
+      />
     </div>
   );
 }
