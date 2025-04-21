@@ -12,6 +12,7 @@ export function useUsers() {
   const loadUsers = async () => {
     setLoading(true);
     try {
+      // Buscar perfis
       const { data: profiles, error: pfErr } = await supabase
         .from("profiles")
         .select("id, name, created_at, phone");
@@ -23,6 +24,7 @@ export function useUsers() {
         return;
       }
 
+      // Buscar roles
       const { data: roleData, error: rlErr } = await supabase
         .from("user_roles")
         .select("user_id, role");
@@ -34,24 +36,26 @@ export function useUsers() {
         return;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUserEmail = session?.user?.email;
+      // Buscar emails de todos usuários (usando admin API)
+      const { data: userData, error: userErr } = await supabase.auth.admin.listUsers();
+      
+      if (userErr) {
+        console.error("Error fetching user emails:", userErr);
+        toast({ title: "Erro ao carregar emails", description: userErr.message, variant: "destructive" });
+      }
       
       let userList: UserRow[] = [];
       
+      // Combinar dados dos perfis com as roles
       if (profiles) {
         for (const profile of profiles) {
           const roleRow = roleData?.find(r => r.user_id === profile.id);
-          
-          let email = null;
-          if (profile.id === session?.user?.id) {
-            email = currentUserEmail;
-          }
+          const userInfo = userData?.users?.find(u => u.id === profile.id);
           
           userList.push({
             id: profile.id,
             name: profile.name,
-            email: email,
+            email: userInfo?.email || null,
             phone: profile.phone,
             created_at: profile.created_at,
             role: roleRow?.role ?? "user",
@@ -60,15 +64,18 @@ export function useUsers() {
         }
       }
 
+      // Adicionar usuários que têm role mas não têm perfil
       if (roleData) {
         for (const role of roleData) {
           const userExists = userList.some(u => u.id === role.user_id);
           
           if (!userExists) {
+            const userInfo = userData?.users?.find(u => u.id === role.user_id);
+            
             userList.push({
               id: role.user_id,
               name: null,
-              email: role.user_id === session?.user?.id ? currentUserEmail : null,
+              email: userInfo?.email || null,
               phone: null,
               created_at: new Date().toISOString(),
               role: role.role,
