@@ -1,9 +1,11 @@
-
 export interface CollectionPoint {
   id: string;
   name: string;
   address: string;
   establishment_id: string | null;
+  establishment?: {
+    name: string;
+  } | null;
   carrier_id: string;
   phone: string | null;
   street: string | null;

@@ -13,18 +13,20 @@ export function useCollectionPoints(
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
     queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned],
     queryFn: async () => {
-      let query = supabase.from('collection_points').select('*');
+      let query = supabase
+        .from('collection_points')
+        .select(`
+          *,
+          establishment:establishments(name)
+        `);
       
       if (fetchUnassigned) {
-        // Fetch unassigned points (no carrier and no establishment)
         query = query
           .is('carrier_id', null)
           .is('establishment_id', null);
       } else if (establishmentId) {
-        // Filter by establishment
         query = query.eq('establishment_id', establishmentId);
       } else if (carrierId) {
-        // Filter by carrier if no establishment is provided
         query = query.eq('carrier_id', carrierId);
       }
       
@@ -35,7 +37,7 @@ export function useCollectionPoints(
         throw error;
       }
 
-      return data as CollectionPoint[];
+      return data as (CollectionPoint & { establishment: { name: string } | null })[];
     },
     enabled: true
   });

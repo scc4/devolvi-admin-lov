@@ -41,15 +41,21 @@ export function CollectionPointsTable({
   showAssociateButton,
   showDisassociateButton
 }: CollectionPointsTableProps) {
+  // Display for association/disassociation view
   if (showAssociateButton || showDisassociateButton) {
     return (
       <div className="space-y-4">
         {collectionPoints.map((point) => (
           <div key={point.id} className="bg-white p-4 rounded-lg shadow border">
-            <div className="flex justify-between items-center">
-              <div>
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
                 <h3 className="font-semibold">{point.name}</h3>
                 <p className="text-sm text-gray-600">{point.address}</p>
+                {point.establishment_id && (
+                  <p className="text-xs text-gray-500">
+                    Estabelecimento: {point.establishment?.name || 'Não definido'}
+                  </p>
+                )}
               </div>
               {showAssociateButton && (
                 <Button
