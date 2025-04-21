@@ -9,13 +9,17 @@ import { useEffect } from "react";
 interface ManageCollectionPointsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  establishment: EstablishmentWithDetails;
+  establishment?: EstablishmentWithDetails;
+  carrierContext?: {
+    carrierId: string;
+  };
 }
 
 export function ManageCollectionPointsDialog({
   open,
   onOpenChange,
-  establishment
+  establishment,
+  carrierContext
 }: ManageCollectionPointsDialogProps) {
   const { isMobile } = useIsMobile();
 
@@ -37,17 +41,22 @@ export function ManageCollectionPointsDialog({
     }
   }, [open]);
 
+  // Determine title based on context
+  const dialogTitle = establishment 
+    ? `Pontos de Coleta - ${establishment.name}` 
+    : "Pontos de Coleta da Transportadora";
+
   // Mobile view uses full-screen Sheet
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-[90vh] sm:h-[95vh]">
           <SheetHeader className="mb-4">
-            <SheetTitle>Pontos de Coleta - {establishment.name}</SheetTitle>
+            <SheetTitle>{dialogTitle}</SheetTitle>
           </SheetHeader>
           <CollectionPointsTab
-            establishmentId={establishment.id}
-            carrierContext={{ carrierId: establishment.carrier_id || undefined }}
+            establishmentId={establishment?.id}
+            carrierContext={carrierContext || (establishment?.carrier_id ? { carrierId: establishment.carrier_id } : undefined)}
           />
         </SheetContent>
       </Sheet>
@@ -59,11 +68,11 @@ export function ManageCollectionPointsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Pontos de Coleta - {establishment.name}</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
         <CollectionPointsTab
-          establishmentId={establishment.id}
-          carrierContext={{ carrierId: establishment.carrier_id || undefined }}
+          establishmentId={establishment?.id}
+          carrierContext={carrierContext || (establishment?.carrier_id ? { carrierId: establishment.carrier_id } : undefined)}
         />
       </DialogContent>
     </Dialog>

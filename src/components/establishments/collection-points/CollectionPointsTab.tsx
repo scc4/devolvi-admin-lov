@@ -8,7 +8,7 @@ import { Plus, RefreshCcw } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 
 interface CollectionPointsTabProps {
-  establishmentId: string;
+  establishmentId?: string;
   carrierContext?: {
     carrierId?: string;
   };
@@ -53,10 +53,11 @@ export function CollectionPointsTab({
       if (selectedPoint) {
         await updateCollectionPoint(point);
       } else {
-        // Ensure establishment_id is set when creating a new point
+        // Create new point with appropriate context
         const pointData = {
           ...point,
-          establishment_id: establishmentId,
+          establishment_id: establishmentId || null,
+          carrier_id: carrierContext?.carrierId || null,
         };
         await createCollectionPoint(pointData);
       }

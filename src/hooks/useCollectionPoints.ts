@@ -4,24 +4,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 
-export function useCollectionPoints(establishmentId: string | undefined) {
+export function useCollectionPoints(establishmentId?: string, carrierId?: string) {
   const queryClient = useQueryClient();
   
-  // Determine if we're querying by establishment or carrier
-  const isCarrierContext = !establishmentId;
-
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
-    queryKey: ['collection-points', establishmentId],
+    queryKey: ['collection-points', establishmentId, carrierId],
     queryFn: async () => {
       let query = supabase.from('collection_points').select('*');
       
       if (establishmentId) {
         // Filter by establishment
         query = query.eq('establishment_id', establishmentId);
+      } else if (carrierId) {
+        // Filter by carrier if no establishment is provided
+        query = query.eq('carrier_id', carrierId);
       } else {
-        // If no establishmentId is provided, assume we want carrier collection points
-        // with establishment_id = null
-        query = query.is('establishment_id', null);
+        // If neither is provided, fetch generic collection points
+        // with no establishment or carrier
+        query = query
+          .is('establishment_id', null)
+          .is('carrier_id', null);
       }
       
       const { data, error } = await query.order('name');
@@ -33,7 +35,7 @@ export function useCollectionPoints(establishmentId: string | undefined) {
 
       return data as CollectionPoint[];
     },
-    enabled: true // Always enabled as we might want carrier collection points
+    enabled: true // Always enabled as we might want various types of collection points
   });
 
   const createMutation = useMutation({
@@ -72,7 +74,7 @@ export function useCollectionPoints(establishmentId: string | undefined) {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['collection-points', establishmentId] });
+      queryClient.invalidateQueries({ queryKey: ['collection-points'] });
       toast.success('Ponto de coleta cadastrado com sucesso');
     },
     onError: (error) => {
@@ -102,7 +104,7 @@ export function useCollectionPoints(establishmentId: string | undefined) {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['collection-points', establishmentId] });
+      queryClient.invalidateQueries({ queryKey: ['collection-points'] });
       toast.success('Ponto de coleta atualizado com sucesso');
     },
     onError: (error) => {
@@ -121,7 +123,7 @@ export function useCollectionPoints(establishmentId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['collection-points', establishmentId] });
+      queryClient.invalidateQueries({ queryKey: ['collection-points'] });
       toast.success('Ponto de coleta excluído com sucesso');
     },
     onError: (error) => {
