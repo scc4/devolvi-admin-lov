@@ -15,7 +15,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   LayoutDashboard, 
-  Users, 
+  Users,
+  Truck,
   LogOut 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,9 +33,14 @@ export function AppSidebar() {
       icon: LayoutDashboard,
     },
     {
-      title: "Users",
+      title: "Usuários",
       url: "/dashboard/users",
       icon: Users,
+    },
+    {
+      title: "Transportadoras",
+      url: "/dashboard/carriers",
+      icon: Truck,
     },
   ];
 

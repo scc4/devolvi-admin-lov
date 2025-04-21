@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import Carriers from "./pages/Carriers";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -38,6 +39,7 @@ const App = () => (
             }>
               <Route index element={<Dashboard />} />
               <Route path="/dashboard/users" element={<Users />} />
+              <Route path="/dashboard/carriers" element={<Carriers />} />
             </Route>
             <Route path="/users" element={<Navigate to="/dashboard/users" replace />} />
             <Route path="*" element={<NotFound />} />
