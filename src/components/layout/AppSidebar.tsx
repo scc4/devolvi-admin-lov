@@ -1,4 +1,3 @@
-
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -11,7 +10,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  SidebarGroupContent  // Added this import
+  SidebarGroupContent
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
@@ -63,12 +62,15 @@ export function AppSidebar() {
     <Sidebar className={`${isMobile && !open ? "hidden" : ""} border-r`}>
       <SidebarHeader>
         <div className="flex w-full items-center gap-2">
-          <div className="flex items-center justify-center rounded-md bg-[#6366f1] p-1">
-            <span className="text-lg font-bold text-white">M</span>
-          </div>
-          <span className="font-semibold text-[#2a3547]">Modernize Admin</span>
+          <img 
+            src="/lovable-uploads/87919125-83d7-4d17-aef5-c7f61a7a6efb.png" 
+            alt="Devoly Logo" 
+            className="h-8 w-auto mr-2"
+          />
+          <span className="font-semibold text-[#2a3547]">Devoly</span>
         </div>
       </SidebarHeader>
+      
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-medium text-gray-500 px-4 py-2">MENU PRINCIPAL</SidebarGroupLabel>
