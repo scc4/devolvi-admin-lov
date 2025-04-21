@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -10,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Users as UsersIcon, Edit, Trash, Ban, Mail, UserPlus } from "lucide-react";
+import { User, UsersIcon, Edit, Trash, Ban, Mail, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InviteDialog } from "@/components/users/InviteDialog";
