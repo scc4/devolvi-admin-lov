@@ -41,7 +41,7 @@ export function AppSidebar() {
   return <Sidebar className={`${isMobile && !open ? "hidden" : ""} border-r`}>
       <SidebarHeader>
         <div className="flex w-full items-center gap-2">
-          <img src="/lovable-uploads/87919125-83d7-4d17-aef5-c7f61a7a6efb.png" alt="Devoly Logo" className="h-8 w-auto mr-2" />
+          <img src="/lovable-uploads/87919125-83d7-4d17-aef5-c7f61a7a6efb.png" alt="Devolvi Logo" className="h-8 w-auto mr-2" />
           <span className="font-semibold text-[#2a3547]"></span>
         </div>
       </SidebarHeader>

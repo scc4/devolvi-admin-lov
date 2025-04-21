@@ -83,7 +83,7 @@ export default function Auth() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-[#2A3547]">Bem-vindo à Devoly</h1>
+            <h1 className="text-2xl font-bold text-[#2A3547]">Bem-vindo à Devolvi</h1>
             <p className="text-[#637381] mt-2">
               {mode === 'login' 
                 ? "Entre na sua conta administrativa" 
@@ -159,7 +159,7 @@ export default function Auth() {
 
           <div className="text-center">
             <p className="text-sm text-[#637381]">
-              © {new Date().getFullYear()} Devoly Dashboard
+              © {new Date().getFullYear()} Devolvi Dashboard
             </p>
           </div>
         </div>
@@ -167,3 +167,4 @@ export default function Auth() {
     </div>
   );
 }
+
