@@ -5,11 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneBR, formatPhoneForStorage } from "@/lib/format";
 
-// Apenas Administrator
-type RoleValue = "admin";
-const ROLES = [
-  { value: "admin", label: "Administrador" }
-] as const;
+// Defining RoleValue to match the role types in Users.tsx
+type RoleValue = "admin" | "user" | "owner" | "carrier" | "dropoff";
 
 interface EditDialogProps {
   user: {
@@ -26,7 +23,7 @@ export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
   const [form, setForm] = useState({
     name: user.name ?? "",
     phone: formatPhoneBR(user.phone) ?? "",
-    role: "admin" as RoleValue,
+    role: "admin" as RoleValue, // Fixed to admin as requested
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,7 +33,7 @@ export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
     await onEdit(user.id, {
       name: form.name,
       phone: phoneFormatted,
-      role: "admin"
+      role: "admin" // Always send admin role as requested
     });
     setSubmitting(false);
   };
