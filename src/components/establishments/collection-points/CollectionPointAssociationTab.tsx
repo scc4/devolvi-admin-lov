@@ -1,13 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { useCollectionPoints } from "@/hooks/useCollectionPoints";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, Printer } from "lucide-react";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
@@ -81,6 +81,44 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     refetchCarrier();
   };
 
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Não foi possível abrir a janela de impressão');
+      return;
+    }
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Relatório de Pontos de Coleta</title>
+          <link rel="stylesheet" href="/src/index.css">
+        </head>
+        <body>
+          <div id="print-content"></div>
+        </body>
+      </html>
+    `);
+
+    // Render the print view component
+    const printContent = printWindow.document.getElementById('print-content');
+    if (printContent && carrierPoints) {
+      const root = document.createElement('div');
+      root.innerHTML = `<div class="min-h-screen bg-background text-foreground">
+        ${CollectionPointsPrintView({ collectionPoints: carrierPoints }).type({
+          collectionPoints: carrierPoints
+        }).props.children}
+      </div>`;
+      printContent.appendChild(root);
+
+      // Wait for styles to load
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    }
+  };
+
   return (
     <Tabs defaultValue="unassigned" className="space-y-6">
       <div className="flex items-center justify-between">
@@ -88,10 +126,20 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
           <TabsTrigger value="unassigned">Pontos Disponíveis</TabsTrigger>
           <TabsTrigger value="associated">Pontos Associados</TabsTrigger>
         </TabsList>
-        <Button variant="outline" size="sm" onClick={handleRefresh}>
-          <RefreshCcw className="h-4 w-4 mr-2" />
-          Atualizar
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handlePrint}
+          >
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir
+          </Button>
+        </div>
       </div>
 
       <TabsContent value="unassigned" className="space-y-4">
