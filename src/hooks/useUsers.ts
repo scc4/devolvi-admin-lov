@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,16 @@ export function useUsers() {
   const loadUsers = async () => {
     setLoading(true);
     try {
+      // Fetch all users from auth.users (admin API)
+      const { data: authUsers, error: authErr } = await supabase.auth.admin.listUsers();
+      
+      if (authErr) {
+        console.error("Error fetching auth users:", authErr);
+        toast({ title: "Erro ao carregar usuários", description: authErr.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
       // Buscar perfis
       const { data: profiles, error: pfErr } = await supabase
         .from("profiles")
@@ -35,56 +44,32 @@ export function useUsers() {
         setLoading(false);
         return;
       }
-
-      // Buscar emails
-      const { data: authUsers, error: authErr } = await supabase.auth.getUser();
-      
-      if (authErr) {
-        console.error("Error fetching auth user:", authErr);
-        toast({ title: "Erro ao carregar dados de autenticação", description: authErr.message, variant: "destructive" });
-      }
       
       let userList: UserRow[] = [];
       
-      // Combinar dados dos perfis com as roles
-      if (profiles) {
-        for (const profile of profiles) {
-          const roleRow = roleData?.find(r => r.user_id === profile.id);
-          // Para o email, usamos somente o do usuário atual
-          const isCurrentUser = authUsers?.user?.id === profile.id;
-          const email = isCurrentUser ? authUsers?.user?.email : null;
+      // Map all auth users with their profile and role information
+      if (authUsers?.users) {
+        for (const authUser of authUsers.users) {
+          const profile = profiles?.find(p => p.id === authUser.id);
+          const roleRow = roleData?.find(r => r.user_id === authUser.id);
           
-          userList.push({
-            id: profile.id,
-            name: profile.name,
-            email: email,
-            phone: profile.phone,
-            created_at: profile.created_at,
-            role: roleRow?.role ?? "user",
-            status: "Ativo",
-          });
-        }
-      }
-
-      // Adicionar usuários que têm role mas não têm perfil
-      if (roleData) {
-        for (const role of roleData) {
-          const userExists = userList.some(u => u.id === role.user_id);
-          
-          if (!userExists) {
-            const isCurrentUser = authUsers?.user?.id === role.user_id;
-            const email = isCurrentUser ? authUsers?.user?.email : null;
-            
-            userList.push({
-              id: role.user_id,
-              name: null,
-              email: email,
-              phone: null,
-              created_at: new Date().toISOString(),
-              role: role.role,
-              status: "Ativo",
-            });
+          // Determine status based on user metadata
+          let status: "Ativo" | "Inativo" | "Convidado" = "Ativo";
+          if (authUser.user_metadata?.disabled) {
+            status = "Inativo";
+          } else if (!authUser.email_confirmed_at) {
+            status = "Convidado";
           }
+
+          userList.push({
+            id: authUser.id,
+            name: profile?.name || null,
+            email: authUser.email || null,
+            phone: profile?.phone || null,
+            created_at: profile?.created_at || authUser.created_at || new Date().toISOString(),
+            role: roleRow?.role ?? "user",
+            status: status,
+          });
         }
       }
       
