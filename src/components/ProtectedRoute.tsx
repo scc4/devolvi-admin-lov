@@ -8,14 +8,19 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, roles } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate('/login');
+    if (!loading) {
+      if (!isAuthenticated) {
+        navigate('/login');
+      } else if (!roles.some(role => role === 'admin' || role === 'owner')) {
+        // If authenticated but not admin/owner, redirect to login
+        navigate('/login');
+      }
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, loading, navigate, roles]);
   
   if (loading) {
     return (
@@ -25,7 +30,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
   
-  return isAuthenticated ? <>{children}</> : null;
+  // Only render if authenticated and has admin/owner role
+  return isAuthenticated && roles.some(role => role === 'admin' || role === 'owner') ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

@@ -27,18 +27,30 @@ export default function Auth() {
     try {
       if (mode === 'login') {
         await login(email, password);
-        navigate("/dashboard");
-      } else {
-        if (!name) {
-          setErrorMsg("Name is required for signup.");
-          return;
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id);
+
+          const roles = roleData?.map(r => r.role) || [];
+          
+          if (!roles.some(role => role === 'admin' || role === 'owner')) {
+            setErrorMsg("Acesso negado. Apenas administradores e proprietários podem acessar este sistema.");
+            await supabase.auth.signOut();
+            return;
+          }
+          
+          navigate("/dashboard");
         }
-        await signup(email, password, name, avatarUrl);
-        setMode('login');
-        setErrorMsg("Signup successful! You can now log in.");
+      } else {
+        setErrorMsg("O cadastro de novos usuários deve ser feito por um administrador.");
+        return;
       }
     } catch (error: any) {
-      setErrorMsg(error.message || "Unable to authenticate");
+      setErrorMsg(error.message || "Erro ao autenticar");
     }
   };
 

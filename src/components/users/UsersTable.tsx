@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -76,7 +75,6 @@ export function UsersTable({
                     <Button
                       variant="outline"
                       size="icon"
-                      disabled={user.status === "Inativo"}
                       onClick={() => onEdit(user)}
                       title="Editar"
                     >
