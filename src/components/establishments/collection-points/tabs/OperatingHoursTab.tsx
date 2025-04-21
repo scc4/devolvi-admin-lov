@@ -1,5 +1,5 @@
 
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { CollectionPoint, DayOfWeek } from "@/types/collection-point";
 import { daysOfWeek, daysOfWeekPtBr } from "@/types/collection-point";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -43,7 +43,7 @@ export function OperatingHoursTab({
                 <span className="font-medium">{daysOfWeekPtBr[day]}</span>
               </div>
               
-              <Switch
+              <Checkbox
                 checked={isDayOpen(day)}
                 onCheckedChange={() => handleDayToggle(day)}
                 disabled={isLoading}
