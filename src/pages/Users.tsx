@@ -345,7 +345,7 @@ export default function Users() {
                       <TableCell className="font-mono text-xs">{user.id}</TableCell>
                       <TableCell className="">{user.name || <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell>{user.email || <span className="text-muted-foreground">—</span>}</TableCell>
-                      <TableCell>{user.phone || <span className="text-muted-foreground">—</span>}</TableCell>
+                      <TableCell>{user.phone ? formatPhoneBR(user.phone) : <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>{ROLES.find(r => r.value === user.role)?.label ?? user.role}</TableCell>
                       <TableCell>
