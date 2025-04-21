@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { CollectionPointsTab } from "./CollectionPointsTab";
 import type { EstablishmentWithDetails } from "@/types/establishment";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect } from "react";
 
 interface ManageCollectionPointsDialogProps {
   open: boolean;
@@ -17,6 +18,24 @@ export function ManageCollectionPointsDialog({
   establishment
 }: ManageCollectionPointsDialogProps) {
   const { isMobile } = useIsMobile();
+
+  // Ensure proper cleanup when dialog/sheet is closed
+  useEffect(() => {
+    if (!open) {
+      // Small timeout to ensure the dialog is fully closed before cleanup
+      const timeout = setTimeout(() => {
+        document.body.style.pointerEvents = '';
+        const overlays = document.querySelectorAll('[data-radix-portal]');
+        overlays.forEach(overlay => {
+          if (!overlay.contains(document.activeElement)) {
+            (overlay as HTMLElement).style.display = 'none';
+          }
+        });
+      }, 300);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [open]);
 
   // Mobile view uses full-screen Sheet
   if (isMobile) {

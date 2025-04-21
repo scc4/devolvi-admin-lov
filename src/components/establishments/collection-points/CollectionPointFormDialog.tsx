@@ -9,6 +9,7 @@ import { OperatingHoursTab } from "./tabs/OperatingHoursTab";
 import { useCollectionPointForm } from "@/hooks/useCollectionPointForm";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
+import { useEffect } from "react";
 
 interface CollectionPointFormDialogProps {
   open: boolean;
@@ -60,6 +61,23 @@ export function CollectionPointFormDialog({
       console.error("Erro ao salvar ponto de coleta:", error);
     }
   };
+
+  // Ensure proper cleanup when dialog is closed
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && open) {
+        onOpenChange(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [open, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

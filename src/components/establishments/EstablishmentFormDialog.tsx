@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
 
 interface EstablishmentFormDialogProps {
@@ -29,6 +29,24 @@ export function EstablishmentFormDialog({
     name: initialData?.name || "",
     type: initialData?.type as 'public' | 'private' || "public"
   });
+
+  // Ensure proper cleanup when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      // Small timeout to ensure the dialog is fully closed before cleanup
+      const timeout = setTimeout(() => {
+        document.body.style.pointerEvents = '';
+        const overlays = document.querySelectorAll('[data-radix-portal]');
+        overlays.forEach(overlay => {
+          if (!overlay.contains(document.activeElement)) {
+            (overlay as HTMLElement).style.display = 'none';
+          }
+        });
+      }, 300);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [open]);
 
   const handleSubmit = async () => {
     await onSubmit({
