@@ -19,15 +19,6 @@ serve(async (req) => {
   }
 
   try {
-    // Check for authorization
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Not authorized' }), { 
-        status: 401, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      });
-    }
-
     // Parse the request body
     const { userId }: DeleteUserRequest = await req.json();
     if (!userId) {
@@ -56,7 +47,13 @@ serve(async (req) => {
 
     if (error) {
       console.error('Error deleting user:', error);
-      throw error;
+      return new Response(
+        JSON.stringify({ success: false, error: error.message }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     // Return success response
