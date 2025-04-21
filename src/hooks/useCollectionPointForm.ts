@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { CollectionPoint, DayOfWeek } from "@/types/collection-point";
 
 const defaultOperatingHours = {
@@ -19,24 +18,32 @@ export function useCollectionPointForm(
   }
 ) {
   const [form, setForm] = useState<Partial<CollectionPoint>>({
-    name: initialData?.name || "",
-    address: initialData?.address || "",
-    phone: initialData?.phone || "",
-    street: initialData?.street || "",
-    number: initialData?.number || "",
-    complement: initialData?.complement || "",
-    district: initialData?.district || "",
-    zip_code: initialData?.zip_code || "",
-    city: initialData?.city || "",
-    state: initialData?.state || "",
-    latitude: initialData?.latitude || null,
-    longitude: initialData?.longitude || null,
-    is_active: initialData?.is_active ?? true,
-    operating_hours: initialData?.operating_hours || defaultOperatingHours,
-    ...(initialData?.id ? { id: initialData.id } : {}),
+    name: "",
+    address: "",
+    phone: "",
+    street: "",
+    number: "",
+    complement: "",
+    district: "",
+    zip_code: "",
+    city: "",
+    state: "",
+    latitude: null,
+    longitude: null,
+    is_active: true,
+    operating_hours: defaultOperatingHours,
     ...(carrierContext?.carrierId ? { carrier_id: carrierContext.carrierId } : {}),
-    ...(initialData?.carrier_id ? { carrier_id: initialData.carrier_id } : {}),
   });
+
+  // Load initial data when provided
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        ...initialData,
+        operating_hours: initialData.operating_hours || defaultOperatingHours,
+      });
+    }
+  }, [initialData]);
 
   const handleInputChange = (field: keyof CollectionPoint, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));

@@ -21,7 +21,12 @@ export function EditCarrierDialog({
   onSave,
   isSubmitting = false
 }: EditCarrierDialogProps) {
-  const [formData, setFormData] = useState<Carrier>(carrier);
+  const [formData, setFormData] = useState<Carrier>({ ...carrier });
+
+  // Load initial data when dialog opens or carrier changes
+  useEffect(() => {
+    setFormData({ ...carrier });
+  }, [carrier]);
 
   // Ensure proper cleanup when dialog is closed
   useEffect(() => {
@@ -36,7 +41,6 @@ export function EditCarrierDialog({
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
       
-      // Clean up any lingering portal elements
       setTimeout(() => {
         document.body.style.pointerEvents = '';
         const overlays = document.querySelectorAll('[data-radix-portal]');
@@ -151,3 +155,4 @@ export function EditCarrierDialog({
     </Dialog>
   );
 }
+

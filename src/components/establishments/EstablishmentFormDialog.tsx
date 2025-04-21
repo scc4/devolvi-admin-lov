@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
 
 interface EstablishmentFormDialogProps {
@@ -26,14 +26,29 @@ export function EstablishmentFormDialog({
     name: string;
     type: 'public' | 'private';
   }>({
-    name: initialData?.name || "",
-    type: initialData?.type as 'public' | 'private' || "public"
+    name: "",
+    type: "public"
   });
+
+  // Load initial data when dialog opens or initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        name: initialData.name,
+        type: initialData.type as 'public' | 'private'
+      });
+    } else {
+      // Reset form when creating new
+      setForm({
+        name: "",
+        type: "public"
+      });
+    }
+  }, [initialData, open]);
 
   // Ensure proper cleanup when dialog is closed
   useEffect(() => {
     if (!open) {
-      // Small timeout to ensure the dialog is fully closed before cleanup
       const timeout = setTimeout(() => {
         document.body.style.pointerEvents = '';
         const overlays = document.querySelectorAll('[data-radix-portal]');
@@ -53,9 +68,6 @@ export function EstablishmentFormDialog({
       ...form,
       ...(initialData?.id ? { id: initialData.id } : {})
     });
-    if (!initialData) {
-      setForm({ name: "", type: "public" });
-    }
   };
 
   return (
@@ -110,3 +122,4 @@ export function EstablishmentFormDialog({
     </Dialog>
   );
 }
+
