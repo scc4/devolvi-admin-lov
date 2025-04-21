@@ -14,3 +14,11 @@ export interface EstablishmentManager {
   user_id: string;
   created_at?: string;
 }
+
+export interface EstablishmentWithDetails extends Establishment {
+  collection_points_count: number;
+  carrier?: {
+    id: string;
+    name: string;
+  } | null;
+}

@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Establishment } from "@/types/establishment";
+import type { EstablishmentWithDetails } from "@/types/establishment";
 
 export function useEstablishments() {
   const queryClient = useQueryClient();
@@ -29,12 +28,12 @@ export function useEstablishments() {
       return data.map(est => ({
         ...est,
         collection_points_count: est.collection_points.length
-      }));
+      })) as EstablishmentWithDetails[];
     }
   });
 
   const editMutation = useMutation({
-    mutationFn: async (updates: Establishment) => {
+    mutationFn: async (updates: EstablishmentWithDetails) => {
       const { data, error } = await supabase
         .from('establishments')
         .upsert(updates)
@@ -55,7 +54,7 @@ export function useEstablishments() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (establishment: Establishment) => {
+    mutationFn: async (establishment: EstablishmentWithDetails) => {
       const { error } = await supabase
         .from('establishments')
         .delete()
@@ -73,11 +72,11 @@ export function useEstablishments() {
     }
   });
 
-  const handleEdit = async (establishment: Establishment) => {
+  const handleEdit = async (establishment: EstablishmentWithDetails) => {
     await editMutation.mutateAsync(establishment);
   };
 
-  const handleDelete = async (establishment: Establishment) => {
+  const handleDelete = async (establishment: EstablishmentWithDetails) => {
     await deleteMutation.mutateAsync(establishment);
   };
 
