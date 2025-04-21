@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import type { CollectionPoint, DayOfWeek } from "@/types/collection-point";
 
@@ -8,7 +9,7 @@ const defaultOperatingHours = {
   thursday: [{ open: '08:00', close: '18:00' }],
   friday: [{ open: '08:00', close: '18:00' }],
   saturday: [],
-  sunday: []
+  sunday: [{ open: '08:00', close: '18:00' }]
 };
 
 export function useCollectionPointForm(
