@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
 import { InviteDialog } from "@/components/users/InviteDialog";
 import { EditDialog } from "@/components/users/EditDialog";
 import { ConfirmActionDialog } from "@/components/users/ConfirmActionDialog";
@@ -10,15 +9,12 @@ import { UsersSearch } from "@/components/users/UsersSearch";
 import { UsersTable } from "@/components/users/UsersTable";
 import { useUsers } from "@/hooks/useUsers";
 import { UserRow } from "@/types/user";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Users() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [editUser, setEditUser] = useState<UserRow | null>(null);
-  const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
   const { user: currentUser, roles: currentUserRoles } = useAuth();
   const isAdmin = currentUserRoles.includes("admin") || currentUserRoles.includes("owner");
-
+  
   const {
     users,
     loading,
@@ -29,6 +25,11 @@ export default function Users() {
     handleInvite,
     handleResendInvite
   } = useUsers();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
 
   useEffect(() => {
     loadUsers();

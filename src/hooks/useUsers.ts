@@ -60,8 +60,19 @@ export function useUsers() {
         return;
       }
 
+      if (!usersData || !usersData.users) {
+        console.error("Invalid response from admin-list-users function");
+        toast({ 
+          title: "Erro ao carregar usuários", 
+          description: "Resposta inválida da função de listar usuários", 
+          variant: "destructive" 
+        });
+        setLoading(false);
+        return;
+      }
+
       // Build complete user list by combining data from all sources
-      const userList: UserRow[] = (usersData?.users || []).map((authUser: any) => {
+      const userList: UserRow[] = usersData.users.map((authUser: any) => {
         const profile = profiles?.find(p => p.id === authUser.id);
         const roleRow = roleData?.find(r => r.user_id === authUser.id);
         
