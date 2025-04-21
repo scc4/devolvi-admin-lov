@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { maskPhoneBR } from "@/lib/format";
 import type { Carrier } from "@/types/carrier";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface EditCarrierDialogProps {
   carrier: Carrier;
@@ -21,6 +22,32 @@ export function EditCarrierDialog({
   isSubmitting = false
 }: EditCarrierDialogProps) {
   const [formData, setFormData] = useState<Carrier>(carrier);
+
+  // Ensure proper cleanup when dialog is closed
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isSubmitting) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+      
+      // Clean up any lingering portal elements
+      setTimeout(() => {
+        document.body.style.pointerEvents = '';
+        const overlays = document.querySelectorAll('[data-radix-portal]');
+        overlays.forEach(overlay => {
+          if (!overlay.contains(document.activeElement)) {
+            (overlay as HTMLElement).style.display = 'none';
+          }
+        });
+      }, 300);
+    };
+  }, [isSubmitting, onClose]);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskPhoneBR(e.target.value);

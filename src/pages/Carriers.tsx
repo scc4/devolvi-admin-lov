@@ -37,7 +37,7 @@ export default function Carriers() {
   );
 
   const handleAddCarrier = () => {
-    setEditCarrier({ id: '', name: '', city: '', manager: '', phone: '', email: '' });
+    setEditCarrier({ id: '', name: '', city: '', manager: '', phone: '', email: '', is_active: true });
   };
 
   const handleCarrierSave = async (carrier: Carrier) => {
@@ -46,6 +46,19 @@ export default function Carriers() {
     } else {
       await handleEdit(carrier);
     }
+    setEditCarrier(null);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmModal) return;
+    
+    if (confirmModal.action === "delete") {
+      await handleDelete(confirmModal.carrier);
+    } else if (confirmModal.action === "deactivate") {
+      await handleDeactivate(confirmModal.carrier);
+    }
+    
+    setConfirmModal(null);
   };
 
   return (
@@ -96,12 +109,7 @@ export default function Carriers() {
           action={confirmModal.action}
           carrier={confirmModal.carrier}
           onCancel={() => setConfirmModal(null)}
-          onConfirm={() => {
-            if (!confirmModal) return;
-            if (confirmModal.action === "delete") handleDelete(confirmModal.carrier);
-            if (confirmModal.action === "deactivate") handleDeactivate(confirmModal.carrier);
-            setConfirmModal(null);
-          }}
+          onConfirm={handleConfirmAction}
         />
       )}
     </div>

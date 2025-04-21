@@ -1,7 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import type { Carrier } from "@/types/carrier";
 
 interface ConfirmActionDialogProps {
@@ -24,6 +24,25 @@ export function ConfirmActionDialog({ open, action, carrier, onConfirm, onCancel
     default:
       message = "";
   }
+
+  // Ensure proper cleanup when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      // Small timeout to ensure the dialog is fully closed before cleanup
+      const timeout = setTimeout(() => {
+        document.body.style.pointerEvents = '';
+        const overlays = document.querySelectorAll('[data-radix-portal]');
+        overlays.forEach(overlay => {
+          if (!overlay.contains(document.activeElement)) {
+            (overlay as HTMLElement).style.display = 'none';
+          }
+        });
+      }, 300);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onCancel}>
       <DialogContent>
