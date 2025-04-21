@@ -96,7 +96,9 @@ export default function Users() {
       if (profiles) {
         for (const profile of profiles) {
           const roleRow = roles?.find(r => r.user_id === profile.id);
-          const userAuth = authList?.users?.find(u => u.id === profile.id);
+          // Fixed: Type safety for authList
+          const authUsers = authList?.users || [];
+          const userAuth = authUsers.find(u => u.id === profile.id);
           
           // Exemplo de lógica simplificada de status:
           let status: StatusType = "Convidado";
