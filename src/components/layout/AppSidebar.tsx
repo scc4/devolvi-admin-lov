@@ -1,4 +1,3 @@
-
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -17,7 +16,8 @@ import {
   LayoutDashboard, 
   Users,
   Truck,
-  LogOut 
+  LogOut,
+  Building
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -42,6 +42,11 @@ export function AppSidebar() {
       url: "/dashboard/carriers",
       icon: Truck,
     },
+    {
+      title: "Estabelecimentos",
+      url: "/dashboard/establishments",
+      icon: Building,
+    }
   ];
 
   const handleLogout = async () => {

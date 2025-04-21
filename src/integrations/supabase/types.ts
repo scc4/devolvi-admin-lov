@@ -50,6 +50,7 @@ export type Database = {
           address: string
           carrier_id: string
           created_at: string
+          establishment_id: string | null
           id: string
           name: string
           updated_at: string
@@ -58,6 +59,7 @@ export type Database = {
           address: string
           carrier_id: string
           created_at?: string
+          establishment_id?: string | null
           id?: string
           name: string
           updated_at?: string
@@ -66,6 +68,7 @@ export type Database = {
           address?: string
           carrier_id?: string
           created_at?: string
+          establishment_id?: string | null
           id?: string
           name?: string
           updated_at?: string
@@ -73,6 +76,77 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "collection_points_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_points_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      establishment_managers: {
+        Row: {
+          created_at: string
+          establishment_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          establishment_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "establishment_managers_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      establishments: {
+        Row: {
+          carrier_id: string | null
+          created_at: string
+          id: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "establishments_carrier_id_fkey"
             columns: ["carrier_id"]
             isOneToOne: false
             referencedRelation: "carriers"

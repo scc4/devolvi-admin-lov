@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CarriersHeader } from "@/components/carriers/CarriersHeader";
@@ -79,7 +78,7 @@ export default function Carriers() {
         <ConfirmActionDialog
           open={!!confirmModal}
           action={confirmModal.action}
-          carrier={confirmModal.user}
+          carrier={confirmModal.carrier}
           onCancel={() => setConfirmModal(null)}
           onConfirm={() => {
             if (!confirmModal) return;
