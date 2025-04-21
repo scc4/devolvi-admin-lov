@@ -10,8 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Clock } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
+import { checkOpenStatus } from "./utils/checkOpenStatus";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { formatOperatingHours } from "./utils/formatters";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
@@ -86,40 +93,67 @@ export function CollectionPointsTable({
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Endereço</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={3} className="text-center py-4">Carregando...</TableCell>
+              <TableCell colSpan={4} className="text-center py-4">Carregando...</TableCell>
             </TableRow>
           ) : collectionPoints.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={3} className="text-center py-4">Nenhum ponto de coleta encontrado.</TableCell>
+              <TableCell colSpan={4} className="text-center py-4">Nenhum ponto de coleta encontrado.</TableCell>
             </TableRow>
           ) : (
-            collectionPoints.map((point) => (
-              <TableRow key={point.id}>
-                <TableCell className="font-medium">{point.name}</TableCell>
-                <TableCell>{point.address}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="icon" onClick={() => onEdit?.(point)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="destructive" size="icon" onClick={() => onDelete?.(point.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
+            collectionPoints.map((point) => {
+              const status = checkOpenStatus(point);
+              return (
+                <TableRow key={point.id}>
+                  <TableCell className="font-medium">{point.name}</TableCell>
+                  <TableCell>{point.address}</TableCell>
+                  <TableCell>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 space-x-2">
+                          <Clock className="h-4 w-4" />
+                          <span className={status.isOpen ? "text-green-600" : "text-red-600"}>
+                            {status.isOpen ? "Open" : "Closed"}
+                          </span>
+                          {status.nextChange && (
+                            <span className="text-muted-foreground">
+                              · {status.nextChange.type === 'closes' ? 'Closes' : 'Opens'} {status.nextChange.time}
+                              {status.nextChange.day ? ` ${status.nextChange.day}` : ''}
+                            </span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="text-sm">
+                          {formatOperatingHours(point.operating_hours)}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="icon" onClick={() => onEdit?.(point)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="destructive" size="icon" onClick={() => onDelete?.(point.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={3}>
+            <TableCell colSpan={4}>
               {collectionPoints.length} Ponto(s) de Coleta no total
             </TableCell>
           </TableRow>
