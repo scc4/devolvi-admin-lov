@@ -41,7 +41,7 @@ export function ManageCollectionPointsDialog({
     }
   }, [open]);
 
-  // Determine title based on context
+  // Determine title based on context - safely handle undefined establishment
   const dialogTitle = establishment 
     ? `Pontos de Coleta - ${establishment.name}` 
     : "Pontos de Coleta da Transportadora";
@@ -56,7 +56,7 @@ export function ManageCollectionPointsDialog({
           </SheetHeader>
           <CollectionPointsTab
             establishmentId={establishment?.id}
-            carrierContext={carrierContext || (establishment?.carrier_id ? { carrierId: establishment.carrier_id } : undefined)}
+            carrierContext={carrierContext}
           />
         </SheetContent>
       </Sheet>
@@ -72,7 +72,7 @@ export function ManageCollectionPointsDialog({
         </DialogHeader>
         <CollectionPointsTab
           establishmentId={establishment?.id}
-          carrierContext={carrierContext || (establishment?.carrier_id ? { carrierId: establishment.carrier_id } : undefined)}
+          carrierContext={carrierContext}
         />
       </DialogContent>
     </Dialog>

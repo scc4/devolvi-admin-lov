@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useCollectionPoints } from "@/hooks/useCollectionPoints";
 import { CollectionPointsTable } from "./CollectionPointsTable";
@@ -27,7 +26,10 @@ export function CollectionPointsTab({
     isCreating,
     isUpdating,
     refetch
-  } = useCollectionPoints(establishmentId);
+  } = useCollectionPoints(
+    establishmentId, 
+    carrierContext?.carrierId
+  );
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
