@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -12,9 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Users as UsersIcon, Edit, Trash, Ban, Mail, UserPlus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { InviteDialog } from "@/components/users/InviteDialog";
+import { EditDialog } from "@/components/users/EditDialog";
+import { ConfirmActionDialog } from "@/components/users/ConfirmActionDialog";
 
 // Lista de perfis permitidos
 const ROLES = [
@@ -46,7 +47,7 @@ export default function Users() {
   // Modais e ações
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserRow | null>(null);
-  const [confirmModal, setConfirmModal] = useState<null | { action: string, user: UserRow }>(null);
+  const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
   const { toast } = useToast();
 
   // Buscar usuários do Supabase
@@ -183,140 +184,6 @@ export default function Users() {
     setConfirmModal(null);
   };
 
-  // Renderização dos modais de confirmação
-  function renderConfirmModal() {
-    if (!confirmModal) return null;
-    const { action, user } = confirmModal;
-    let message = "";
-    switch (action) {
-      case "delete":
-        message = `Deseja realmente excluir o usuário "${user.name}"? Esta ação é irreversível.`;
-        break;
-      case "deactivate":
-        message = `Deseja inativar o usuário "${user.name}"?`;
-        break;
-      case "invite":
-        message = `Deseja reenviar o convite para "${user.name}" (${user.email})?`;
-        break;
-      default:
-        break;
-    }
-    return (
-      <Dialog open onOpenChange={() => setConfirmModal(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirme a ação</DialogTitle>
-            <DialogDescription>{message}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="ghost"
-              onClick={() => setConfirmModal(null)}
-            >
-              Cancelar
-            </Button>
-            {action === "delete" && (
-              <Button variant="destructive" onClick={() => handleDelete(user)}>
-                Excluir
-              </Button>
-            )}
-            {action === "deactivate" && (
-              <Button variant="outline" onClick={() => handleDeactivate(user)}>
-                Inativar
-              </Button>
-            )}
-            {action === "invite" && (
-              <Button variant="outline" onClick={() => handleResendInvite(user)}>
-                Reenviar convite
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Modal de convite de usuário
-  function InviteDialog({ open, onOpenChange, onInvite }: { open: boolean, onOpenChange: (v: boolean) => void, onInvite: (args: any) => void }) {
-    const [form, setForm] = useState({ name: "", email: "", phone: "", role: "user" as RoleValue });
-    const [submitting, setSubmitting] = useState(false);
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Convidar Novo Usuário</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <Input placeholder="Nome" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-            <Input placeholder="E-mail" value={form.email} type="email" onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-            <Input placeholder="Telefone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-            <select
-              className="w-full p-2 border rounded-md bg-background"
-              value={form.role}
-              onChange={e => setForm(f => ({ ...f, role: e.target.value as RoleValue }))}
-            >
-              {ROLES.map(r => <option value={r.value} key={r.value}>{r.label}</option>)}
-            </select>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button
-              onClick={async () => {
-                setSubmitting(true);
-                await onInvite(form);
-                setForm({ name: "", email: "", phone: "", role: "user" });
-                setSubmitting(false);
-              }}
-              disabled={submitting || !form.email || !form.name}
-            >
-              Convidar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Modal de edição de usuário
-  function EditDialog({ user, onClose }: { user: UserRow, onClose: () => void }) {
-    const [form, setForm] = useState({ name: user.name ?? "", phone: user.phone ?? "", role: user.role });
-    const [submitting, setSubmitting] = useState(false);
-
-    return (
-      <Dialog open onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Usuário</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <Input placeholder="Nome" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-            <Input placeholder="Telefone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-            <select
-              className="w-full p-2 border rounded-md bg-background"
-              value={form.role}
-              onChange={e => setForm(f => ({ ...f, role: e.target.value as RoleValue }))}
-            >
-              {ROLES.map(r => <option value={r.value} key={r.value}>{r.label}</option>)}
-            </select>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-            <Button
-              onClick={async () => {
-                setSubmitting(true);
-                await handleEdit(user.id, form);
-                setSubmitting(false);
-              }}
-              disabled={submitting || !form.name}
-            >
-              Salvar Alterações
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-md">
@@ -432,10 +299,24 @@ export default function Users() {
           </div>
         </CardContent>
       </Card>
+
       {/* Modais */}
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} onInvite={handleInvite} />
-      {editUser && <EditDialog user={editUser} onClose={() => setEditUser(null)} />}
-      {renderConfirmModal()}
+      {editUser && <EditDialog user={editUser} onClose={() => setEditUser(null)} onEdit={handleEdit} />}
+      {confirmModal && (
+        <ConfirmActionDialog
+          open={!!confirmModal}
+          action={confirmModal.action}
+          user={confirmModal.user}
+          onCancel={() => setConfirmModal(null)}
+          onConfirm={() => {
+            if (!confirmModal) return;
+            if (confirmModal.action === "delete") handleDelete(confirmModal.user);
+            if (confirmModal.action === "deactivate") handleDeactivate(confirmModal.user);
+            if (confirmModal.action === "invite") handleResendInvite(confirmModal.user);
+          }}
+        />
+      )}
     </div>
   );
 }
