@@ -4,15 +4,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneBR, formatPhoneForStorage } from "@/lib/format";
+import { Loader2 } from "lucide-react";
 import type { Carrier } from "@/types/carrier";
 
 interface EditCarrierDialogProps {
   carrier: Carrier;
   onClose: () => void;
   onSave: (carrier: Carrier) => Promise<void>;
+  isSubmitting?: boolean;
 }
 
-export function EditCarrierDialog({ carrier, onClose, onSave }: EditCarrierDialogProps) {
+export function EditCarrierDialog({ carrier, onClose, onSave, isSubmitting = false }: EditCarrierDialogProps) {
   const [form, setForm] = useState({
     ...carrier,
     phone: formatPhoneBR(carrier.phone) ?? "",
@@ -20,6 +22,10 @@ export function EditCarrierDialog({ carrier, onClose, onSave }: EditCarrierDialo
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    if (!form.name || !form.city || !form.manager) {
+      return;
+    }
+    
     setSubmitting(true);
     const phoneFormatted = formatPhoneForStorage(form.phone);
     await onSave({
@@ -27,7 +33,6 @@ export function EditCarrierDialog({ carrier, onClose, onSave }: EditCarrierDialo
       phone: phoneFormatted,
     });
     setSubmitting(false);
-    onClose();
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +41,7 @@ export function EditCarrierDialog({ carrier, onClose, onSave }: EditCarrierDialo
   };
 
   const isNew = !carrier.id;
+  const isDisabled = submitting || isSubmitting || !form.name || !form.city || !form.manager;
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -73,11 +79,12 @@ export function EditCarrierDialog({ carrier, onClose, onSave }: EditCarrierDialo
           />
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button variant="ghost" onClick={onClose} disabled={submitting || isSubmitting}>Cancelar</Button>
           <Button
             onClick={handleSubmit}
-            disabled={submitting || !form.name || !form.city || !form.manager}
+            disabled={isDisabled}
           >
+            {(submitting || isSubmitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isNew ? 'Criar' : 'Salvar Alterações'}
           </Button>
         </DialogFooter>

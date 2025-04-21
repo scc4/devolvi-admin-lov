@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CarriersHeader } from "@/components/carriers/CarriersHeader";
@@ -8,6 +9,8 @@ import { EditCarrierDialog } from "@/components/carriers/EditCarrierDialog";
 import { ConfirmActionDialog } from "@/components/carriers/ConfirmActionDialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
+import { CollectionPointsTab } from "@/components/establishments/collection-points/CollectionPointsTab";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { Carrier } from "@/types/carrier";
 
 export default function Carriers() {
@@ -16,14 +19,17 @@ export default function Carriers() {
     loading,
     error,
     loadCarriers,
+    handleCreate,
     handleEdit,
     handleDelete,
-    handleDeactivate
+    handleDeactivate,
+    isCreating
   } = useCarriers();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [editCarrier, setEditCarrier] = useState<Carrier | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate", carrier: Carrier }>(null);
+  const [manageCollectionPoints, setManageCollectionPoints] = useState<Carrier | null>(null);
 
   const filteredCarriers = carriers.filter((carrier) =>
     carrier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -33,11 +39,31 @@ export default function Carriers() {
     carrier.phone?.includes(searchTerm)
   );
 
+  const handleAddCarrier = () => {
+    setEditCarrier({ id: '', name: '', city: '', manager: '', phone: '', email: '' });
+  };
+
+  const handleCarrierSave = async (carrier: Carrier) => {
+    if (!carrier.id) {
+      const newCarrier = await handleCreate(carrier);
+      // Open collection points management if it's a new carrier
+      if (newCarrier) {
+        setManageCollectionPoints(newCarrier);
+      }
+    } else {
+      await handleEdit(carrier);
+    }
+  };
+
+  const handleManageCollectionPoints = (carrier: Carrier) => {
+    setManageCollectionPoints(carrier);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-md">
         <CardHeader>
-          <CarriersHeader onAdd={() => setEditCarrier({ id: '', name: '', city: '', manager: '', phone: '', email: '' })} />
+          <CarriersHeader onAdd={handleAddCarrier} />
         </CardHeader>
         <CardContent>
           <CarriersSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
@@ -61,6 +87,7 @@ export default function Carriers() {
               onEdit={setEditCarrier}
               onDelete={(carrier) => setConfirmModal({ action: "delete", carrier })}
               onDeactivate={(carrier) => setConfirmModal({ action: "deactivate", carrier })}
+              onManageCollectionPoints={handleManageCollectionPoints}
             />
           )}
         </CardContent>
@@ -70,7 +97,8 @@ export default function Carriers() {
         <EditCarrierDialog
           carrier={editCarrier}
           onClose={() => setEditCarrier(null)}
-          onSave={handleEdit}
+          onSave={handleCarrierSave}
+          isSubmitting={isCreating}
         />
       )}
       
@@ -84,8 +112,27 @@ export default function Carriers() {
             if (!confirmModal) return;
             if (confirmModal.action === "delete") handleDelete(confirmModal.carrier);
             if (confirmModal.action === "deactivate") handleDeactivate(confirmModal.carrier);
+            setConfirmModal(null);
           }}
         />
+      )}
+
+      {manageCollectionPoints && (
+        <Dialog open={!!manageCollectionPoints} onOpenChange={() => setManageCollectionPoints(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                Pontos de Coleta - {manageCollectionPoints.name}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4">
+              <CollectionPointsTab 
+                establishmentId="dummy" 
+                carrierContext={{ carrierId: manageCollectionPoints.id }} 
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

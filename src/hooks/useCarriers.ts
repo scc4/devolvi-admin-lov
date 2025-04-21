@@ -26,6 +26,39 @@ export function useCarriers() {
     }
   });
 
+  const createMutation = useMutation({
+    mutationFn: async (carrier: Partial<Carrier>) => {
+      // Make sure required fields are present
+      if (!carrier.name) throw new Error('Nome da transportadora é obrigatório');
+      if (!carrier.city) throw new Error('Cidade é obrigatória');
+      if (!carrier.manager) throw new Error('Gestor responsável é obrigatório');
+
+      const { data, error } = await supabase
+        .from('carriers')
+        .insert({
+          name: carrier.name,
+          city: carrier.city,
+          manager: carrier.manager,
+          phone: carrier.phone || null,
+          email: carrier.email || null,
+          is_active: carrier.is_active ?? true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['carriers'] });
+      toast.success('Transportadora cadastrada com sucesso');
+    },
+    onError: (error) => {
+      toast.error('Erro ao cadastrar transportadora');
+      console.error('Error creating carrier:', error);
+    }
+  });
+
   const editMutation = useMutation({
     mutationFn: async (updates: Carrier) => {
       const { data, error } = await supabase
@@ -85,6 +118,10 @@ export function useCarriers() {
     }
   });
 
+  const handleCreate = async (carrier: Partial<Carrier>) => {
+    return await createMutation.mutateAsync(carrier);
+  };
+
   const handleEdit = async (carrier: Carrier) => {
     await editMutation.mutateAsync(carrier);
   };
@@ -107,8 +144,12 @@ export function useCarriers() {
     loading,
     error,
     loadCarriers,
+    handleCreate,
     handleEdit,
     handleDelete,
-    handleDeactivate
+    handleDeactivate,
+    isCreating: createMutation.isPending,
+    isUpdating: editMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }

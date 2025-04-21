@@ -1,12 +1,14 @@
 
-import { 
+import { MoreHorizontal, Pencil, Trash, PowerOff, MapPin } from "lucide-react";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash, Ban, MoreVertical } from "lucide-react";
 import type { Carrier } from "@/types/carrier";
 
 interface CarrierActionsDropdownProps {
@@ -14,33 +16,46 @@ interface CarrierActionsDropdownProps {
   onEdit: (carrier: Carrier) => void;
   onDelete: (carrier: Carrier) => void;
   onDeactivate: (carrier: Carrier) => void;
+  onManageCollectionPoints: (carrier: Carrier) => void;
 }
 
-export function CarrierActionsDropdown({
-  carrier,
-  onEdit,
-  onDelete,
+export function CarrierActionsDropdown({ 
+  carrier, 
+  onEdit, 
+  onDelete, 
   onDeactivate,
+  onManageCollectionPoints
 }: CarrierActionsDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreVertical className="h-4 w-4" />
+        <Button variant="ghost" size="sm">
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-white">
-        <DropdownMenuItem onClick={() => onEdit(carrier)} className="cursor-pointer">
-          <Edit className="mr-2 h-4 w-4" />
-          <span>Editar</span>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => onEdit(carrier)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Editar
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onDelete(carrier)} className="cursor-pointer text-destructive">
+        <DropdownMenuItem onClick={() => onManageCollectionPoints(carrier)}>
+          <MapPin className="mr-2 h-4 w-4" />
+          Pontos de Coleta
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {carrier.is_active && (
+          <DropdownMenuItem onClick={() => onDeactivate(carrier)}>
+            <PowerOff className="mr-2 h-4 w-4" />
+            Desativar
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem 
+          onClick={() => onDelete(carrier)} 
+          className="text-destructive focus:text-destructive"
+        >
           <Trash className="mr-2 h-4 w-4" />
-          <span>Excluir</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onDeactivate(carrier)} className="cursor-pointer">
-          <Ban className="mr-2 h-4 w-4" />
-          <span>Desativar</span>
+          Excluir
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

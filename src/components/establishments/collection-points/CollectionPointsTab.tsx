@@ -26,7 +26,7 @@ export function CollectionPointsTab({
     deleteCollectionPoint,
     isCreating,
     isUpdating,
-  } = useCollectionPoints(establishmentId);
+  } = useCollectionPoints(carrierContext?.carrierId ? undefined : establishmentId);
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
@@ -89,6 +89,7 @@ export function CollectionPointsTab({
         onSubmit={handleFormSubmit}
         initialData={selectedPoint}
         isLoading={isCreating || isUpdating}
+        carrierContext={carrierContext}
       />
     </div>
   );

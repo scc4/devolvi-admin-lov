@@ -17,6 +17,7 @@ interface CarriersTableProps {
   onEdit: (carrier: Carrier) => void;
   onDelete: (carrier: Carrier) => void;
   onDeactivate: (carrier: Carrier) => void;
+  onManageCollectionPoints: (carrier: Carrier) => void;
 }
 
 export function CarriersTable({
@@ -25,6 +26,7 @@ export function CarriersTable({
   onEdit,
   onDelete,
   onDeactivate,
+  onManageCollectionPoints
 }: CarriersTableProps) {
   return (
     <div className="rounded-md border overflow-x-auto">
@@ -70,6 +72,7 @@ export function CarriersTable({
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onDeactivate={onDeactivate}
+                    onManageCollectionPoints={onManageCollectionPoints}
                   />
                 </TableCell>
               </TableRow>
