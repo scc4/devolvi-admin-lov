@@ -9,14 +9,22 @@ export function useUserManagement() {
 
   const deleteUser = async (user: UserRow) => {
     try {
-      // For security, we can only delete the current user
-      // To implement multi-user management, you'll need a backend function with service_role key
-      toast({
-        title: "Operação não suportada",
-        description: "A exclusão de outros usuários requer uma função de backend com permissões de serviço.",
-        variant: "destructive"
+      // Call our edge function with service role key
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: { userId: user.id }
       });
-      return { success: false };
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast({
+          title: "Usuário excluído",
+          description: "O usuário foi excluído com sucesso."
+        });
+        return { success: true };
+      } else {
+        throw new Error(data?.error || 'Erro desconhecido');
+      }
     } catch (error: any) {
       toast({
         title: "Erro ao excluir usuário",
@@ -29,14 +37,22 @@ export function useUserManagement() {
 
   const deactivateUser = async (user: UserRow) => {
     try {
-      // For security, we cannot update user metadata from the client
-      // To implement this feature, you'll need a backend function with service_role key
-      toast({
-        title: "Operação não suportada",
-        description: "A inativação de usuários requer uma função de backend com permissões de serviço.",
-        variant: "destructive"
+      // Call our edge function with service role key
+      const { data, error } = await supabase.functions.invoke('admin-deactivate-user', {
+        body: { userId: user.id }
       });
-      return { success: false };
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast({
+          title: "Usuário inativado",
+          description: "O usuário foi inativado com sucesso."
+        });
+        return { success: true };
+      } else {
+        throw new Error(data?.error || 'Erro desconhecido');
+      }
     } catch (error: any) {
       toast({
         title: "Erro ao inativar usuário",
