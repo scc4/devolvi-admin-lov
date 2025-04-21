@@ -7,6 +7,7 @@ import { BasicInfoTab } from "./tabs/BasicInfoTab";
 import { AddressTab } from "./tabs/AddressTab";
 import { OperatingHoursTab } from "./tabs/OperatingHoursTab";
 import { useCollectionPointForm } from "@/hooks/useCollectionPointForm";
+import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 
 interface CollectionPointFormDialogProps {
@@ -37,8 +38,23 @@ export function CollectionPointFormDialog({
   } = useCollectionPointForm(initialData, carrierContext);
 
   const handleSubmit = async () => {
-    if (!form.name || !form.address || (!form.carrier_id && !carrierContext?.carrierId)) {
-      alert("Por favor, preencha os campos obrigatórios: Nome, Endereço");
+    // Enhanced validation with detailed errors
+    const errors = [];
+    
+    if (!form.name?.trim()) {
+      errors.push("Nome");
+    }
+    
+    if (!form.address?.trim()) {
+      errors.push("Endereço");
+    }
+    
+    if (!form.carrier_id && !carrierContext?.carrierId) {
+      errors.push("Transportadora");
+    }
+    
+    if (errors.length > 0) {
+      toast.error(`Por favor, preencha os campos obrigatórios: ${errors.join(', ')}`);
       return;
     }
     
