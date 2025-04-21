@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
-import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -16,7 +15,6 @@ import Auth from "./pages/Auth";
 const queryClient = new QueryClient();
 
 const RootRedirect = () => {
-  // If logged in, home (/) goes to dashboard, else login
   const { isAuthenticated, loading } = useAuth();
   if (loading) return null;
   return <Navigate to={isAuthenticated ? "/dashboard" : "/auth"} replace />;
@@ -40,10 +38,8 @@ const App = () => (
             }>
               <Route index element={<Dashboard />} />
               <Route path="/dashboard/users" element={<Users />} />
-              <Route path="/dashboard/settings" element={<Settings />} />
             </Route>
             <Route path="/users" element={<Navigate to="/dashboard/users" replace />} />
-            <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
