@@ -5,14 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneForStorage } from "@/lib/format";
 
-// Types passed as props
-type RoleValue = "owner" | "admin" | "carrier" | "dropoff" | "user";
+// Apenas a role de Administrador
+type RoleValue = "admin";
 const ROLES = [
-  { value: "owner", label: "Proprietário" },
-  { value: "admin", label: "Administrador" },
-  { value: "carrier", label: "Transportador" },
-  { value: "dropoff", label: "Ponto de Entrega" },
-  { value: "user", label: "Usuário" },
+  { value: "admin", label: "Administrador" }
 ] as const;
 
 interface InviteDialogProps {
@@ -22,22 +18,19 @@ interface InviteDialogProps {
 }
 
 export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", role: "user" as RoleValue });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", role: "admin" as RoleValue });
   const [submitting, setSubmitting] = useState(false);
 
   const handleInvite = async () => {
     setSubmitting(true);
-    
-    // Format phone for database with international code
     const phoneFormatted = formatPhoneForStorage(form.phone);
-    
     await onInvite({
       name: form.name,
       email: form.email,
       phone: phoneFormatted || undefined,
-      role: form.role
+      role: "admin"
     });
-    setForm({ name: "", email: "", phone: "", role: "user" });
+    setForm({ name: "", email: "", phone: "", role: "admin" });
     setSubmitting(false);
   };
 
@@ -55,19 +48,14 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
         <div className="space-y-3 py-2">
           <Input placeholder="Nome" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
           <Input placeholder="E-mail" value={form.email} type="email" onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-          <Input 
-            placeholder="Telefone" 
-            value={form.phone} 
-            onChange={handlePhoneChange} 
+          <Input
+            placeholder="Telefone"
+            value={form.phone}
+            onChange={handlePhoneChange}
             maxLength={15}
           />
-          <select
-            className="w-full p-2 border rounded-md bg-background"
-            value={form.role}
-            onChange={e => setForm(f => ({ ...f, role: e.target.value as RoleValue }))}
-          >
-            {ROLES.map(r => <option value={r.value} key={r.value}>{r.label}</option>)}
-          </select>
+          {/* Perfil fixo */}
+          <Input value="Administrador" readOnly disabled className="bg-gray-100 cursor-not-allowed" />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>

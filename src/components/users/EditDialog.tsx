@@ -5,14 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneBR, formatPhoneForStorage } from "@/lib/format";
 
-// Types passed via props
-type RoleValue = "owner" | "admin" | "carrier" | "dropoff" | "user";
+// Apenas Administrator
+type RoleValue = "admin";
 const ROLES = [
-  { value: "owner", label: "Proprietário" },
-  { value: "admin", label: "Administrador" },
-  { value: "carrier", label: "Transportador" },
-  { value: "dropoff", label: "Ponto de Entrega" },
-  { value: "user", label: "Usuário" },
+  { value: "admin", label: "Administrador" }
 ] as const;
 
 interface EditDialogProps {
@@ -30,20 +26,17 @@ export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
   const [form, setForm] = useState({
     name: user.name ?? "",
     phone: formatPhoneBR(user.phone) ?? "",
-    role: user.role,
+    role: "admin" as RoleValue,
   });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    
-    // Format phone for storage
     const phoneFormatted = formatPhoneForStorage(form.phone);
-    
     await onEdit(user.id, {
       name: form.name,
       phone: phoneFormatted,
-      role: form.role
+      role: "admin"
     });
     setSubmitting(false);
   };
@@ -61,19 +54,14 @@ export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
         </DialogHeader>
         <div className="space-y-3 py-2">
           <Input placeholder="Nome" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          <Input 
-            placeholder="Telefone" 
-            value={form.phone} 
-            onChange={handlePhoneChange} 
-            maxLength={15} 
+          <Input
+            placeholder="Telefone"
+            value={form.phone}
+            onChange={handlePhoneChange}
+            maxLength={15}
           />
-          <select
-            className="w-full p-2 border rounded-md bg-background"
-            value={form.role}
-            onChange={e => setForm(f => ({ ...f, role: e.target.value as RoleValue }))}
-          >
-            {ROLES.map(r => <option value={r.value} key={r.value}>{r.label}</option>)}
-          </select>
+          {/* Perfil fixo */}
+          <Input value="Administrador" readOnly disabled className="bg-gray-100 cursor-not-allowed" />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
