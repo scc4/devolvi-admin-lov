@@ -7,6 +7,7 @@ import { useUserProfile } from './useUserProfile';
 import { useUserRole } from './useUserRole';
 import { useUserInvite } from './useUserInvite';
 import { useUserManagement } from './useUserManagement';
+import { useAuth } from '@/context/AuthContext';
 
 export function useUsers() {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -16,11 +17,12 @@ export function useUsers() {
   const { updateRole } = useUserRole();
   const { sendInvite, resendInvite } = useUserInvite();
   const { deleteUser, deactivateUser } = useUserManagement();
+  const { user: currentUser } = useAuth();
 
   const loadUsers = async () => {
     setLoading(true);
     try {
-      // Instead of using admin.listUsers(), we'll query our profiles and user_roles tables
+      // Fetch all profiles
       const { data: profiles, error: pfErr } = await supabase
         .from("profiles")
         .select("id, name, created_at, phone");
@@ -32,6 +34,7 @@ export function useUsers() {
         return;
       }
 
+      // Fetch all user roles
       const { data: roleData, error: rlErr } = await supabase
         .from("user_roles")
         .select("user_id, role");
@@ -43,42 +46,42 @@ export function useUsers() {
         return;
       }
 
-      // Get authenticated users from auth schema
-      // Note: This will only show the current user unless you set appropriate RLS policies
-      const { data: authData, error: authErr } = await supabase.auth.getUser();
+      // Get all users from auth.users via our edge function
+      const { data: usersData, error: usersErr } = await supabase.functions.invoke('admin-list-users');
       
-      if (authErr) {
-        console.error("Error fetching current user:", authErr);
-        toast({ title: "Erro ao carregar usuário atual", description: authErr.message, variant: "destructive" });
+      if (usersErr) {
+        console.error("Error fetching users:", usersErr);
+        toast({ 
+          title: "Erro ao carregar usuários", 
+          description: usersErr.message, 
+          variant: "destructive" 
+        });
         setLoading(false);
         return;
       }
 
-      // Build user list starting with current user
-      let userList: UserRow[] = [];
-      
-      if (authData?.user) {
-        const currentUser = authData.user;
-        const profile = profiles?.find(p => p.id === currentUser.id);
-        const roleRow = roleData?.find(r => r.user_id === currentUser.id);
+      // Build complete user list by combining data from all sources
+      const userList: UserRow[] = (usersData?.users || []).map((authUser: any) => {
+        const profile = profiles?.find(p => p.id === authUser.id);
+        const roleRow = roleData?.find(r => r.user_id === authUser.id);
         
         let status: "Ativo" | "Inativo" | "Convidado" = "Ativo";
-        if (currentUser.user_metadata?.disabled) {
+        if (authUser.user_metadata?.disabled) {
           status = "Inativo";
-        } else if (!currentUser.email_confirmed_at) {
+        } else if (!authUser.email_confirmed_at) {
           status = "Convidado";
         }
 
-        userList.push({
-          id: currentUser.id,
-          name: profile?.name || null,
-          email: currentUser.email || null,
+        return {
+          id: authUser.id,
+          name: profile?.name || authUser.user_metadata?.name || null,
+          email: authUser.email || null,
           phone: profile?.phone || null,
-          created_at: profile?.created_at || currentUser.created_at || new Date().toISOString(),
+          created_at: profile?.created_at || authUser.created_at || new Date().toISOString(),
           role: roleRow?.role ?? "user",
           status: status,
-        });
-      }
+        };
+      });
       
       setUsers(userList);
     } catch (error: any) {
