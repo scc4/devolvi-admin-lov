@@ -46,11 +46,11 @@ export function useUserInvite() {
 
       if (emailError) {
         console.error("Error sending email:", emailError);
-        // Don't throw here - the user is created but email might fail
+        // Change 'warning' to 'default'
         toast({ 
           title: "Usuário criado, mas email não enviado", 
           description: "O usuário foi criado mas houve um problema ao enviar o email de convite.",
-          variant: "warning" 
+          variant: "default" 
         });
       }
 
