@@ -1,27 +1,17 @@
-import { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, UsersIcon, Edit, Trash, Ban, Mail, UserPlus, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InviteDialog } from "@/components/users/InviteDialog";
 import { EditDialog } from "@/components/users/EditDialog";
 import { ConfirmActionDialog } from "@/components/users/ConfirmActionDialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { formatPhoneBR } from "@/lib/format";
 import { useAuth } from "@/context/AuthContext";
+import { UsersHeader } from "@/components/users/UsersHeader";
+import { UsersSearch } from "@/components/users/UsersSearch";
+import { UsersTable } from "@/components/users/UsersTable";
 
 // Lista de perfis permitidos
-const ROLES = [
+export const ROLES = [
   { value: "owner", label: "Proprietário" },
   { value: "admin", label: "Administrador" },
   { value: "carrier", label: "Transportador" },
@@ -29,13 +19,10 @@ const ROLES = [
   { value: "user", label: "Usuário" },
 ] as const;
 
-// Only allow admin and owner for edit/invite dialogs
-type EditInviteRole = "admin" | "owner";
-
 type RoleValue = typeof ROLES[number]["value"];
 type StatusType = "Ativo" | "Inativo" | "Convidado";
 
-type UserRow = {
+export type UserRow = {
   id: string;
   name: string | null;
   email: string | null;
@@ -51,9 +38,6 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const { user: currentUser, roles: currentUserRoles } = useAuth();
   const isAdmin = currentUserRoles.includes("admin") || currentUserRoles.includes("owner");
-  const [permissionError, setPermissionError] = useState<string | null>(null);
-
-  // Modais e ações
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserRow | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
@@ -62,7 +46,6 @@ export default function Users() {
   // Buscar usuários sem depender da API admin
   const loadUsers = async () => {
     setLoading(true);
-    setPermissionError(null);
     try {
       // Tentativa de carregar usuários através da sessão atual e da API pública do Supabase
 
@@ -159,256 +142,140 @@ export default function Users() {
     user.id.includes(searchTerm)
   );
 
-  // Funções de ações simplificadas para trabalhar sem admin API
-  const handleInvite = async (form: { name: string, email: string, phone?: string, role: EditInviteRole }) => {
-    toast({
-      title: "Funcionalidade limitada",
-      description: "O convite de usuários exige permissões de API administrativa que não estão disponíveis atualmente.",
-      variant: "destructive"
-    });
-    setInviteOpen(false);
+  const handleInvite = async (form: { name: string, email: string, phone?: string, role: "admin" | "owner" }) => {
+    try {
+      // Enviar convite via Supabase Auth
+      const { data, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(form.email, {
+        data: {
+          name: form.name,
+          phone: form.phone
+        }
+      });
+
+      if (inviteError) throw inviteError;
+
+      // Adicionar role do usuário
+      if (data?.user) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: data.user.id, role: form.role });
+
+        if (roleError) throw roleError;
+      }
+
+      toast({ title: "Convite enviado!", description: "O usuário receberá um email para completar o cadastro." });
+      setInviteOpen(false);
+      loadUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar convite",
+        description: error?.message || "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: EditInviteRole }) => {
+  const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: "admin" | "owner" }) => {
     try {
-      // Atualizar o perfil com o nome e telefone
+      // Atualizar perfil
       const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ 
-            name: updates.name,
-            phone: updates.phone // Agora atualizamos o telefone também
-          })
-        .eq("id", userId);
-        
-      if (profileError) {
-        toast({ title: "Erro ao atualizar perfil", description: profileError.message, variant: "destructive" });
-        return;
-      }
-      
-      // Verificar primeiro se já existe um registro para este usuário
-      const { data: existingRole } = await supabase
-        .from("user_roles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-      
-      let roleError;
-      
-      if (existingRole) {
-        // Se já existe, atualizar
-        const { error } = await supabase
-          .from("user_roles")
-          .update({ role: updates.role })
-          .eq("user_id", userId);
-          
-        roleError = error;
-      } else {
-        // Se não existe, inserir
-        const { error } = await supabase
-          .from("user_roles")
-          .insert({ 
-            user_id: userId,
-            role: updates.role 
-          });
-          
-        roleError = error;
-      }
-        
-      if (roleError) {
-        toast({ title: "Erro ao atualizar função", description: roleError.message, variant: "destructive" });
-        return;
-      }
-      
+        .from('profiles')
+        .update({ name: updates.name, phone: updates.phone })
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
+
+      // Atualizar role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .upsert({ user_id: userId, role: updates.role });
+
+      if (roleError) throw roleError;
+
       toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados com sucesso." });
       setEditUser(null);
-      
-      // Recarregar usuários
-      await loadUsers();
+      loadUsers();
     } catch (error: any) {
-      console.error("Error updating user:", error);
-      toast({ 
-        title: "Erro ao atualizar usuário", 
-        description: error?.message || "Ocorreu um erro inesperado.", 
-        variant: "destructive" 
+      toast({
+        title: "Erro ao atualizar usuário",
+        description: error?.message || "Ocorreu um erro inesperado.",
+        variant: "destructive"
       });
     }
   };
 
   const handleDelete = async (user: UserRow) => {
-    toast({
-      title: "Funcionalidade limitada",
-      description: "A exclusão de usuários exige permissões de API administrativa que não estão disponíveis atualmente.",
-      variant: "destructive"
-    });
-    setConfirmModal(null);
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      if (error) throw error;
+
+      toast({ title: "Usuário excluído!", description: "O usuário foi removido com sucesso." });
+      setConfirmModal(null);
+      loadUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir usuário",
+        description: error?.message || "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeactivate = async (user: UserRow) => {
-    toast({
-      title: "Funcionalidade limitada",
-      description: "A inativação de usuários exige permissões de API administrativa que não estão disponíveis atualmente.",
-      variant: "destructive"
-    });
-    setConfirmModal(null);
+    try {
+      // Desativar usuário no Auth
+      const { error } = await supabase.auth.admin.updateUserById(
+        user.id,
+        { banned: true }
+      );
+      if (error) throw error;
+
+      toast({ title: "Usuário inativado!", description: "O usuário foi inativado com sucesso." });
+      setConfirmModal(null);
+      loadUsers();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao inativar usuário",
+        description: error?.message || "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleResendInvite = async (user: UserRow) => {
-    toast({
-      title: "Funcionalidade limitada",
-      description: "O reenvio de convites exige permissões de API administrativa que não estão disponíveis atualmente.",
-      variant: "destructive"
-    });
-    setConfirmModal(null);
-  };
+    try {
+      if (!user.email) throw new Error("Email do usuário não encontrado");
 
-  // Se o usuário não for admin ou owner, mostrar mensagem de acesso negado
-  if (!isAdmin) {
-    return (
-      <div className="space-y-6">
-        <Card className="border-none shadow-md">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Acesso Negado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Permissão necessária</AlertTitle>
-              <AlertDescription>
-                Você precisa ser administrador ou proprietário para acessar esta página.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+      const { error } = await supabase.auth.admin.inviteUserByEmail(user.email);
+      if (error) throw error;
+
+      toast({ title: "Convite reenviado!", description: "Um novo email de convite foi enviado." });
+      setConfirmModal(null);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao reenviar convite",
+        description: error?.message || "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-md">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div className="flex items-center gap-2">
-            <UsersIcon className="mr-1 h-5 w-5 text-primary" />
-            <CardTitle className="text-xl font-bold">Gerenciar Equipes</CardTitle>
-          </div>
-          <Button 
-            className="bg-primary hover:bg-primary/90" 
-            onClick={() => setInviteOpen(true)}
-          >
-            <UserPlus className="mr-2 h-4 w-4" /> Convidar Usuários
-          </Button>
+        <CardHeader>
+          <UsersHeader onInvite={() => setInviteOpen(true)} />
         </CardHeader>
         <CardContent>
-          <Alert variant="destructive" className="mb-4">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Funcionalidade limitada</AlertTitle>
-            <AlertDescription>
-              Algumas funcionalidades de gerenciamento de usuários exigem permissões de API administrativa que não estão disponíveis no momento.
-              Você ainda pode visualizar usuários e editar nomes e funções.
-            </AlertDescription>
-          </Alert>
-          
-          <div className="flex items-center mb-4">
-            <div className="relative flex-1">
-              <Input
-                type="search"
-                placeholder="Buscar usuários..."
-                className="pl-2"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>E-mail</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Data de Inclusão</TableHead>
-                  <TableHead>Perfil</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-4">Carregando...</TableCell>
-                  </TableRow>
-                ) : filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-mono text-xs">{user.id}</TableCell>
-                      <TableCell className="">{user.name || <span className="text-muted-foreground">—</span>}</TableCell>
-                      <TableCell>{user.email || <span className="text-muted-foreground">—</span>}</TableCell>
-                      <TableCell>{user.phone ? formatPhoneBR(user.phone) : <span className="text-muted-foreground">—</span>}</TableCell>
-                      <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>{ROLES.find(r => r.value === user.role)?.label ?? user.role}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                          ${user.status === "Ativo" && "bg-green-100 text-green-800"}
-                          ${user.status === "Inativo" && "bg-gray-100 text-gray-800"}
-                          ${user.status === "Convidado" && "bg-yellow-100 text-yellow-800"}
-                        `}>
-                          {user.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            disabled={user.status === "Inativo"}
-                            onClick={() => setEditUser(user)}
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            disabled={true}
-                            onClick={() => setConfirmModal({ action: "delete", user })}
-                            title="Funcionalidade indisponível"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={true}
-                            onClick={() => setConfirmModal({ action: "deactivate", user })}
-                            title="Funcionalidade indisponível"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </Button>
-                          {user.status === "Convidado" && (
-                            <Button
-                              variant="secondary"
-                              size="icon"
-                              disabled={true}
-                              onClick={() => setConfirmModal({ action: "invite", user })}
-                              title="Funcionalidade indisponível"
-                            >
-                              <Mail className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-4">Nenhum usuário encontrado</TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <UsersSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
+          <UsersTable
+            users={filteredUsers}
+            loading={loading}
+            onEdit={setEditUser}
+            onDelete={(user) => setConfirmModal({ action: "delete", user })}
+            onDeactivate={(user) => setConfirmModal({ action: "deactivate", user })}
+            onResendInvite={(user) => setConfirmModal({ action: "invite", user })}
+          />
         </CardContent>
       </Card>
 
@@ -420,7 +287,6 @@ export default function Users() {
             id: editUser.id,
             name: editUser.name,
             phone: editUser.phone,
-            // If admin or owner, pass as is; else default to admin
             role: editUser.role === "admin" || editUser.role === "owner" ? editUser.role : "admin",
           }}
           onClose={() => setEditUser(null)}
