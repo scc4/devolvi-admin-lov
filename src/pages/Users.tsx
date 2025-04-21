@@ -78,6 +78,7 @@ export default function Users() {
           // Exemplo de lógica simplificada de status:
           let status: StatusType = "Convidado";
           if (userAuth) {
+            // Check if the banned_until property exists and is set
             if (userAuth.banned_until) {
               status = "Inativo";
             } else if (userAuth.email_confirmed_at) {
