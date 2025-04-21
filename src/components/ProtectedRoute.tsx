@@ -6,9 +6,10 @@ import { toast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  adminOnly?: boolean;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, adminOnly = true }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, roles } = useAuth();
   const navigate = useNavigate();
   
@@ -16,7 +17,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     if (!loading) {
       if (!isAuthenticated) {
         navigate('/login');
-      } else if (!roles.some(role => role === 'admin' || role === 'owner')) {
+      } else if (adminOnly && !roles.some(role => role === 'admin' || role === 'owner')) {
         // If authenticated but not admin/owner, redirect to login
         toast({
           title: "Acesso restrito",
@@ -26,7 +27,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         navigate('/login');
       }
     }
-  }, [isAuthenticated, loading, navigate, roles]);
+  }, [isAuthenticated, loading, navigate, roles, adminOnly]);
   
   if (loading) {
     return (
@@ -36,8 +37,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
   
-  // Only render if authenticated and has admin/owner role
-  return isAuthenticated && roles.some(role => role === 'admin' || role === 'owner') ? <>{children}</> : null;
+  // Return children if authenticated and has required role (or adminOnly is false)
+  return isAuthenticated && (!adminOnly || roles.some(role => role === 'admin' || role === 'owner')) ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;

@@ -9,11 +9,14 @@ export function useUserManagement() {
 
   const deleteUser = async (user: UserRow) => {
     try {
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      if (error) throw error;
-
-      toast({ title: "Usuário excluído!", description: "O usuário foi removido com sucesso." });
-      return { success: true };
+      // For security, we can only delete the current user
+      // To implement multi-user management, you'll need a backend function with service_role key
+      toast({
+        title: "Operação não suportada",
+        description: "A exclusão de outros usuários requer uma função de backend com permissões de serviço.",
+        variant: "destructive"
+      });
+      return { success: false };
     } catch (error: any) {
       toast({
         title: "Erro ao excluir usuário",
@@ -26,14 +29,14 @@ export function useUserManagement() {
 
   const deactivateUser = async (user: UserRow) => {
     try {
-      const { error } = await supabase.auth.admin.updateUserById(
-        user.id,
-        { user_metadata: { disabled: true } }
-      );
-      if (error) throw error;
-
-      toast({ title: "Usuário inativado!", description: "O usuário foi inativado com sucesso." });
-      return { success: true };
+      // For security, we cannot update user metadata from the client
+      // To implement this feature, you'll need a backend function with service_role key
+      toast({
+        title: "Operação não suportada",
+        description: "A inativação de usuários requer uma função de backend com permissões de serviço.",
+        variant: "destructive"
+      });
+      return { success: false };
     } catch (error: any) {
       toast({
         title: "Erro ao inativar usuário",
