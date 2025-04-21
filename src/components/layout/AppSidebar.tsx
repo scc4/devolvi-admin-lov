@@ -1,5 +1,5 @@
 
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +15,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   LayoutDashboard, 
-  Settings, 
   Users, 
   LogOut 
 } from "lucide-react";
@@ -34,13 +33,8 @@ export function AppSidebar() {
     },
     {
       title: "Users",
-      url: "/users",
+      url: "/dashboard/users",
       icon: Users,
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
     },
   ];
 
@@ -70,10 +64,10 @@ export function AppSidebar() {
                     asChild
                     isActive={location.pathname === item.url}
                   >
-                    <a href={item.url}>
+                    <Link to={item.url}>
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
