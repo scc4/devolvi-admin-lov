@@ -65,7 +65,9 @@ export default function Users() {
     setLoading(true);
     setPermissionError(null);
     try {
-      // Perfis
+      // Tentativa de carregar usuários através da sessão atual e da API pública do Supabase
+
+      // 1. Buscar todos os perfis disponíveis
       const { data: profiles, error: pfErr } = await supabase
         .from("profiles")
         .select("id, name, created_at");
@@ -77,8 +79,8 @@ export default function Users() {
         return;
       }
 
-      // E-mails e roles
-      const { data: roles, error: rlErr } = await supabase
+      // 2. Buscar roles para os usuários
+      const { data: roleData, error: rlErr } = await supabase
         .from("user_roles")
         .select("user_id, role");
 
@@ -89,27 +91,57 @@ export default function Users() {
         return;
       }
 
-      // Combinar os dados sem depender da API admin
+      // 3. Buscar metadados de autenticação do usuário atual para obter emails
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUserEmail = session?.user?.email;
+
+      // Combinar os dados
       let userList: UserRow[] = [];
+      
+      // 4. Montar lista de usuários a partir dos perfis
       if (profiles) {
         for (const profile of profiles) {
-          const roleRow = roles?.find(r => r.user_id === profile.id);
+          const roleRow = roleData?.find(r => r.user_id === profile.id);
           
-          // Como não temos acesso ao status real do usuário via API admin,
-          // vamos assumir que todos estão ativos
-          let status: StatusType = "Ativo";
+          // Determinar o email para o usuário atual
+          let email = null;
+          if (profile.id === session?.user?.id) {
+            email = currentUserEmail;
+          }
           
           userList.push({
             id: profile.id,
             name: profile.name,
-            email: null, // Não temos acesso ao email sem API admin
-            phone: null, // Não temos acesso ao telefone sem API admin
+            email: email,  // somente temos acesso ao email do usuário atual
+            phone: null,   // não temos acesso ao telefone
             created_at: profile.created_at,
             role: roleRow?.role ?? "user",
-            status,
+            status: "Ativo", // Assumindo que todos estão ativos
           });
         }
       }
+
+      // 5. Buscar usuários que possam estar na tabela user_roles mas não tenham perfil
+      if (roleData) {
+        for (const role of roleData) {
+          // Verificar se este usuário já está na lista
+          const userExists = userList.some(u => u.id === role.user_id);
+          
+          if (!userExists) {
+            // Este é um usuário com role, mas sem perfil
+            userList.push({
+              id: role.user_id,
+              name: null,
+              email: role.user_id === session?.user?.id ? currentUserEmail : null,
+              phone: null,
+              created_at: new Date().toISOString(), // Valor padrão
+              role: role.role,
+              status: "Ativo", // Assumindo que está ativo
+            });
+          }
+        }
+      }
+      
       setUsers(userList);
     } catch (error: any) {
       console.error("Unexpected error loading users:", error);
