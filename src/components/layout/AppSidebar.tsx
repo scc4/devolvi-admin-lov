@@ -1,6 +1,5 @@
 
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -21,10 +20,12 @@ import {
   LogOut 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 export function AppSidebar() {
   const location = useLocation();
-  
+  const { profile, logout } = useAuth();
+
   const menu = [
     {
       title: "Dashboard",
@@ -43,9 +44,9 @@ export function AppSidebar() {
     },
   ];
 
-  const handleLogout = () => {
-    // Will be implemented with Supabase
-    alert("Supabase connection needed to implement logout");
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/auth';
   };
 
   return (
@@ -69,10 +70,10 @@ export function AppSidebar() {
                     asChild
                     isActive={location.pathname === item.url}
                   >
-                    <Link to={item.url}>
+                    <a href={item.url}>
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
-                    </Link>
+                    </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -85,11 +86,11 @@ export function AppSidebar() {
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary text-primary-foreground">
-                A
+                {profile?.name?.[0] || "A"}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col text-xs">
-              <span className="font-medium">Admin</span>
+              <span className="font-medium">{profile?.name || "Admin"}</span>
               <span className="text-muted-foreground">Admin</span>
             </div>
           </div>

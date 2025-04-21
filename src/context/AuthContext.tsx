@@ -1,84 +1,148 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-// Define the AuthContextType
+interface Profile {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+}
+type SupabaseUser = { id: string; email?: string | null };
+
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  user: SupabaseUser | null;
+  profile: Profile | null;
+  roles: string[];
   loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, avatar_url?: string) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
-// Create the context with a default value
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
-  login: async () => {},
-  logout: async () => {},
+  profile: null,
+  roles: [],
   loading: true,
+  login: async () => {},
+  signup: async () => {},
+  logout: async () => {},
+  refreshProfile: async () => {},
 });
 
-// Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
-// Provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Check for existing session on load
+
+  // Fetch user profile and roles from Supabase
+  const refreshProfile = async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    // Profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+    setProfile(profileData || null);
+
+    // Roles
+    const { data: rolesData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    setRoles(rolesData ? rolesData.map((r) => r.role) : []);
+    setLoading(false);
+  };
+
+  // Auth state listener (supabase best practice)
   useEffect(() => {
-    // This would be replaced with actual Supabase session check
-    const checkSession = async () => {
-      try {
-        // Mock check - will be replaced with Supabase
-        setLoading(false);
-      } catch (error) {
-        console.error("Session check error:", error);
-        setLoading(false);
-      }
+    let mounted = true;
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+    });
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+      setLoading(false);
+    });
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
     };
-    
-    checkSession();
   }, []);
-  
-  // Login function
+
+  // When user changes (login/logout), fetch profile & roles
+  useEffect(() => {
+    if (user?.id) {
+      refreshProfile();
+    } else {
+      setProfile(null);
+      setRoles([]);
+    }
+  }, [user?.id]);
+
+  // Login
   const login = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      // This will be replaced with actual Supabase auth
-      alert("Please connect Supabase to enable authentication");
-      setLoading(false);
-    } catch (error) {
-      console.error("Login error:", error);
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
       setLoading(false);
       throw error;
     }
+    setLoading(false);
   };
-  
-  // Logout function
+
+  // Signup
+  const signup = async (email: string, password: string, name: string, avatar_url?: string) => {
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email, password,
+      options: {
+        data: {
+          name,
+          avatar_url: avatar_url || null,
+        },
+      },
+    });
+    if (error) {
+      setLoading(false);
+      throw error;
+    }
+    setLoading(false);
+  };
+
+  // Logout
   const logout = async () => {
-    try {
-      setLoading(true);
-      // This will be replaced with actual Supabase auth
-      setUser(null);
-      setLoading(false);
-    } catch (error) {
-      console.error("Logout error:", error);
-      setLoading(false);
-      throw error;
-    }
+    setLoading(true);
+    await supabase.auth.signOut();
+    setLoading(false);
+    setUser(null);
+    setProfile(null);
+    setRoles([]);
   };
-  
-  // Value object
+
   const value = {
     isAuthenticated: !!user,
     user,
+    profile,
+    roles,
+    loading,
     login,
+    signup,
     logout,
-    loading
+    refreshProfile,
   };
-  
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
