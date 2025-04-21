@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EstablishmentsHeader } from "@/components/establishments/EstablishmentsHeader";
 import { EstablishmentsSearch } from "@/components/establishments/EstablishmentsSearch";
 import { EstablishmentsTable } from "@/components/establishments/EstablishmentsTable";
+import { EstablishmentFormDialog } from "@/components/establishments/EstablishmentFormDialog";
 import { useEstablishments } from "@/hooks/useEstablishments";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
@@ -16,10 +17,12 @@ export default function Establishments() {
     error,
     loadEstablishments,
     handleEdit,
-    handleDelete
+    handleDelete,
+    handleCreate
   } = useEstablishments();
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const filteredEstablishments = establishments.filter((establishment) =>
     establishment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -31,7 +34,7 @@ export default function Establishments() {
     <div className="space-y-6">
       <Card className="border-none shadow-md">
         <CardHeader>
-          <EstablishmentsHeader onAdd={() => {}} />
+          <EstablishmentsHeader onAdd={() => setDialogOpen(true)} />
         </CardHeader>
         <CardContent>
           <EstablishmentsSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
@@ -52,12 +55,21 @@ export default function Establishments() {
             <EstablishmentsTable
               establishments={filteredEstablishments}
               loading={loading}
-              onEdit={() => {}}
+              onEdit={handleEdit}
               onDelete={handleDelete}
             />
           )}
         </CardContent>
       </Card>
+
+      <EstablishmentFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSubmit={async (data) => {
+          await handleCreate(data);
+          setDialogOpen(false);
+        }}
+      />
     </div>
   );
 }

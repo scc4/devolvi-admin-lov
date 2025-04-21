@@ -32,6 +32,31 @@ export function useEstablishments() {
     }
   });
 
+  const createMutation = useMutation({
+    mutationFn: async (newEstablishment: Partial<EstablishmentWithDetails>) => {
+      const { data, error } = await supabase
+        .from('establishments')
+        .insert(newEstablishment)
+        .select(`
+          *,
+          collection_points(id),
+          carrier:carriers(id, name)
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['establishments'] });
+      toast.success('Estabelecimento cadastrado com sucesso');
+    },
+    onError: (error) => {
+      toast.error('Erro ao cadastrar estabelecimento');
+      console.error('Error creating establishment:', error);
+    }
+  });
+
   const editMutation = useMutation({
     mutationFn: async (updates: EstablishmentWithDetails) => {
       const { data, error } = await supabase
@@ -80,6 +105,10 @@ export function useEstablishments() {
     await deleteMutation.mutateAsync(establishment);
   };
 
+  const handleCreate = async (establishment: Partial<EstablishmentWithDetails>) => {
+    await createMutation.mutateAsync(establishment);
+  };
+
   const loadEstablishments = () => {
     setError(null);
     queryClient.invalidateQueries({ queryKey: ['establishments'] });
@@ -91,6 +120,7 @@ export function useEstablishments() {
     error,
     loadEstablishments,
     handleEdit,
-    handleDelete
+    handleDelete,
+    handleCreate
   };
 }
