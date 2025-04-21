@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -18,6 +19,7 @@ import { EditDialog } from "@/components/users/EditDialog";
 import { ConfirmActionDialog } from "@/components/users/ConfirmActionDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatPhoneBR } from "@/lib/format";
+import { useAuth } from "@/context/AuthContext";
 
 // Lista de perfis permitidos
 const ROLES = [
@@ -48,7 +50,8 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const { user: currentUser, roles: currentUserRoles } = useAuth();
+  const isAdmin = currentUserRoles.includes("admin") || currentUserRoles.includes("owner");
   const [permissionError, setPermissionError] = useState<string | null>(null);
 
   // Modais e ações
@@ -57,7 +60,7 @@ export default function Users() {
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
   const { toast } = useToast();
 
-  // Buscar usuários do Supabase
+  // Buscar usuários sem depender da API admin
   const loadUsers = async () => {
     setLoading(true);
     setPermissionError(null);
@@ -86,58 +89,21 @@ export default function Users() {
         return;
       }
 
-      // Check if we can access admin APIs
-      let authUsers: any[] = [];
-      try {
-        const { data: authList, error: auErr } = await supabase.auth.admin.listUsers();
-        
-        if (auErr) {
-          console.error("Error fetching users:", auErr);
-          setHasAdminAccess(false);
-          setPermissionError("Não foi possível acessar detalhes dos usuários. Verificar permissões de administrador.");
-        } else {
-          setHasAdminAccess(true);
-          // Type safety for authList
-          authUsers = authList?.users || [];
-        }
-      } catch (err) {
-        console.error("Admin API access error:", err);
-        setHasAdminAccess(false);
-        setPermissionError("Não foi possível acessar detalhes dos usuários. Verificar permissões de administrador.");
-      }
-
-      // Combinar os dados
+      // Combinar os dados sem depender da API admin
       let userList: UserRow[] = [];
       if (profiles) {
         for (const profile of profiles) {
           const roleRow = roles?.find(r => r.user_id === profile.id);
           
-          // Find user auth data if available
-          const userAuth = authUsers.find(u => u.id === profile.id);
-          
-          // Exemplo de lógica simplificada de status:
-          let status: StatusType = "Convidado";
-          let email = null;
-          let phone = null;
-          
-          if (userAuth) {
-            email = userAuth.email || null;
-            phone = userAuth.phone || null;
-            
-            // Use type assertion to safely check ban status
-            const banned = userAuth.banned_until !== null && userAuth.banned_until !== undefined;
-            if (banned) {
-              status = "Inativo";
-            } else if (userAuth.email_confirmed_at) {
-              status = "Ativo";
-            }
-          }
+          // Como não temos acesso ao status real do usuário via API admin,
+          // vamos assumir que todos estão ativos
+          let status: StatusType = "Ativo";
           
           userList.push({
             id: profile.id,
             name: profile.name,
-            email: email,
-            phone: formatPhoneBR(phone),
+            email: null, // Não temos acesso ao email sem API admin
+            phone: null, // Não temos acesso ao telefone sem API admin
             created_at: profile.created_at,
             role: roleRow?.role ?? "user",
             status,
@@ -145,7 +111,7 @@ export default function Users() {
         }
       }
       setUsers(userList);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Unexpected error loading users:", error);
       toast({ title: "Erro inesperado", description: "Ocorreu um erro ao carregar os dados dos usuários.", variant: "destructive" });
     }
@@ -162,62 +128,16 @@ export default function Users() {
     user.id.includes(searchTerm)
   );
 
-  // Funções de ações
+  // Funções de ações simplificadas para trabalhar sem admin API
   const handleInvite = async (form: { name: string, email: string, phone?: string, role: EditInviteRole }) => {
-    if (!hasAdminAccess) {
-      toast({
-        title: "Permissão negada",
-        description: "Você não tem permissão para convidar usuários. Verifique as permissões de administrador.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Registrar usuário via signUp
-    const { name, email, phone, role } = form;
-    try {
-      const { error, data } = await supabase.auth.admin.createUser({
-        email,
-        phone,
-        email_confirm: false,
-        user_metadata: { name, phone },
-      });
-      
-      if (error) {
-        toast({ title: "Erro ao convidar", description: error.message, variant: "destructive" });
-        return;
-      }
-      
-      // Atualizar perfil
-      if (data.user) {
-        await supabase.from("profiles").upsert({ 
-          id: data.user.id, 
-          name 
-        });
-        
-        // Atribuir role
-        await supabase.from("user_roles").upsert({ 
-          user_id: data.user.id, 
-          role 
-        });
-        
-        toast({ title: "Convite enviado!", description: "O usuário foi convidado para a equipe." });
-        
-        // Recarregar usuários
-        await loadUsers();
-      }
-    } catch (error: any) {
-      console.error("Error inviting user:", error);
-      toast({ 
-        title: "Erro ao convidar usuário", 
-        description: error?.message || "Ocorreu um erro inesperado. Verifique permissões de administrador.", 
-        variant: "destructive" 
-      });
-    }
+    toast({
+      title: "Funcionalidade limitada",
+      description: "O convite de usuários exige permissões de API administrativa que não estão disponíveis atualmente.",
+      variant: "destructive"
+    });
     setInviteOpen(false);
   };
 
-  // Editar usuário permitido apenas com role admin/owner
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: EditInviteRole }) => {
     try {
       // Atualizar o perfil com o nome
@@ -244,26 +164,6 @@ export default function Users() {
         return;
       }
       
-      // Atualizar o phone no auth se tivermos acesso admin
-      if (hasAdminAccess && updates.phone) {
-        try {
-          const { error: phoneError } = await supabase.auth.admin.updateUserById(userId, {
-            phone: updates.phone
-          });
-          
-          if (phoneError) {
-            toast({ title: "Erro ao atualizar telefone", description: phoneError.message, variant: "destructive" });
-          }
-        } catch (error: any) {
-          console.error("Error updating phone:", error);
-          toast({ 
-            title: "Erro ao atualizar telefone", 
-            description: "Verificar permissões de administrador.", 
-            variant: "destructive" 
-          });
-        }
-      }
-      
       toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados com sucesso." });
       setEditUser(null);
       
@@ -280,117 +180,53 @@ export default function Users() {
   };
 
   const handleDelete = async (user: UserRow) => {
-    if (!hasAdminAccess) {
-      toast({
-        title: "Permissão negada",
-        description: "Você não tem permissão para excluir usuários. Verifique as permissões de administrador.",
-        variant: "destructive"
-      });
-      setConfirmModal(null);
-      return;
-    }
-    
-    if (user.status === "Inativo") {
-      toast({ title: "Ação inválida", description: "Não é possível excluir um usuário inativo.", variant: "destructive" });
-      setConfirmModal(null);
-      return;
-    }
-    
-    try {
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      if (!error) {
-        toast({ title: "Usuário excluído", description: "Usuário removido da equipe." });
-        // Recarregar lista de usuários
-        await loadUsers();
-      } else {
-        toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
-      }
-    } catch (error: any) {
-      console.error("Error deleting user:", error);
-      toast({ 
-        title: "Erro ao excluir usuário", 
-        description: error?.message || "Erro de permissão. Verifique permissões de administrador.", 
-        variant: "destructive" 
-      });
-    }
+    toast({
+      title: "Funcionalidade limitada",
+      description: "A exclusão de usuários exige permissões de API administrativa que não estão disponíveis atualmente.",
+      variant: "destructive"
+    });
     setConfirmModal(null);
   };
 
   const handleDeactivate = async (user: UserRow) => {
-    if (!hasAdminAccess) {
-      toast({
-        title: "Permissão negada",
-        description: "Você não tem permissão para inativar usuários. Verifique as permissões de administrador.",
-        variant: "destructive"
-      });
-      setConfirmModal(null);
-      return;
-    }
-    
-    if (user.status === "Inativo") {
-      toast({ title: "Usuário já está inativo.", variant: "destructive" });
-      setConfirmModal(null);
-      return;
-    }
-    
-    try {
-      // Use ban_duration instead of banned_until (which is not in the AdminUserAttributes type)
-      const { error } = await supabase.auth.admin.updateUserById(user.id, {
-        ban_duration: "87600h" // Ban for 10 years
-      });
-      
-      if (!error) {
-        toast({ title: "Usuário inativado", description: "O usuário foi marcado como inativo." });
-        // Recarregar usuários
-        await loadUsers();
-      } else {
-        toast({ title: "Erro ao inativar", description: error.message, variant: "destructive" });
-      }
-    } catch (error: any) {
-      console.error("Error deactivating user:", error);
-      toast({ 
-        title: "Erro ao inativar usuário", 
-        description: error?.message || "Erro de permissão. Verifique permissões de administrador.", 
-        variant: "destructive" 
-      });
-    }
+    toast({
+      title: "Funcionalidade limitada",
+      description: "A inativação de usuários exige permissões de API administrativa que não estão disponíveis atualmente.",
+      variant: "destructive"
+    });
     setConfirmModal(null);
   };
 
   const handleResendInvite = async (user: UserRow) => {
-    if (!hasAdminAccess) {
-      toast({
-        title: "Permissão negada",
-        description: "Você não tem permissão para reenviar convites. Verifique as permissões de administrador.",
-        variant: "destructive"
-      });
-      setConfirmModal(null);
-      return;
-    }
-    
-    if (!user.email) {
-      toast({ title: "Erro ao reenviar", description: "Usuário não possui email cadastrado", variant: "destructive" });
-      setConfirmModal(null);
-      return;
-    }
-    
-    try {
-      const { error } = await supabase.auth.admin.inviteUserByEmail(user.email);
-      if (!error) {
-        toast({ title: "Convite reenviado", description: "Novo convite enviado para o e-mail." });
-      } else {
-        toast({ title: "Erro ao reenviar convite", description: error.message, variant: "destructive" });
-      }
-    } catch (error: any) {
-      console.error("Error resending invitation:", error);
-      toast({ 
-        title: "Erro ao reenviar convite", 
-        description: error?.message || "Erro de permissão. Verifique permissões de administrador.", 
-        variant: "destructive" 
-      });
-    }
+    toast({
+      title: "Funcionalidade limitada",
+      description: "O reenvio de convites exige permissões de API administrativa que não estão disponíveis atualmente.",
+      variant: "destructive"
+    });
     setConfirmModal(null);
   };
+
+  // Se o usuário não for admin ou owner, mostrar mensagem de acesso negado
+  if (!isAdmin) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-none shadow-md">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold">Acesso Negado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Permissão necessária</AlertTitle>
+              <AlertDescription>
+                Você precisa ser administrador ou proprietário para acessar esta página.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -402,31 +238,20 @@ export default function Users() {
           </div>
           <Button 
             className="bg-primary hover:bg-primary/90" 
-            onClick={() => {
-              if (!hasAdminAccess) {
-                toast({
-                  title: "Permissão negada",
-                  description: "Você não tem permissão para convidar usuários. Verifique as permissões de administrador.",
-                  variant: "destructive"
-                });
-                return;
-              }
-              setInviteOpen(true);
-            }}
+            onClick={() => setInviteOpen(true)}
           >
             <UserPlus className="mr-2 h-4 w-4" /> Convidar Usuários
           </Button>
         </CardHeader>
         <CardContent>
-          {permissionError && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Erro de permissão</AlertTitle>
-              <AlertDescription>
-                {permissionError}
-              </AlertDescription>
-            </Alert>
-          )}
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Funcionalidade limitada</AlertTitle>
+            <AlertDescription>
+              Algumas funcionalidades de gerenciamento de usuários exigem permissões de API administrativa que não estão disponíveis no momento.
+              Você ainda pode visualizar usuários e editar nomes e funções.
+            </AlertDescription>
+          </Alert>
           
           <div className="flex items-center mb-4">
             <div className="relative flex-1">
@@ -491,18 +316,18 @@ export default function Users() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            disabled={user.status === "Inativo" || !hasAdminAccess}
+                            disabled={true}
                             onClick={() => setConfirmModal({ action: "delete", user })}
-                            title="Excluir"
+                            title="Funcionalidade indisponível"
                           >
                             <Trash className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            disabled={user.status === "Inativo" || !hasAdminAccess}
+                            disabled={true}
                             onClick={() => setConfirmModal({ action: "deactivate", user })}
-                            title="Inativar"
+                            title="Funcionalidade indisponível"
                           >
                             <Ban className="h-4 w-4" />
                           </Button>
@@ -510,9 +335,9 @@ export default function Users() {
                             <Button
                               variant="secondary"
                               size="icon"
-                              disabled={!hasAdminAccess}
+                              disabled={true}
                               onClick={() => setConfirmModal({ action: "invite", user })}
-                              title="Reenviar convite"
+                              title="Funcionalidade indisponível"
                             >
                               <Mail className="h-4 w-4" />
                             </Button>
@@ -540,7 +365,7 @@ export default function Users() {
             id: editUser.id,
             name: editUser.name,
             phone: editUser.phone,
-            // If admin or owner, pass as is; else default to admin (shouldn't happen by new constraints)
+            // If admin or owner, pass as is; else default to admin
             role: editUser.role === "admin" || editUser.role === "owner" ? editUser.role : "admin",
           }}
           onClose={() => setEditUser(null)}
