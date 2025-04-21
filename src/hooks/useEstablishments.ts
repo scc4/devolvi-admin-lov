@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +34,7 @@ export function useEstablishments() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (newEstablishment: Partial<EstablishmentWithDetails>) => {
+    mutationFn: async (newEstablishment: { name: string; type: 'public' | 'private' }) => {
       const { data, error } = await supabase
         .from('establishments')
         .insert(newEstablishment)
@@ -106,7 +107,14 @@ export function useEstablishments() {
   };
 
   const handleCreate = async (establishment: Partial<EstablishmentWithDetails>) => {
-    await createMutation.mutateAsync(establishment);
+    if (!establishment.name || !establishment.type) {
+      toast.error('Nome e tipo do estabelecimento são obrigatórios');
+      return;
+    }
+    await createMutation.mutateAsync({ 
+      name: establishment.name, 
+      type: establishment.type 
+    });
   };
 
   const loadEstablishments = () => {

@@ -20,9 +20,12 @@ export function EstablishmentFormDialog({
   onSubmit,
   isLoading = false
 }: EstablishmentFormDialogProps) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    name: string;
+    type: 'public' | 'private';
+  }>({
     name: "",
-    type: "public" as const
+    type: "public"
   });
 
   const handleSubmit = async () => {
