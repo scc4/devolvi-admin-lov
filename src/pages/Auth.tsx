@@ -67,7 +67,7 @@ export default function Auth() {
   };
   return <div className="min-h-screen w-full flex">
       {/* Left side - Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8 bg-[#103247]">
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8 bg-[#7599ff]">
         <div className="max-w-md">
           <img alt="Login illustration" className="w-full h-auto" src="/lovable-uploads/862b136b-f93d-486c-8352-f932ff6cda87.png" />
         </div>
