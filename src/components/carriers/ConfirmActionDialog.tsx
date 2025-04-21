@@ -25,11 +25,11 @@ export function ConfirmActionDialog({ open, action, carrier, onConfirm, onCancel
       message = "";
   }
 
-  // Ensure proper cleanup when dialog is closed
+  // Enhanced cleanup when dialog is closed
   useEffect(() => {
     if (!open) {
-      // Small timeout to ensure the dialog is fully closed before cleanup
-      const timeout = setTimeout(() => {
+      // Clean up any lingering portal elements and reset pointer-events
+      const cleanup = () => {
         document.body.style.pointerEvents = '';
         const overlays = document.querySelectorAll('[data-radix-portal]');
         overlays.forEach(overlay => {
@@ -37,9 +37,11 @@ export function ConfirmActionDialog({ open, action, carrier, onConfirm, onCancel
             (overlay as HTMLElement).style.display = 'none';
           }
         });
-      }, 300);
+      };
       
-      return () => clearTimeout(timeout);
+      // Execute cleanup with a small delay to ensure dialog animations complete
+      const timeoutId = setTimeout(cleanup, 300);
+      return () => clearTimeout(timeoutId);
     }
   }, [open]);
 

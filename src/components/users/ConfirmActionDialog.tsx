@@ -1,7 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 
 interface ConfirmActionDialogProps {
   open: boolean;
@@ -26,6 +26,27 @@ export function ConfirmActionDialog({ open, action, user, onConfirm, onCancel }:
     default:
       message = "";
   }
+
+  // Enhanced cleanup when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      // Clean up any lingering portal elements and reset pointer-events
+      const cleanup = () => {
+        document.body.style.pointerEvents = '';
+        const overlays = document.querySelectorAll('[data-radix-portal]');
+        overlays.forEach(overlay => {
+          if (!overlay.contains(document.activeElement)) {
+            (overlay as HTMLElement).style.display = 'none';
+          }
+        });
+      };
+      
+      // Execute cleanup with a small delay to ensure dialog animations complete
+      const timeoutId = setTimeout(cleanup, 300);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onCancel}>
       <DialogContent>

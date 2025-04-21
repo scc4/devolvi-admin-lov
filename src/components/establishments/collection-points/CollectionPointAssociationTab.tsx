@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCollectionPoints } from "@/hooks/useCollectionPoints";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,20 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     isLoading,
     refetch
   } = useCollectionPoints(undefined, undefined, true); // true means fetch unassigned points
+
+  // Ensure proper cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear any lingering portal elements on unmount
+      document.body.style.pointerEvents = '';
+      const overlays = document.querySelectorAll('[data-radix-portal]');
+      overlays.forEach(overlay => {
+        if (!overlay.contains(document.activeElement)) {
+          (overlay as HTMLElement).style.display = 'none';
+        }
+      });
+    };
+  }, []);
 
   const handleAssociate = async (point: CollectionPoint) => {
     try {
