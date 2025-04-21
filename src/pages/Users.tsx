@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Users, Edit, Trash, Ban, Mail, UserPlus } from "lucide-react";
+import { User, Users as UsersIcon, Edit, Trash, Ban, Mail, UserPlus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,11 +74,15 @@ export default function Users() {
           const userAuth = authList.users.find(u => u.id === profile.id);
           const email = userAuth?.email ?? null;
           // Exemplo de lógica simplificada de status:
-          const status: StatusType = userAuth?.banned_at
-            ? "Inativo"
-            : userAuth?.confirmed_at
-              ? "Ativo"
-              : "Convidado";
+          let status: StatusType = "Convidado";
+          if (userAuth) {
+            if (userAuth.banned_until) {
+              status = "Inativo";
+            } else if (userAuth.email_confirmed_at) {
+              status = "Ativo";
+            }
+          }
+          
           userList.push({
             id: profile.id,
             name: profile.name,
@@ -117,10 +121,12 @@ export default function Users() {
       return;
     }
     // Atualizar perfil
-    await supabase.from("profiles").update({ name }).eq("id", data.user?.id);
-    // Atribuir role
-    await supabase.from("user_roles").insert({ user_id: data.user?.id, role });
-    toast({ title: "Convite enviado!", description: "O usuário foi convidado para a equipe." });
+    if (data.user) {
+      await supabase.from("profiles").update({ name }).eq("id", data.user.id);
+      // Atribuir role
+      await supabase.from("user_roles").insert({ user_id: data.user.id, role });
+      toast({ title: "Convite enviado!", description: "O usuário foi convidado para a equipe." });
+    }
     setInviteOpen(false);
   };
 
@@ -153,7 +159,12 @@ export default function Users() {
       setConfirmModal(null);
       return;
     }
-    const { error } = await supabase.auth.admin.updateUserById(user.id, { banned: true });
+    
+    // O correto é usar banned_until com uma data futura distante para inativar
+    const { error } = await supabase.auth.admin.updateUserById(user.id, {
+      banned_until: '2099-12-31'
+    });
+    
     if (!error) {
       toast({ title: "Usuário inativado", description: "O usuário foi marcado como inativo." });
     } else {
@@ -311,7 +322,7 @@ export default function Users() {
       <Card className="border-none shadow-md">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div className="flex items-center gap-2">
-            <Users className="mr-1 h-5 w-5 text-primary" />
+            <UsersIcon className="mr-1 h-5 w-5 text-primary" />
             <CardTitle className="text-xl font-bold">Gerenciar Equipes</CardTitle>
           </div>
           <Button className="bg-primary hover:bg-primary/90" onClick={() => setInviteOpen(true)}>
