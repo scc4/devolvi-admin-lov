@@ -1,19 +1,20 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { PencilIcon, Trash2 } from "lucide-react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
+import { EstablishmentActionsDropdown } from "./EstablishmentActionsDropdown";
 
 interface EstablishmentTableRowProps {
   establishment: EstablishmentWithDetails;
   onEdit: (establishment: EstablishmentWithDetails) => void;
   onDelete: (establishment: EstablishmentWithDetails) => void;
+  onManageCollectionPoints: (establishment: EstablishmentWithDetails) => void;
 }
 
 export function EstablishmentTableRow({
   establishment,
   onEdit,
   onDelete,
+  onManageCollectionPoints,
 }: EstablishmentTableRowProps) {
   return (
     <TableRow key={establishment.id}>
@@ -26,21 +27,13 @@ export function EstablishmentTableRow({
         {establishment.collection_points_count}
       </TableCell>
       <TableCell>
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onEdit(establishment)}
-          >
-            <PencilIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(establishment)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+        <div className="flex justify-end">
+          <EstablishmentActionsDropdown
+            establishment={establishment}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onManageCollectionPoints={onManageCollectionPoints}
+          />
         </div>
       </TableCell>
     </TableRow>

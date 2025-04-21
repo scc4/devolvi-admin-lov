@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EstablishmentsHeader } from "@/components/establishments/EstablishmentsHeader";
 import { EstablishmentsSearch } from "@/components/establishments/EstablishmentsSearch";
 import { EstablishmentsTable } from "@/components/establishments/EstablishmentsTable";
 import { EstablishmentFormDialog } from "@/components/establishments/EstablishmentFormDialog";
+import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
 import { useEstablishments } from "@/hooks/useEstablishments";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
@@ -22,7 +22,8 @@ export default function Establishments() {
   } = useEstablishments();
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [collectionPointsDialogOpen, setCollectionPointsDialogOpen] = useState(false);
   const [selectedEstablishment, setSelectedEstablishment] = useState<EstablishmentWithDetails | undefined>(undefined);
 
   const filteredEstablishments = establishments.filter((establishment) =>
@@ -33,12 +34,17 @@ export default function Establishments() {
 
   const handleOpenCreate = () => {
     setSelectedEstablishment(undefined);
-    setDialogOpen(true);
+    setEditDialogOpen(true);
   };
 
   const handleOpenEdit = (establishment: EstablishmentWithDetails) => {
     setSelectedEstablishment(establishment);
-    setDialogOpen(true);
+    setEditDialogOpen(true);
+  };
+
+  const handleOpenCollectionPoints = (establishment: EstablishmentWithDetails) => {
+    setSelectedEstablishment(establishment);
+    setCollectionPointsDialogOpen(true);
   };
 
   const handleFormSubmit = async (data: Partial<EstablishmentWithDetails>) => {
@@ -50,7 +56,7 @@ export default function Establishments() {
     } else {
       await handleCreate(data);
     }
-    setDialogOpen(false);
+    setEditDialogOpen(false);
   };
 
   return (
@@ -80,18 +86,27 @@ export default function Establishments() {
               loading={loading}
               onEdit={handleOpenEdit}
               onDelete={handleDelete}
+              onManageCollectionPoints={handleOpenCollectionPoints}
             />
           )}
         </CardContent>
       </Card>
 
       <EstablishmentFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
         onSubmit={handleFormSubmit}
         initialData={selectedEstablishment}
         isLoading={false}
       />
+
+      {selectedEstablishment && (
+        <ManageCollectionPointsDialog
+          open={collectionPointsDialogOpen}
+          onOpenChange={setCollectionPointsDialogOpen}
+          establishment={selectedEstablishment}
+        />
+      )}
     </div>
   );
 }

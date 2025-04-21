@@ -17,6 +17,7 @@ interface EstablishmentsTableProps {
   loading: boolean;
   onEdit: (establishment: EstablishmentWithDetails) => void;
   onDelete: (establishment: EstablishmentWithDetails) => void;
+  onManageCollectionPoints: (establishment: EstablishmentWithDetails) => void;
 }
 
 export function EstablishmentsTable({
@@ -24,6 +25,7 @@ export function EstablishmentsTable({
   loading,
   onEdit,
   onDelete,
+  onManageCollectionPoints,
 }: EstablishmentsTableProps) {
   if (loading) {
     return <EstablishmentsTableLoading />;
@@ -51,6 +53,7 @@ export function EstablishmentsTable({
                 establishment={establishment}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onManageCollectionPoints={onManageCollectionPoints}
               />
             ))
           )}
