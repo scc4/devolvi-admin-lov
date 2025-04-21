@@ -78,8 +78,10 @@ export default function Users() {
           // Exemplo de lógica simplificada de status:
           let status: StatusType = "Convidado";
           if (userAuth) {
-            // Check if the banned_until property exists and is set
-            const hasBan = userAuth.banned_until !== null && userAuth.banned_until !== undefined;
+            // Check if banned status by looking for the banned_until property
+            // Use type assertion to access the property safely
+            const authUserAny = userAuth as any;
+            const hasBan = authUserAny.banned_until !== null && authUserAny.banned_until !== undefined;
             if (hasBan) {
               status = "Inativo";
             } else if (userAuth.email_confirmed_at) {
@@ -178,8 +180,9 @@ export default function Users() {
     }
     
     // O correto é usar banned_until com uma data futura distante para inativar
+    // Usando um objeto para banned_until para satisfazer o tipo AdminUserAttributes
     const { error } = await supabase.auth.admin.updateUserById(user.id, {
-      banned_until: '2099-12-31T23:59:59Z'
+      ban_duration: "87600h" // Ban for 10 years (using ban_duration instead of banned_until)
     });
     
     if (!error) {
