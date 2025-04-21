@@ -31,10 +31,30 @@ export function useCollectionPoints(establishmentId: string | undefined) {
   const createMutation = useMutation({
     mutationFn: async (newPoint: Partial<CollectionPoint>) => {
       if (!establishmentId) throw new Error('ID do estabelecimento não fornecido');
+      if (!newPoint.name) throw new Error('Nome do ponto de coleta não fornecido');
+      if (!newPoint.address) throw new Error('Endereço não fornecido');
+      if (!newPoint.carrier_id) throw new Error('ID da transportadora não fornecido');
       
       const { data, error } = await supabase
         .from('collection_points')
-        .insert({ ...newPoint, establishment_id: establishmentId })
+        .insert({
+          establishment_id: establishmentId,
+          name: newPoint.name,
+          address: newPoint.address,
+          carrier_id: newPoint.carrier_id,
+          phone: newPoint.phone || null,
+          street: newPoint.street || null,
+          number: newPoint.number || null,
+          complement: newPoint.complement || null,
+          district: newPoint.district || null,
+          zip_code: newPoint.zip_code || null,
+          city: newPoint.city || null,
+          state: newPoint.state || null,
+          latitude: newPoint.latitude || null,
+          longitude: newPoint.longitude || null,
+          is_active: newPoint.is_active ?? true,
+          operating_hours: newPoint.operating_hours || null
+        })
         .select()
         .single();
 

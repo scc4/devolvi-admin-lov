@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { CollectionPoint, DayOfWeek, daysOfWeek, daysOfWeekPtBr } from "@/types/collection-point";
+import { CollectionPoint, DayOfWeek, daysOfWeek, daysOfWeekPtBr } from "@/types/collection-point";
 
 interface CollectionPointFormDialogProps {
   open: boolean;

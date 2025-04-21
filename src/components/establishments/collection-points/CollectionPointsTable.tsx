@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, Trash2, Check, X, Clock, MapPin, Phone } from "lucide-react";
-import type { CollectionPoint, DayOfWeek, daysOfWeek, daysOfWeekPtBr } from "@/types/collection-point";
+import { CollectionPoint, DayOfWeek, daysOfWeek, daysOfWeekPtBr } from "@/types/collection-point";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
