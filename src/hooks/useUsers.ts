@@ -97,7 +97,10 @@ export function useUsers() {
         })
         .eq('id', userId);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
+        throw profileError;
+      }
 
       // Then handle role update
       const { data: existingRole, error: checkError } = await supabase
@@ -106,7 +109,10 @@ export function useUsers() {
         .eq('user_id', userId)
         .single();
       
-      if (checkError && checkError.code !== 'PGRST116') throw checkError;
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error("Error checking existing role:", checkError);
+        throw checkError;
+      }
 
       let roleError;
       if (existingRole) {
@@ -122,7 +128,10 @@ export function useUsers() {
         roleError = error;
       }
 
-      if (roleError) throw roleError;
+      if (roleError) {
+        console.error("Error updating role:", roleError);
+        throw roleError;
+      }
 
       toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados com sucesso." });
       loadUsers();
