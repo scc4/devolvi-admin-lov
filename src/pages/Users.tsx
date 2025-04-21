@@ -79,7 +79,8 @@ export default function Users() {
           let status: StatusType = "Convidado";
           if (userAuth) {
             // Check if the banned_until property exists and is set
-            if (userAuth.banned_until) {
+            const hasBan = userAuth.banned_until !== null && userAuth.banned_until !== undefined;
+            if (hasBan) {
               status = "Inativo";
             } else if (userAuth.email_confirmed_at) {
               status = "Ativo";
@@ -129,6 +130,9 @@ export default function Users() {
       // Atribuir role
       await supabase.from("user_roles").insert({ user_id: data.user.id, role });
       toast({ title: "Convite enviado!", description: "O usuário foi convidado para a equipe." });
+      
+      // Recarregar usuários
+      window.location.reload();
     }
     setInviteOpen(false);
   };
@@ -136,9 +140,19 @@ export default function Users() {
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: RoleValue }) => {
     await supabase.from("profiles").update({ name: updates.name }).eq("id", userId);
     await supabase.from("user_roles").update({ role: updates.role }).eq("user_id", userId);
-    // A API de Auth não aceita update de phone diretamente no frontend
+    
+    // Atualizar o phone no auth
+    if (updates.phone) {
+      await supabase.auth.admin.updateUserById(userId, {
+        phone: updates.phone
+      });
+    }
+    
     toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados." });
     setEditUser(null);
+    
+    // Recarregar usuários
+    window.location.reload();
   };
 
   const handleDelete = async (user: UserRow) => {
@@ -165,7 +179,7 @@ export default function Users() {
     
     // O correto é usar banned_until com uma data futura distante para inativar
     const { error } = await supabase.auth.admin.updateUserById(user.id, {
-      banned_until: '2099-12-31'
+      banned_until: '2099-12-31T23:59:59Z'
     });
     
     if (!error) {
@@ -174,10 +188,19 @@ export default function Users() {
       toast({ title: "Erro ao inativar", description: error.message, variant: "destructive" });
     }
     setConfirmModal(null);
+    
+    // Recarregar usuários
+    window.location.reload();
   };
 
   const handleResendInvite = async (user: UserRow) => {
-    const { error } = await supabase.auth.admin.inviteUserByEmail(user.email!);
+    if (!user.email) {
+      toast({ title: "Erro ao reenviar", description: "Usuário não possui email cadastrado", variant: "destructive" });
+      setConfirmModal(null);
+      return;
+    }
+    
+    const { error } = await supabase.auth.admin.inviteUserByEmail(user.email);
     if (!error) {
       toast({ title: "Convite reenviado", description: "Novo convite enviado para o e-mail." });
     } else {

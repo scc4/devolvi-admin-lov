@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { maskPhoneBR } from "@/lib/format";
 
 // Types passed as props
 type RoleValue = "owner" | "admin" | "carrier" | "dropoff" | "user";
@@ -26,9 +27,24 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
 
   const handleInvite = async () => {
     setSubmitting(true);
-    await onInvite(form);
+    
+    // Format phone for database with international code
+    const phoneDigits = form.phone ? form.phone.replace(/\D/g, '') : "";
+    const phoneFormatted = phoneDigits ? `+55${phoneDigits}` : undefined;
+    
+    await onInvite({
+      name: form.name,
+      email: form.email,
+      phone: phoneFormatted,
+      role: form.role
+    });
     setForm({ name: "", email: "", phone: "", role: "user" });
     setSubmitting(false);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedValue = maskPhoneBR(e.target.value);
+    setForm(f => ({ ...f, phone: maskedValue }));
   };
 
   return (
@@ -40,7 +56,12 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
         <div className="space-y-3 py-2">
           <Input placeholder="Nome" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
           <Input placeholder="E-mail" value={form.email} type="email" onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-          <Input placeholder="Telefone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+          <Input 
+            placeholder="Telefone" 
+            value={form.phone} 
+            onChange={handlePhoneChange} 
+            maxLength={15}
+          />
           <select
             className="w-full p-2 border rounded-md bg-background"
             value={form.role}

@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { maskPhoneBR, formatPhoneBR } from "@/lib/format";
 
 // Types passed via props
 type RoleValue = "owner" | "admin" | "carrier" | "dropoff" | "user";
@@ -28,15 +29,29 @@ interface EditDialogProps {
 export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
   const [form, setForm] = useState({
     name: user.name ?? "",
-    phone: user.phone ?? "",
+    phone: formatPhoneBR(user.phone) ?? "",
     role: user.role,
   });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await onEdit(user.id, form);
+    
+    // Extract raw phone number for database
+    const phoneDigits = form.phone ? form.phone.replace(/\D/g, '') : null;
+    const phoneFormatted = phoneDigits ? `+55${phoneDigits}` : null;
+    
+    await onEdit(user.id, {
+      name: form.name,
+      phone: phoneFormatted,
+      role: form.role
+    });
     setSubmitting(false);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedValue = maskPhoneBR(e.target.value);
+    setForm(f => ({ ...f, phone: maskedValue }));
   };
 
   return (
@@ -47,7 +62,12 @@ export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
         </DialogHeader>
         <div className="space-y-3 py-2">
           <Input placeholder="Nome" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          <Input placeholder="Telefone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+          <Input 
+            placeholder="Telefone" 
+            value={form.phone} 
+            onChange={handlePhoneChange} 
+            maxLength={15} 
+          />
           <select
             className="w-full p-2 border rounded-md bg-background"
             value={form.role}
