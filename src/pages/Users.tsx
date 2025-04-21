@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -177,6 +178,14 @@ export default function Users() {
 
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: "admin" | "owner" }) => {
     try {
+      // Verificar se o papel do usuário já existe
+      const { data: existingRole, error: checkError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+      
+      if (checkError) throw checkError;
+      
       // Atualizar perfil
       const { error: profileError } = await supabase
         .from('profiles')
@@ -185,10 +194,25 @@ export default function Users() {
 
       if (profileError) throw profileError;
 
-      // Atualizar role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .upsert({ user_id: userId, role: updates.role });
+      // Se o role já existe, atualize-o. Caso contrário, insira um novo
+      let roleError;
+      
+      if (existingRole && existingRole.length > 0) {
+        // Atualizar role existente
+        const { error } = await supabase
+          .from('user_roles')
+          .update({ role: updates.role })
+          .eq('user_id', userId);
+        
+        roleError = error;
+      } else {
+        // Inserir novo role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: updates.role });
+        
+        roleError = error;
+      }
 
       if (roleError) throw roleError;
 
@@ -223,11 +247,10 @@ export default function Users() {
 
   const handleDeactivate = async (user: UserRow) => {
     try {
-      // Desativar usuário no Auth - use banned_until with a far future date instead of banned property
-      const farFutureDate = new Date('2099-12-31').toISOString();
+      // Desativar usuário usando o método correto do Supabase Auth Admin API
       const { error } = await supabase.auth.admin.updateUserById(
         user.id,
-        { banned_until: farFutureDate }
+        { user_metadata: { disabled: true } }
       );
       if (error) throw error;
 
