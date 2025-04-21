@@ -14,8 +14,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary blue from Modernize */
-    --primary: 217 74% 42%;
+    /* Updated primary color to match Modernize */
+    --primary: 240 80% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -36,21 +36,14 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 14% 22%;
+    --sidebar-primary: 240 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 25% 98%;
+    --sidebar-accent-foreground: 222 14% 22%;
+    --sidebar-border: 240 25% 98%;
+    --sidebar-ring: 240 80% 60%;
   }
 
   .dark {
@@ -63,8 +56,8 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 240 80% 60%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -81,14 +74,15 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    
+    --sidebar-background: 222 14% 18%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 240 80% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 222 14% 22%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 222 14% 22%;
+    --sidebar-ring: 240 80% 60%;
   }
 }
 
@@ -99,6 +93,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   }
   
   /* Mobile-first focus */
@@ -120,6 +115,29 @@
   }
 }
 
+/* Card styles inspired by Modernize */
+@layer components {
+  .modernize-card {
+    @apply bg-white rounded-lg shadow-card hover:shadow-card-hover transition-shadow p-5 border border-gray-100;
+  }
+  
+  .modernize-stat-card {
+    @apply modernize-card flex flex-col;
+  }
+  
+  .modernize-sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-md text-[#2a3547] hover:bg-[#f5f6fa] transition-colors;
+  }
+  
+  .modernize-sidebar-item.active {
+    @apply bg-[#e4e7ff] text-primary;
+  }
+  
+  .modernize-button {
+    @apply bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md transition-colors;
+  }
+}
+
 /* Mobile-first components */
 @layer components {
   .mobile-container {
@@ -127,7 +145,7 @@
   }
   
   .mobile-card {
-    @apply rounded-lg border shadow-sm p-4 md:p-6;
+    @apply modernize-card;
   }
   
   .mobile-section {
@@ -147,5 +165,29 @@
   
   .touch-scroll {
     @apply overflow-auto overscroll-contain -webkit-overflow-scrolling-touch;
+  }
+  
+  .bg-soft-primary {
+    @apply bg-blue-50;
+  }
+  
+  .bg-soft-success {
+    @apply bg-green-50;
+  }
+  
+  .bg-soft-warning {
+    @apply bg-amber-50;
+  }
+  
+  .bg-soft-danger {
+    @apply bg-red-50;
+  }
+  
+  .bg-soft-info {
+    @apply bg-sky-50;
+  }
+  
+  .text-modernize {
+    @apply text-[#2a3547];
   }
 }

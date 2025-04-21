@@ -34,7 +34,7 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#1e4db7',
+					DEFAULT: '#6366f1', // Indigo color from Modernize
 					foreground: '#ffffff'
 				},
 				secondary: {
@@ -62,13 +62,13 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
+					DEFAULT: '#ffffff', // White sidebar like Modernize
+					foreground: '#2a3547', // Dark text
+					primary: '#6366f1', // Indigo for active items
 					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
+					accent: '#f5f6fa', // Light accent background
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
+					border: '#f5f6fa', // Light border
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
@@ -91,6 +91,10 @@ export default {
 				'safe-bottom': 'env(safe-area-inset-bottom)',
 				'safe-left': 'env(safe-area-inset-left)',
 				'safe-right': 'env(safe-area-inset-right)',
+			},
+			boxShadow: {
+				'card': '0 2px 8px rgba(0, 0, 0, 0.05)',
+				'card-hover': '0 5px 15px rgba(0, 0, 0, 0.08)',
 			},
 			keyframes: {
 				'accordion-down': {

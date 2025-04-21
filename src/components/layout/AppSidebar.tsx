@@ -4,7 +4,6 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
@@ -60,18 +59,18 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className={isMobile && !open ? "hidden" : ""}>
+    <Sidebar className={`${isMobile && !open ? "hidden" : ""} border-r`}>
       <SidebarHeader>
         <div className="flex w-full items-center gap-2">
-          <div className="flex items-center justify-center rounded-md bg-primary p-1">
+          <div className="flex items-center justify-center rounded-md bg-[#6366f1] p-1">
             <span className="text-lg font-bold text-white">M</span>
           </div>
-          <span className="font-semibold">Modernize Admin</span>
+          <span className="font-semibold text-[#2a3547]">Modernize Admin</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-medium text-gray-500 px-4 py-2">MENU PRINCIPAL</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menu.map((item) => (
@@ -79,11 +78,16 @@ export function AppSidebar() {
                   <SidebarMenuButton 
                     asChild
                     isActive={location.pathname === item.url}
+                    className={
+                      location.pathname === item.url
+                        ? "bg-[#e4e7ff] text-[#6366f1]"
+                        : "text-[#2a3547] hover:bg-[#f5f6fa]"
+                    }
                     onClick={() => isMobile && useSidebar().setOpen(false)}
                   >
-                    <Link to={item.url}>
+                    <Link to={item.url} className="flex items-center gap-3 px-4 py-3 rounded-md transition-colors">
                       <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
+                      <span className="font-medium">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -93,22 +97,23 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-between p-4 border-t">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground">
+              <AvatarFallback className="bg-[#6366f1] text-white">
                 {profile?.name?.[0] || "A"}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col text-xs">
-              <span className="font-medium">{profile?.name || "Admin"}</span>
-              <span className="text-muted-foreground">Admin</span>
+            <div className="flex flex-col text-sm">
+              <span className="font-medium text-[#2a3547]">{profile?.name || "Admin"}</span>
+              <span className="text-xs text-gray-500">Administrador</span>
             </div>
           </div>
           <Button 
             variant="ghost" 
             size="icon"
             onClick={handleLogout}
+            className="text-gray-500 hover:text-[#6366f1] hover:bg-[#f5f6fa]"
           >
             <LogOut className="h-4 w-4" />
           </Button>

@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CollectionPointMobileCard } from "./CollectionPointMobileCard";
 import { CollectionPointDesktopTable } from "./CollectionPointDesktopTable";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
@@ -19,14 +20,29 @@ export function CollectionPointsTable({
   onDelete,
 }: CollectionPointsTableProps) {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
 
   const handleAssignCarrier = async (pointId: string, carrierId: string | null) => {
-    const { error } = await supabase
-      .from('collection_points')
-      .update({ carrier_id: carrierId })
-      .eq('id', pointId);
+    try {
+      const { error } = await supabase
+        .from('collection_points')
+        .update({ carrier_id: carrierId })
+        .eq('id', pointId);
 
-    if (error) throw error;
+      if (error) throw error;
+      
+      toast({
+        title: "Transportadora atribuída com sucesso",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Error assigning carrier:", error);
+      toast({
+        title: "Erro ao atribuir transportadora",
+        description: "Não foi possível atribuir a transportadora. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   if (isLoading) {
@@ -39,7 +55,7 @@ export function CollectionPointsTable({
 
   if (collectionPoints.length === 0) {
     return (
-      <div className="text-center p-8 border rounded-md">
+      <div className="text-center p-8 border rounded-md bg-slate-50">
         <p className="text-muted-foreground">Nenhum ponto de coleta cadastrado</p>
       </div>
     );
@@ -61,11 +77,13 @@ export function CollectionPointsTable({
   }
 
   return (
-    <CollectionPointDesktopTable
-      collectionPoints={collectionPoints}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      onAssignCarrier={handleAssignCarrier}
-    />
+    <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+      <CollectionPointDesktopTable
+        collectionPoints={collectionPoints}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onAssignCarrier={handleAssignCarrier}
+      />
+    </div>
   );
 }
