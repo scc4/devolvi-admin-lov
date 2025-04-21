@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -6,10 +7,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash, Ban, Mail } from "lucide-react";
 import { formatPhoneBR } from "@/lib/format";
 import { UserRow, ROLES } from "@/types/user";
+import { UserActionsDropdown } from "./UserActionsDropdown";
 
 interface UsersTableProps {
   users: UserRow[];
@@ -40,7 +40,7 @@ export function UsersTable({
             <TableHead>Data de Inclusão</TableHead>
             <TableHead>Perfil</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Ações</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -70,43 +70,14 @@ export function UsersTable({
                     {user.status}
                   </span>
                 </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => onEdit(user)}
-                      title="Editar"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => onDelete(user)}
-                      title="Excluir usuário"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDeactivate(user)}
-                      title="Inativar usuário"
-                    >
-                      <Ban className="h-4 w-4" />
-                    </Button>
-                    {user.status === "Convidado" && (
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => onResendInvite(user)}
-                        title="Reenviar convite"
-                      >
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                <TableCell className="text-right">
+                  <UserActionsDropdown
+                    user={user}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onDeactivate={onDeactivate}
+                    onResendInvite={onResendInvite}
+                  />
                 </TableCell>
               </TableRow>
             ))

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,34 +102,37 @@ export function useUsers() {
 
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: "admin" | "owner" }) => {
     try {
-      const { data: existingRole, error: checkError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-      
-      if (checkError) throw checkError;
-      
+      // First update the profile
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ name: updates.name, phone: updates.phone })
+        .update({ 
+          name: updates.name, 
+          phone: updates.phone 
+        })
         .eq('id', userId);
 
       if (profileError) throw profileError;
 
-      let roleError;
+      // Then handle role update
+      const { data: existingRole, error: checkError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single();
       
-      if (existingRole && existingRole.length > 0) {
+      if (checkError && checkError.code !== 'PGRST116') throw checkError;
+
+      let roleError;
+      if (existingRole) {
         const { error } = await supabase
           .from('user_roles')
           .update({ role: updates.role })
           .eq('user_id', userId);
-        
         roleError = error;
       } else {
         const { error } = await supabase
           .from('user_roles')
           .insert({ user_id: userId, role: updates.role });
-        
         roleError = error;
       }
 
@@ -137,6 +141,7 @@ export function useUsers() {
       toast({ title: "Usuário atualizado!", description: "Dados do usuário alterados com sucesso." });
       loadUsers();
     } catch (error: any) {
+      console.error('Error updating user:', error);
       toast({
         title: "Erro ao atualizar usuário",
         description: error?.message || "Ocorreu um erro inesperado.",
