@@ -151,13 +151,34 @@ export default function Users() {
         return;
       }
       
-      // Atualizar a role
-      const { error: roleError } = await supabase
+      // Verificar primeiro se já existe um registro para este usuário
+      const { data: existingRole } = await supabase
         .from("user_roles")
-        .upsert({ 
-          user_id: userId,
-          role: updates.role 
-        });
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+      
+      let roleError;
+      
+      if (existingRole) {
+        // Se já existe, atualizar
+        const { error } = await supabase
+          .from("user_roles")
+          .update({ role: updates.role })
+          .eq("user_id", userId);
+          
+        roleError = error;
+      } else {
+        // Se não existe, inserir
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ 
+            user_id: userId,
+            role: updates.role 
+          });
+          
+        roleError = error;
+      }
         
       if (roleError) {
         toast({ title: "Erro ao atualizar função", description: roleError.message, variant: "destructive" });
