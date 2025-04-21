@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -18,7 +19,9 @@ interface CollectionPointsTableProps {
   onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
   onAssociate?: (point: CollectionPoint) => void;
+  onDisassociate?: (point: CollectionPoint) => void;
   showAssociateButton?: boolean;
+  showDisassociateButton?: boolean;
 }
 
 export function CollectionPointsTable({ 
@@ -27,9 +30,11 @@ export function CollectionPointsTable({
   onEdit,
   onDelete,
   onAssociate,
-  showAssociateButton
+  onDisassociate,
+  showAssociateButton,
+  showDisassociateButton
 }: CollectionPointsTableProps) {
-  if (showAssociateButton) {
+  if (showAssociateButton || showDisassociateButton) {
     return (
       <div className="space-y-4">
         {collectionPoints.map((point) => (
@@ -39,20 +44,34 @@ export function CollectionPointsTable({
                 <h3 className="font-semibold">{point.name}</h3>
                 <p className="text-sm text-gray-600">{point.address}</p>
               </div>
-              <Button
-                onClick={() => onAssociate?.(point)}
-                variant="outline"
-                size="sm"
-              >
-                Associar
-              </Button>
+              {showAssociateButton && (
+                <Button
+                  onClick={() => onAssociate?.(point)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Associar
+                </Button>
+              )}
+              {showDisassociateButton && (
+                <Button
+                  onClick={() => onDisassociate?.(point)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Desassociar
+                </Button>
+              )}
             </div>
           </div>
         ))}
         
         {collectionPoints.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            Não há pontos de coleta disponíveis para associação
+            {showAssociateButton 
+              ? "Não há pontos de coleta disponíveis para associação"
+              : "Não há pontos de coleta associados"
+            }
           </div>
         )}
       </div>
