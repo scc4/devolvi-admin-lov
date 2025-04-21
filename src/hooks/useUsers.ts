@@ -4,6 +4,15 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRow } from "@/types/user";
 
+// Define the type for user data returned from admin.listUsers()
+type UserData = {
+  users?: {
+    id: string;
+    email?: string | null;
+    // Add other properties as needed
+  }[];
+};
+
 export function useUsers() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +46,10 @@ export function useUsers() {
       }
 
       // Buscar emails de todos usuários (usando admin API)
-      const { data: userData, error: userErr } = await supabase.auth.admin.listUsers();
+      const { data: userData, error: userErr } = await supabase.auth.admin.listUsers() as { 
+        data: UserData | null;
+        error: Error | null;
+      };
       
       if (userErr) {
         console.error("Error fetching user emails:", userErr);
