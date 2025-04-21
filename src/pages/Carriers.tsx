@@ -9,6 +9,7 @@ import { EditCarrierDialog } from "@/components/carriers/EditCarrierDialog";
 import { ConfirmActionDialog } from "@/components/carriers/ConfirmActionDialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
+import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
 import type { Carrier } from "@/types/carrier";
 
 export default function Carriers() {
@@ -27,6 +28,7 @@ export default function Carriers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editCarrier, setEditCarrier] = useState<Carrier | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate", carrier: Carrier }>(null);
+  const [managePointsCarrier, setManagePointsCarrier] = useState<Carrier | null>(null);
 
   const filteredCarriers = carriers.filter((carrier) =>
     carrier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -89,6 +91,7 @@ export default function Carriers() {
               onEdit={setEditCarrier}
               onDelete={(carrier) => setConfirmModal({ action: "delete", carrier })}
               onDeactivate={(carrier) => setConfirmModal({ action: "deactivate", carrier })}
+              onManageCollectionPoints={setManagePointsCarrier}
             />
           )}
         </CardContent>
@@ -110,6 +113,14 @@ export default function Carriers() {
           carrier={confirmModal.carrier}
           onCancel={() => setConfirmModal(null)}
           onConfirm={handleConfirmAction}
+        />
+      )}
+
+      {managePointsCarrier && (
+        <ManageCollectionPointsDialog
+          open={!!managePointsCarrier}
+          onOpenChange={() => setManagePointsCarrier(null)}
+          carrierContext={{ carrierId: managePointsCarrier.id }}
         />
       )}
     </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,17 +11,33 @@ export function useCarriers() {
   const { data: carriers = [], isLoading: loading } = useQuery({
     queryKey: ['carriers'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the carriers
+      const { data: carriersData, error: carriersError } = await supabase
         .from('carriers')
         .select('*')
         .order('name');
 
-      if (error) {
-        setError(error.message);
-        throw error;
+      if (carriersError) {
+        setError(carriersError.message);
+        throw carriersError;
       }
 
-      return data as Carrier[];
+      // Then get collection points count for each carrier
+      const carriersWithCount = await Promise.all(
+        carriersData.map(async (carrier) => {
+          const { count } = await supabase
+            .from('collection_points')
+            .select('*', { count: 'exact', head: true })
+            .eq('carrier_id', carrier.id);
+
+          return {
+            ...carrier,
+            collection_points_count: count || 0
+          };
+        })
+      );
+
+      return carriersWithCount as (Carrier & { collection_points_count: number })[];
     }
   });
 

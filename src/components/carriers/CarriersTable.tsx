@@ -12,11 +12,12 @@ import { formatPhoneBR } from "@/lib/format";
 import type { Carrier } from "@/types/carrier";
 
 interface CarriersTableProps {
-  carriers: Carrier[];
+  carriers: (Carrier & { collection_points_count?: number })[];
   loading: boolean;
   onEdit: (carrier: Carrier) => void;
   onDelete: (carrier: Carrier) => void;
   onDeactivate: (carrier: Carrier) => void;
+  onManageCollectionPoints: (carrier: Carrier) => void;
 }
 
 export function CarriersTable({
@@ -25,6 +26,7 @@ export function CarriersTable({
   onEdit,
   onDelete,
   onDeactivate,
+  onManageCollectionPoints,
 }: CarriersTableProps) {
   return (
     <div className="rounded-md border overflow-x-auto">
@@ -37,13 +39,14 @@ export function CarriersTable({
             <TableHead>Telefone</TableHead>
             <TableHead>E-mail</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Pontos de Coleta</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-4">
+              <TableCell colSpan={8} className="text-center py-4">
                 Carregando...
               </TableCell>
             </TableRow>
@@ -64,19 +67,25 @@ export function CarriersTable({
                     {carrier.is_active ? "Ativo" : "Inativo"}
                   </span>
                 </TableCell>
+                <TableCell>
+                  <span className="font-medium">
+                    {carrier.collection_points_count || 0}
+                  </span>
+                </TableCell>
                 <TableCell className="text-right">
                   <CarrierActionsDropdown
                     carrier={carrier}
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onDeactivate={onDeactivate}
+                    onManageCollectionPoints={onManageCollectionPoints}
                   />
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-4">
+              <TableCell colSpan={8} className="text-center py-4">
                 Nenhuma transportadora encontrada
               </TableCell>
             </TableRow>

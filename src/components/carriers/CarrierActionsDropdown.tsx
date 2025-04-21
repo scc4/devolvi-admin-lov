@@ -1,5 +1,5 @@
 
-import { MoreHorizontal, Pencil, Trash, PowerOff } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash, PowerOff, MapPin } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,13 +16,15 @@ interface CarrierActionsDropdownProps {
   onEdit: (carrier: Carrier) => void;
   onDelete: (carrier: Carrier) => void;
   onDeactivate: (carrier: Carrier) => void;
+  onManageCollectionPoints: (carrier: Carrier) => void;
 }
 
 export function CarrierActionsDropdown({ 
   carrier, 
   onEdit, 
   onDelete, 
-  onDeactivate
+  onDeactivate,
+  onManageCollectionPoints
 }: CarrierActionsDropdownProps) {
   return (
     <DropdownMenu>
@@ -36,6 +38,10 @@ export function CarrierActionsDropdown({
         <DropdownMenuItem onClick={() => onEdit(carrier)}>
           <Pencil className="mr-2 h-4 w-4" />
           Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onManageCollectionPoints(carrier)}>
+          <MapPin className="mr-2 h-4 w-4" />
+          Pontos de Coleta
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {carrier.is_active && (
