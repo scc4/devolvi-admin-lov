@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit, Trash, Ban, Mail } from "lucide-react";
 import { formatPhoneBR } from "@/lib/format";
-import { UserRow, ROLES } from "@/pages/Users";
+import { UserRow, ROLES } from "@/types/user";
 
 interface UsersTableProps {
   users: UserRow[];
