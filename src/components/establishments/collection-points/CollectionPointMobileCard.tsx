@@ -1,8 +1,11 @@
 
-import { Check, X, MapPin, Phone, Pencil, Trash2 } from "lucide-react";
+import { Check, X, MapPin, Phone, Pencil, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CollectionPoint } from "@/types/collection-point";
-import { formatAddress, formatOperatingHours } from "./utils/formatters";
+import { formatAddress } from "./utils/formatters";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
+import { daysOfWeek, daysOfWeekPtBr, DayOfWeek } from "@/types/collection-point";
 
 interface CollectionPointMobileCardProps {
   point: CollectionPoint;
@@ -11,6 +14,26 @@ interface CollectionPointMobileCardProps {
 }
 
 export function CollectionPointMobileCard({ point, onEdit, onDelete }: CollectionPointMobileCardProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const formatOperatingHoursSimple = () => {
+    if (!point.operating_hours) return "Horários não informados";
+    
+    // Find if the point is currently open
+    const now = new Date();
+    const today = daysOfWeek[now.getDay()];
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const todayHours = point.operating_hours[today];
+    const isOpen = todayHours?.some(period => period.open <= currentTime && period.close >= currentTime);
+    
+    if (isOpen) {
+      const closingTime = todayHours.find(period => period.close >= currentTime)?.close;
+      return `Aberto • Fecha às ${closingTime}`;
+    }
+    return "Fechado";
+  };
+
   return (
     <div className="border rounded-md p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -39,11 +62,35 @@ export function CollectionPointMobileCard({ point, onEdit, onDelete }: Collectio
         <MapPin className="h-4 w-4 text-muted-foreground mr-1 mt-0.5" />
         <span className="flex-1">{formatAddress(point)}</span>
       </div>
-      
-      <div className="border-t pt-2 mt-2">
-        <p className="text-xs font-medium mb-1">Horário de Funcionamento:</p>
-        <div className="text-xs whitespace-pre-line">{formatOperatingHours(point.operating_hours)}</div>
-      </div>
+
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <div className="flex items-center justify-between pt-2 border-t">
+          <span className="text-sm">{formatOperatingHoursSimple()}</span>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent className="pt-2">
+          <div className="space-y-1">
+            {daysOfWeek.map((day) => {
+              const hours = point.operating_hours?.[day];
+              return (
+                <div key={day} className="flex justify-between text-sm">
+                  <span className="font-medium">{daysOfWeekPtBr[day as DayOfWeek]}</span>
+                  <span>
+                    {hours && hours.length > 0
+                      ? hours.map(period => `${period.open} - ${period.close}`).join(', ')
+                      : 'Fechado'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
       
       <div className="flex justify-end space-x-2 pt-2">
         <Button
