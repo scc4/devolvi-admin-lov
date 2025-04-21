@@ -1,89 +1,111 @@
-
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { CollectionPointMobileCard } from "./CollectionPointMobileCard";
-import { CollectionPointDesktopTable } from "./CollectionPointDesktopTable";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
   isLoading: boolean;
-  onEdit: (point: CollectionPoint) => void;
-  onDelete: (pointId: string) => void;
+  onEdit?: (point: CollectionPoint) => void;
+  onDelete?: (pointId: string) => void;
+  onAssociate?: (point: CollectionPoint) => void;
+  showAssociateButton?: boolean;
 }
 
-export function CollectionPointsTable({
+export function CollectionPointsTable({ 
   collectionPoints,
   isLoading,
   onEdit,
   onDelete,
+  onAssociate,
+  showAssociateButton
 }: CollectionPointsTableProps) {
-  const { isMobile } = useIsMobile();
-  const { toast } = useToast();
-
-  const handleAssignCarrier = async (pointId: string, carrierId: string | null) => {
-    try {
-      const { error } = await supabase
-        .from('collection_points')
-        .update({ carrier_id: carrierId })
-        .eq('id', pointId);
-
-      if (error) throw error;
-      
-      toast({
-        title: "Transportadora atribuída com sucesso",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error("Error assigning carrier:", error);
-      toast({
-        title: "Erro ao atribuir transportadora",
-        description: "Não foi possível atribuir a transportadora. Por favor, tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
-  if (collectionPoints.length === 0) {
-    return (
-      <div className="text-center p-8 border rounded-md bg-slate-50">
-        <p className="text-muted-foreground">Nenhum ponto de coleta cadastrado</p>
-      </div>
-    );
-  }
-
-  if (isMobile) {
+  if (showAssociateButton) {
     return (
       <div className="space-y-4">
         {collectionPoints.map((point) => (
-          <CollectionPointMobileCard
-            key={point.id}
-            point={point}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
+          <div key={point.id} className="bg-white p-4 rounded-lg shadow border">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold">{point.name}</h3>
+                <p className="text-sm text-gray-600">{point.address}</p>
+              </div>
+              <Button
+                onClick={() => onAssociate?.(point)}
+                variant="outline"
+                size="sm"
+              >
+                Associar
+              </Button>
+            </div>
+          </div>
         ))}
+        
+        {collectionPoints.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            Não há pontos de coleta disponíveis para associação
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-      <CollectionPointDesktopTable
-        collectionPoints={collectionPoints}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onAssignCarrier={handleAssignCarrier}
-      />
+    <div className="relative overflow-x-auto">
+      <Table>
+        <TableCaption>Lista de pontos de coleta.</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Endereço</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableRow>
+              <TableCell colSpan={3} className="text-center py-4">Carregando...</TableCell>
+            </TableRow>
+          ) : collectionPoints.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={3} className="text-center py-4">Nenhum ponto de coleta encontrado.</TableCell>
+            </TableRow>
+          ) : (
+            collectionPoints.map((point) => (
+              <TableRow key={point.id}>
+                <TableCell className="font-medium">{point.name}</TableCell>
+                <TableCell>{point.address}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="icon" onClick={() => onEdit?.(point)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="destructive" size="icon" onClick={() => onDelete?.(point.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={3}>
+              {collectionPoints.length} Ponto(s) de Coleta no total
+            </TableCell>
+          </TableRow>
+        </TableFooter>
+      </Table>
     </div>
   );
 }

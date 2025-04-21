@@ -1,29 +1,31 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 
-export function useCollectionPoints(establishmentId?: string, carrierId?: string) {
+export function useCollectionPoints(
+  establishmentId?: string, 
+  carrierId?: string,
+  fetchUnassigned?: boolean
+) {
   const queryClient = useQueryClient();
   
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
-    queryKey: ['collection-points', establishmentId, carrierId],
+    queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned],
     queryFn: async () => {
       let query = supabase.from('collection_points').select('*');
       
-      if (establishmentId) {
+      if (fetchUnassigned) {
+        // Fetch unassigned points (no carrier and no establishment)
+        query = query
+          .is('carrier_id', null)
+          .is('establishment_id', null);
+      } else if (establishmentId) {
         // Filter by establishment
         query = query.eq('establishment_id', establishmentId);
       } else if (carrierId) {
         // Filter by carrier if no establishment is provided
         query = query.eq('carrier_id', carrierId);
-      } else {
-        // If neither is provided, fetch generic collection points
-        // with no establishment or carrier
-        query = query
-          .is('establishment_id', null)
-          .is('carrier_id', null);
       }
       
       const { data, error } = await query.order('name');
@@ -35,7 +37,7 @@ export function useCollectionPoints(establishmentId?: string, carrierId?: string
 
       return data as CollectionPoint[];
     },
-    enabled: true // Always enabled as we might want various types of collection points
+    enabled: true
   });
 
   const createMutation = useMutation({

@@ -1,7 +1,7 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CollectionPointsTab } from "./CollectionPointsTab";
+import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
 import type { EstablishmentWithDetails } from "@/types/establishment";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect } from "react";
@@ -41,12 +41,24 @@ export function ManageCollectionPointsDialog({
     }
   }, [open]);
 
-  // Determine title based on context - safely handle undefined establishment
+  // Determine title based on context
   const dialogTitle = establishment 
     ? `Pontos de Coleta - ${establishment.name}` 
-    : "Pontos de Coleta da Transportadora";
+    : "Associar Pontos de Coleta";
 
-  // Mobile view uses full-screen Sheet
+  const Content = () => {
+    if (carrierContext?.carrierId) {
+      return <CollectionPointAssociationTab carrierId={carrierContext.carrierId} />;
+    }
+    return (
+      <CollectionPointsTab
+        establishmentId={establishment?.id}
+        carrierContext={carrierContext}
+      />
+    );
+  };
+
+  // Mobile view uses Sheet
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -54,10 +66,7 @@ export function ManageCollectionPointsDialog({
           <SheetHeader className="mb-4">
             <SheetTitle>{dialogTitle}</SheetTitle>
           </SheetHeader>
-          <CollectionPointsTab
-            establishmentId={establishment?.id}
-            carrierContext={carrierContext}
-          />
+          <Content />
         </SheetContent>
       </Sheet>
     );
@@ -70,10 +79,7 @@ export function ManageCollectionPointsDialog({
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
-        <CollectionPointsTab
-          establishmentId={establishment?.id}
-          carrierContext={carrierContext}
-        />
+        <Content />
       </DialogContent>
     </Dialog>
   );
