@@ -49,17 +49,21 @@ export function CollectionPointsTab({
   };
   
   const handleFormSubmit = async (point: Partial<CollectionPoint>) => {
-    if (selectedPoint) {
-      await updateCollectionPoint(point);
-    } else {
-      // Garantir que o establishment_id está sendo passado na criação
-      await createCollectionPoint({
-        ...point,
-        establishment_id: establishmentId,
-        carrier_id: carrierContext?.carrierId || point.carrier_id,
-      });
+    try {
+      if (selectedPoint) {
+        await updateCollectionPoint(point);
+      } else {
+        // Ensure establishment_id is set when creating a new point
+        const pointData = {
+          ...point,
+          establishment_id: establishmentId,
+        };
+        await createCollectionPoint(pointData);
+      }
+      setFormDialogOpen(false);
+    } catch (error) {
+      console.error("Error submitting collection point:", error);
     }
-    setFormDialogOpen(false);
   };
 
   return (

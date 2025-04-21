@@ -49,20 +49,16 @@ export function CollectionPointFormDialog({
       errors.push("Endereço");
     }
     
-    // Não validamos o establishment_id se ele estiver vindo do contexto da tela de estabelecimentos
-    // O ponto de coleta será associado ao estabelecimento automaticamente
-    
     if (errors.length > 0) {
       toast.error(`Por favor, preencha os campos obrigatórios: ${errors.join(', ')}`);
       return;
     }
     
-    const pointData = {
-      ...form,
-      ...(carrierContext?.carrierId && !form.carrier_id ? { carrier_id: carrierContext.carrierId } : {})
-    };
-    
-    await onSubmit(pointData);
+    try {
+      await onSubmit(form);
+    } catch (error) {
+      console.error("Erro ao salvar ponto de coleta:", error);
+    }
   };
 
   return (
@@ -125,4 +121,3 @@ export function CollectionPointFormDialog({
     </Dialog>
   );
 }
-

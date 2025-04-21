@@ -42,33 +42,29 @@ export function useCollectionPoints(establishmentId: string | undefined) {
       if (!newPoint.name) throw new Error('Nome do ponto de coleta não fornecido');
       if (!newPoint.address) throw new Error('Endereço não fornecido');
       
-      // Se establishment_id estiver definido, não precisamos de carrier_id obrigatório
-      const needsCarrierId = !newPoint.establishment_id;
-      
-      if (needsCarrierId && !newPoint.carrier_id) {
-        throw new Error('ID da transportadora não fornecido');
-      }
+      // Prepare data for insertion, ensuring carrier_id is null if empty
+      const pointData = {
+        establishment_id: newPoint.establishment_id || null,
+        name: newPoint.name,
+        address: newPoint.address,
+        carrier_id: newPoint.carrier_id || null, // Set to null if empty
+        phone: newPoint.phone || null,
+        street: newPoint.street || null,
+        number: newPoint.number || null,
+        complement: newPoint.complement || null,
+        district: newPoint.district || null,
+        zip_code: newPoint.zip_code || null,
+        city: newPoint.city || null,
+        state: newPoint.state || null,
+        latitude: newPoint.latitude || null,
+        longitude: newPoint.longitude || null,
+        is_active: newPoint.is_active ?? true,
+        operating_hours: newPoint.operating_hours || null
+      };
       
       const { data, error } = await supabase
         .from('collection_points')
-        .insert({
-          establishment_id: newPoint.establishment_id || null,
-          name: newPoint.name,
-          address: newPoint.address,
-          carrier_id: newPoint.carrier_id || '', // Se não tiver carrier_id, isso será validado acima
-          phone: newPoint.phone || null,
-          street: newPoint.street || null,
-          number: newPoint.number || null,
-          complement: newPoint.complement || null,
-          district: newPoint.district || null,
-          zip_code: newPoint.zip_code || null,
-          city: newPoint.city || null,
-          state: newPoint.state || null,
-          latitude: newPoint.latitude || null,
-          longitude: newPoint.longitude || null,
-          is_active: newPoint.is_active ?? true,
-          operating_hours: newPoint.operating_hours || null
-        })
+        .insert(pointData)
         .select()
         .single();
 
@@ -89,9 +85,15 @@ export function useCollectionPoints(establishmentId: string | undefined) {
     mutationFn: async (point: Partial<CollectionPoint>) => {
       if (!point.id) throw new Error('ID do ponto de coleta não fornecido');
       
+      // Ensure carrier_id is null if empty
+      const pointData = {
+        ...point,
+        carrier_id: point.carrier_id || null
+      };
+
       const { data, error } = await supabase
         .from('collection_points')
-        .update(point)
+        .update(pointData)
         .eq('id', point.id)
         .select()
         .single();
