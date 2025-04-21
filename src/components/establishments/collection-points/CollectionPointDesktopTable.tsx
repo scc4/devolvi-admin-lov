@@ -7,8 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { PencilIcon, Trash2, Check, X, Phone, ListCollapse } from "lucide-react";
+import { Phone, ListCollapse, Check, X } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 import { 
   Popover,
@@ -17,18 +16,30 @@ import {
 } from "@/components/ui/popover";
 import { formatOperatingHours } from "./utils/formatters";
 import { maskPhoneBR } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { CollectionPointActionsDropdown } from "./CollectionPointActionsDropdown";
+import { useCarriers } from "@/hooks/useCarriers";
+import { useState, useMemo } from "react";
 
 interface CollectionPointDesktopTableProps {
   collectionPoints: CollectionPoint[];
   onEdit: (point: CollectionPoint) => void;
   onDelete: (pointId: string) => void;
+  onAssignCarrier: (pointId: string, carrierId: string | null) => Promise<void>;
 }
 
 export function CollectionPointDesktopTable({
   collectionPoints,
   onEdit,
   onDelete,
+  onAssignCarrier,
 }: CollectionPointDesktopTableProps) {
+  const { carriers } = useCarriers();
+  
+  const carrierMap = useMemo(() => {
+    return new Map(carriers.map(carrier => [carrier.id, carrier]));
+  }, [carriers]);
+
   return (
     <div className="border rounded-md overflow-hidden">
       <div className="overflow-x-auto">
@@ -37,9 +48,10 @@ export function CollectionPointDesktopTable({
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Telefone</TableHead>
+              <TableHead>Transportadora</TableHead>
               <TableHead>Horários</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[100px]"></TableHead>
+              <TableHead className="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -54,6 +66,13 @@ export function CollectionPointDesktopTable({
                     </div>
                   ) : (
                     "Não informado"
+                  )}
+                </TableCell>
+                <TableCell>
+                  {point.carrier_id ? (
+                    carrierMap.get(point.carrier_id)?.name || "Carregando..."
+                  ) : (
+                    "Não associada"
                   )}
                 </TableCell>
                 <TableCell>
@@ -84,22 +103,12 @@ export function CollectionPointDesktopTable({
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(point)}
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(point.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+                  <CollectionPointActionsDropdown 
+                    point={point}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onAssignCarrier={onAssignCarrier}
+                  />
                 </TableCell>
               </TableRow>
             ))}

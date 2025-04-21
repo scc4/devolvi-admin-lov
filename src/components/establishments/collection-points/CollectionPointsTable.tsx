@@ -3,6 +3,7 @@ import type { CollectionPoint } from "@/types/collection-point";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CollectionPointMobileCard } from "./CollectionPointMobileCard";
 import { CollectionPointDesktopTable } from "./CollectionPointDesktopTable";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
@@ -18,6 +19,15 @@ export function CollectionPointsTable({
   onDelete,
 }: CollectionPointsTableProps) {
   const { isMobile } = useIsMobile();
+
+  const handleAssignCarrier = async (pointId: string, carrierId: string | null) => {
+    const { error } = await supabase
+      .from('collection_points')
+      .update({ carrier_id: carrierId })
+      .eq('id', pointId);
+
+    if (error) throw error;
+  };
 
   if (isLoading) {
     return (
@@ -55,6 +65,7 @@ export function CollectionPointsTable({
       collectionPoints={collectionPoints}
       onEdit={onEdit}
       onDelete={onDelete}
+      onAssignCarrier={handleAssignCarrier}
     />
   );
 }
