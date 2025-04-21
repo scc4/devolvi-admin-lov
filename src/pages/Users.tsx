@@ -11,6 +11,8 @@ import { useUsers } from "@/hooks/useUsers";
 import { UserRow } from "@/types/user";
 import { useAuth } from "@/context/AuthContext";
 import { useUserInvite } from "@/hooks/useUserInvite";
+import { Button } from "@/components/ui/button";
+import { RefreshCcw } from "lucide-react";
 
 export default function Users() {
   const { user: currentUser, roles: currentUserRoles } = useAuth();
@@ -19,6 +21,7 @@ export default function Users() {
   const {
     users,
     loading,
+    error,
     loadUsers,
     handleEdit,
     handleDelete,
@@ -31,10 +34,6 @@ export default function Users() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserRow | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
 
   const filteredUsers = users.filter((user) =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,6 +57,10 @@ export default function Users() {
     }
   };
 
+  const handleRetry = () => {
+    loadUsers();
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-md">
@@ -66,14 +69,29 @@ export default function Users() {
         </CardHeader>
         <CardContent>
           <UsersSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
-          <UsersTable
-            users={filteredUsers}
-            loading={loading}
-            onEdit={setEditUser}
-            onDelete={(user) => setConfirmModal({ action: "delete", user })}
-            onDeactivate={(user) => setConfirmModal({ action: "deactivate", user })}
-            onResendInvite={(user) => setConfirmModal({ action: "invite", user })}
-          />
+          
+          {error ? (
+            <div className="flex flex-col items-center justify-center p-8 border rounded-md text-center">
+              <p className="text-destructive mb-4">Erro ao carregar dados dos usuários</p>
+              <Button 
+                variant="outline" 
+                onClick={handleRetry}
+                className="flex items-center gap-2"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Tentar novamente
+              </Button>
+            </div>
+          ) : (
+            <UsersTable
+              users={filteredUsers}
+              loading={loading}
+              onEdit={setEditUser}
+              onDelete={(user) => setConfirmModal({ action: "delete", user })}
+              onDeactivate={(user) => setConfirmModal({ action: "deactivate", user })}
+              onResendInvite={(user) => setConfirmModal({ action: "invite", user })}
+            />
+          )}
         </CardContent>
       </Card>
 

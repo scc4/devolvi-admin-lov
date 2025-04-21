@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRow } from "@/types/user";
@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 export function useUsers() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { handleEdit: handleProfileEdit } = useUserProfile();
   const { updateRole } = useUserRole();
@@ -19,41 +20,22 @@ export function useUsers() {
   const { deleteUser, deactivateUser } = useUserManagement();
   const { user: currentUser } = useAuth();
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      // Fetch all profiles
-      const { data: profiles, error: pfErr } = await supabase
-        .from("profiles")
-        .select("id, name, created_at, phone");
-
-      if (pfErr) {
-        console.error("Error fetching profiles:", pfErr);
-        toast({ title: "Erro ao carregar perfis", description: pfErr.message, variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-
-      // Fetch all user roles
-      const { data: roleData, error: rlErr } = await supabase
-        .from("user_roles")
-        .select("user_id, role");
-
-      if (rlErr) {
-        console.error("Error fetching roles:", rlErr);
-        toast({ title: "Erro ao carregar roles", description: rlErr.message, variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-
+      let userList: UserRow[] = [];
+      
       // Get all users from auth.users via our edge function
+      console.log("Fetching users from admin-list-users function");
       const { data: usersData, error: usersErr } = await supabase.functions.invoke('admin-list-users');
       
       if (usersErr) {
         console.error("Error fetching users:", usersErr);
         toast({ 
           title: "Erro ao carregar usuários", 
-          description: usersErr.message, 
+          description: usersErr.message || "Falha ao carregar usuários. Tente novamente mais tarde.", 
           variant: "destructive" 
         });
         setLoading(false);
@@ -71,10 +53,45 @@ export function useUsers() {
         return;
       }
 
+      // Attempt to fetch profiles and roles, but continue without them if they fail
+      let profiles = [];
+      try {
+        const { data: profilesData, error: pfErr } = await supabase
+          .from("profiles")
+          .select("id, name, created_at, phone");
+        
+        if (pfErr) {
+          console.error("Error fetching profiles:", pfErr);
+          // Continue without profiles data
+        } else {
+          profiles = profilesData || [];
+        }
+      } catch (err) {
+        console.error("Exception fetching profiles:", err);
+        // Continue without profiles data
+      }
+      
+      let roleData = [];
+      try {
+        const { data: rolesData, error: rlErr } = await supabase
+          .from("user_roles")
+          .select("user_id, role");
+        
+        if (rlErr) {
+          console.error("Error fetching roles:", rlErr);
+          // Continue without role data
+        } else {
+          roleData = rolesData || [];
+        }
+      } catch (err) {
+        console.error("Exception fetching roles:", err);
+        // Continue without role data
+      }
+
       // Build complete user list by combining data from all sources
-      const userList: UserRow[] = usersData.users.map((authUser: any) => {
-        const profile = profiles?.find(p => p.id === authUser.id);
-        const roleRow = roleData?.find(r => r.user_id === authUser.id);
+      userList = usersData.users.map((authUser: any) => {
+        const profile = profiles?.find((p: any) => p.id === authUser.id);
+        const roleRow = roleData?.find((r: any) => r.user_id === authUser.id);
         
         let status: "Ativo" | "Inativo" | "Convidado" = "Ativo";
         if (authUser.user_metadata?.disabled) {
@@ -97,14 +114,20 @@ export function useUsers() {
       setUsers(userList);
     } catch (error: any) {
       console.error("Unexpected error loading users:", error);
+      setError(error?.message || "Ocorreu um erro desconhecido");
       toast({ 
         title: "Erro inesperado", 
-        description: "Ocorreu um erro ao carregar os dados dos usuários.", 
+        description: "Ocorreu um erro ao carregar os dados dos usuários. Tente novamente mais tarde.", 
         variant: "destructive" 
       });
     }
     setLoading(false);
-  };
+  }, [toast]);
+
+  // Load users on component mount
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: "admin" | "owner" }) => {
     try {
@@ -149,6 +172,7 @@ export function useUsers() {
   return {
     users,
     loading,
+    error,
     loadUsers,
     handleEdit,
     handleDelete,
