@@ -5,10 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneForStorage } from "@/lib/format";
 
-// Apenas a role de Administrador
-type RoleValue = "admin";
+// Permit only admin or owner roles
+type RoleValue = "admin" | "owner";
+
+// If you want to allow inviting owners, add an easy switch below (commented here; only admin by spec)
 const ROLES = [
-  { value: "admin", label: "Administrador" }
+  { value: "admin", label: "Administrador" },
+  { value: "owner", label: "Proprietário" }
 ] as const;
 
 interface InviteDialogProps {
@@ -18,6 +21,7 @@ interface InviteDialogProps {
 }
 
 export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps) {
+  // If you'd like to allow switching roles, uncomment the UI change below and relevant handlers
   const [form, setForm] = useState({ name: "", email: "", phone: "", role: "admin" as RoleValue });
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,7 +32,7 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
       name: form.name,
       email: form.email,
       phone: phoneFormatted || undefined,
-      role: "admin"
+      role: form.role
     });
     setForm({ name: "", email: "", phone: "", role: "admin" });
     setSubmitting(false);
@@ -38,6 +42,9 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
     const maskedValue = maskPhoneBR(e.target.value);
     setForm(f => ({ ...f, phone: maskedValue }));
   };
+
+  // You can add a dropdown to pick "admin" or "owner" here (for now: fixed)
+  const roleLabel = form.role === "admin" ? "Administrador" : "Proprietário";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,7 +62,7 @@ export function InviteDialog({ open, onOpenChange, onInvite }: InviteDialogProps
             maxLength={15}
           />
           {/* Perfil fixo */}
-          <Input value="Administrador" readOnly disabled className="bg-gray-100 cursor-not-allowed" />
+          <Input value={roleLabel} readOnly disabled className="bg-gray-100 cursor-not-allowed" />
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>

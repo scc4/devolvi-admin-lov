@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -28,6 +27,9 @@ const ROLES = [
   { value: "dropoff", label: "Ponto de Entrega" },
   { value: "user", label: "Usuário" },
 ] as const;
+
+// Only allow admin and owner for edit/invite dialogs
+type EditInviteRole = "admin" | "owner";
 
 type RoleValue = typeof ROLES[number]["value"];
 type StatusType = "Ativo" | "Inativo" | "Convidado";
@@ -161,7 +163,7 @@ export default function Users() {
   );
 
   // Funções de ações
-  const handleInvite = async (form: { name: string, email: string, phone?: string, role: RoleValue }) => {
+  const handleInvite = async (form: { name: string, email: string, phone?: string, role: EditInviteRole }) => {
     if (!hasAdminAccess) {
       toast({
         title: "Permissão negada",
@@ -215,7 +217,8 @@ export default function Users() {
     setInviteOpen(false);
   };
 
-  const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: RoleValue }) => {
+  // Editar usuário permitido apenas com role admin/owner
+  const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: EditInviteRole }) => {
     try {
       // Atualizar o perfil com o nome
       const { error: profileError } = await supabase
@@ -531,7 +534,19 @@ export default function Users() {
 
       {/* Modais */}
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} onInvite={handleInvite} />
-      {editUser && <EditDialog user={editUser} onClose={() => setEditUser(null)} onEdit={handleEdit} />}
+      {editUser && (
+        <EditDialog
+          user={{
+            id: editUser.id,
+            name: editUser.name,
+            phone: editUser.phone,
+            // If admin or owner, pass as is; else default to admin (shouldn't happen by new constraints)
+            role: editUser.role === "admin" || editUser.role === "owner" ? editUser.role : "admin",
+          }}
+          onClose={() => setEditUser(null)}
+          onEdit={handleEdit}
+        />
+      )}
       {confirmModal && (
         <ConfirmActionDialog
           open={!!confirmModal}
