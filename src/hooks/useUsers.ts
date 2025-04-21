@@ -182,6 +182,13 @@ export function useUsers() {
 
       if (inviteError) throw inviteError;
 
+      // Send invite email
+      const { error: emailError } = await supabase.functions.invoke('send-invite', {
+        body: { email: form.email, name: form.name }
+      });
+
+      if (emailError) throw emailError;
+
       if (data?.user) {
         const { error: roleError } = await supabase
           .from('user_roles')
@@ -205,8 +212,15 @@ export function useUsers() {
     try {
       if (!user.email) throw new Error("Email do usuário não encontrado");
 
-      const { error } = await supabase.auth.admin.inviteUserByEmail(user.email);
-      if (error) throw error;
+      const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(user.email);
+      if (inviteError) throw inviteError;
+
+      // Resend invite email
+      const { error: emailError } = await supabase.functions.invoke('send-invite', {
+        body: { email: user.email, name: user.name || 'Usuário' }
+      });
+
+      if (emailError) throw emailError;
 
       toast({ title: "Convite reenviado!", description: "Um novo email de convite foi enviado." });
     } catch (error: any) {
