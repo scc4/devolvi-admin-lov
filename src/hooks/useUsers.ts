@@ -1,17 +1,7 @@
-
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRow } from "@/types/user";
-
-// Define the type for user data returned from admin.listUsers()
-type UserData = {
-  users?: {
-    id: string;
-    email?: string | null;
-    // Add other properties as needed
-  }[];
-};
 
 export function useUsers() {
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -45,15 +35,12 @@ export function useUsers() {
         return;
       }
 
-      // Buscar emails de todos usuários (usando admin API)
-      const { data: userData, error: userErr } = await supabase.auth.admin.listUsers() as { 
-        data: UserData | null;
-        error: Error | null;
-      };
+      // Buscar emails
+      const { data: authUsers, error: authErr } = await supabase.auth.getUser();
       
-      if (userErr) {
-        console.error("Error fetching user emails:", userErr);
-        toast({ title: "Erro ao carregar emails", description: userErr.message, variant: "destructive" });
+      if (authErr) {
+        console.error("Error fetching auth user:", authErr);
+        toast({ title: "Erro ao carregar dados de autenticação", description: authErr.message, variant: "destructive" });
       }
       
       let userList: UserRow[] = [];
@@ -62,12 +49,14 @@ export function useUsers() {
       if (profiles) {
         for (const profile of profiles) {
           const roleRow = roleData?.find(r => r.user_id === profile.id);
-          const userInfo = userData?.users?.find(u => u.id === profile.id);
+          // Para o email, usamos somente o do usuário atual
+          const isCurrentUser = authUsers?.user?.id === profile.id;
+          const email = isCurrentUser ? authUsers?.user?.email : null;
           
           userList.push({
             id: profile.id,
             name: profile.name,
-            email: userInfo?.email || null,
+            email: email,
             phone: profile.phone,
             created_at: profile.created_at,
             role: roleRow?.role ?? "user",
@@ -82,12 +71,13 @@ export function useUsers() {
           const userExists = userList.some(u => u.id === role.user_id);
           
           if (!userExists) {
-            const userInfo = userData?.users?.find(u => u.id === role.user_id);
+            const isCurrentUser = authUsers?.user?.id === role.user_id;
+            const email = isCurrentUser ? authUsers?.user?.email : null;
             
             userList.push({
               id: role.user_id,
               name: null,
-              email: userInfo?.email || null,
+              email: email,
               phone: null,
               created_at: new Date().toISOString(),
               role: role.role,

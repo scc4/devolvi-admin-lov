@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,6 +18,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         navigate('/login');
       } else if (!roles.some(role => role === 'admin' || role === 'owner')) {
         // If authenticated but not admin/owner, redirect to login
+        toast({
+          title: "Acesso restrito",
+          description: "Você não tem permissão para acessar esta área.",
+          variant: "destructive"
+        });
         navigate('/login');
       }
     }
