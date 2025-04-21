@@ -35,7 +35,7 @@ export function useCollectionPointForm(
     operating_hours: initialData?.operating_hours || defaultOperatingHours,
     ...(initialData?.id ? { id: initialData.id } : {}),
     ...(carrierContext?.carrierId ? { carrier_id: carrierContext.carrierId } : {}),
-    ...(initialData?.carrier_id && !carrierContext?.carrierId ? { carrier_id: initialData.carrier_id } : {}),
+    ...(initialData?.carrier_id ? { carrier_id: initialData.carrier_id } : {}),
   });
 
   const handleInputChange = (field: keyof CollectionPoint, value: any) => {

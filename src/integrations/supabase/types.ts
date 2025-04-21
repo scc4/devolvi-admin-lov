@@ -48,7 +48,7 @@ export type Database = {
       collection_points: {
         Row: {
           address: string
-          carrier_id: string
+          carrier_id: string | null
           city: string | null
           complement: string | null
           created_at: string
@@ -69,7 +69,7 @@ export type Database = {
         }
         Insert: {
           address: string
-          carrier_id: string
+          carrier_id?: string | null
           city?: string | null
           complement?: string | null
           created_at?: string
@@ -90,7 +90,7 @@ export type Database = {
         }
         Update: {
           address?: string
-          carrier_id?: string
+          carrier_id?: string | null
           city?: string | null
           complement?: string | null
           created_at?: string
