@@ -3,8 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LockKeyhole, User } from "lucide-react";
+import { User, LockKeyhole } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,95 +67,102 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="w-full max-w-md p-4">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-primary">Devoly</h1>
-          <p className="text-muted-foreground">
-            {mode === 'login' ? "Entre na sua conta" : "Recupere sua senha"}
-          </p>
+    <div className="min-h-screen w-full flex">
+      {/* Left side - Illustration */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[#EEF2F6] items-center justify-center p-8">
+        <div className="max-w-md">
+          <img 
+            src="/public/lovable-uploads/1fe841ca-a448-40d6-b539-c384e5935322.png" 
+            alt="Login illustration" 
+            className="w-full h-auto"
+          />
         </div>
-        
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="space-y-1 bg-primary text-white rounded-t-lg">
-            <CardTitle className="text-xl text-center">
-              {mode === 'login' ? "Login" : "Recuperação de Senha"}
-            </CardTitle>
-            <CardDescription className="text-blue-100">
-              {mode === 'login' ? "Entre com suas credenciais" : "Digite seu email para receber o link de recuperação"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
+      </div>
+
+      {/* Right side - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-[#2A3547]">Bem-vindo à Devoly</h1>
+            <p className="text-[#637381] mt-2">
+              {mode === 'login' 
+                ? "Entre na sua conta administrativa" 
+                : "Digite seu email para recuperar sua senha"}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-[#637381]">
+                  <User className="h-5 w-5" />
+                </span>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  className="pl-10 bg-white border-[#E0E4E8] focus:border-primary"
+                />
+              </div>
+
+              {mode === 'login' && (
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground">
-                    <User className="h-5 w-5 text-primary/60" />
+                  <span className="absolute left-3 top-2.5 text-[#637381]">
+                    <LockKeyhole className="h-5 w-5" />
                   </span>
                   <Input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    type="password"
+                    placeholder="Senha"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
                     required
-                    className="pl-10 bg-slate-50"
+                    className="pl-10 bg-white border-[#E0E4E8] focus:border-primary"
                   />
                 </div>
+              )}
+            </div>
+
+            {errorMsg && (
+              <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
+                {errorMsg}
               </div>
-              
-              {mode === 'login' && (
-                <div className="space-y-2">
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground">
-                      <LockKeyhole className="h-5 w-5 text-primary/60" />
-                    </span>
-                    <Input
-                      type="password"
-                      placeholder="Senha"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      required
-                      className="pl-10 bg-slate-50"
-                    />
-                  </div>
-                </div>
-              )}
+            )}
 
-              {errorMsg && (
-                <div className="bg-red-50 text-red-500 p-2 rounded-md text-sm mb-4">
-                  {errorMsg}
-                </div>
-              )}
+            {successMsg && (
+              <div className="bg-green-50 text-green-600 p-3 rounded-md text-sm">
+                {successMsg}
+              </div>
+            )}
 
-              {successMsg && (
-                <div className="bg-green-50 text-green-600 p-2 rounded-md text-sm mb-4">
-                  {successMsg}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={loading}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setMode(mode === 'login' ? 'reset' : 'login')}
+                className="text-sm text-primary hover:underline"
               >
-                {loading 
-                  ? (mode === 'login' ? "Entrando..." : "Enviando...") 
-                  : (mode === 'login' ? "Entrar" : "Enviar link de recuperação")}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3 justify-center border-t px-6 py-4 bg-slate-50">
-            <p className="text-xs text-muted-foreground">
-              {mode === 'login' 
-                ? <button className="text-primary font-semibold underline" onClick={() => setMode('reset')}>Esqueceu sua senha?</button>
-                : <button className="text-primary font-semibold underline" onClick={() => setMode('login')}>Voltar ao login</button>
-              }
-            </p>
-            <p className="text-xs text-muted-foreground">
+                {mode === 'login' ? 'Esqueceu sua senha?' : 'Voltar ao login'}
+              </button>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-primary hover:bg-primary/90"
+              disabled={loading}
+            >
+              {loading 
+                ? (mode === 'login' ? "Entrando..." : "Enviando...") 
+                : (mode === 'login' ? "Entrar" : "Enviar link de recuperação")}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <p className="text-sm text-[#637381]">
               © {new Date().getFullYear()} Devoly Dashboard
             </p>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
