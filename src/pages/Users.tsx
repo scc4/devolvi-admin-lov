@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -67,10 +66,10 @@ export default function Users() {
     try {
       // Tentativa de carregar usuários através da sessão atual e da API pública do Supabase
 
-      // 1. Buscar todos os perfis disponíveis
+      // 1. Buscar todos os perfis disponíveis com telefone
       const { data: profiles, error: pfErr } = await supabase
         .from("profiles")
-        .select("id, name, created_at");
+        .select("id, name, created_at, phone");
 
       if (pfErr) {
         console.error("Error fetching profiles:", pfErr);
@@ -113,7 +112,7 @@ export default function Users() {
             id: profile.id,
             name: profile.name,
             email: email,  // somente temos acesso ao email do usuário atual
-            phone: null,   // não temos acesso ao telefone
+            phone: profile.phone,   // agora estamos armazenando o telefone
             created_at: profile.created_at,
             role: roleRow?.role ?? "user",
             status: "Ativo", // Assumindo que todos estão ativos
@@ -172,10 +171,13 @@ export default function Users() {
 
   const handleEdit = async (userId: string, updates: { name: string, phone: string | null, role: EditInviteRole }) => {
     try {
-      // Atualizar o perfil com o nome
+      // Atualizar o perfil com o nome e telefone
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ name: updates.name })
+        .update({ 
+            name: updates.name,
+            phone: updates.phone // Agora atualizamos o telefone também
+          })
         .eq("id", userId);
         
       if (profileError) {
