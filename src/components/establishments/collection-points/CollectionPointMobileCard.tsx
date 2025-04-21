@@ -1,5 +1,5 @@
 
-import { Check, X, MapPin, Phone } from "lucide-react";
+import { Check, X, MapPin, Phone, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CollectionPoint } from "@/types/collection-point";
 import { formatAddress, formatOperatingHours } from "./utils/formatters";
@@ -51,7 +51,7 @@ export function CollectionPointMobileCard({ point, onEdit, onDelete }: Collectio
           size="sm"
           onClick={() => onEdit(point)}
         >
-          <PencilIcon className="h-3 w-3 mr-1" /> Editar
+          <Pencil className="h-3 w-3 mr-1" /> Editar
         </Button>
         <Button
           variant="outline"
