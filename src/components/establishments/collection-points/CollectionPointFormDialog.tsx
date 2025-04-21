@@ -63,7 +63,7 @@ export function CollectionPointFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-[90vw]">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
         </DialogHeader>

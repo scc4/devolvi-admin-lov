@@ -8,9 +8,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PencilIcon, Trash2, Check, X, Clock, MapPin, Phone } from "lucide-react";
+import { PencilIcon, Trash2, Check, X, Phone, ListCollapse } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
-import { formatAddress, formatOperatingHours } from "./utils/formatters";
+import { 
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { formatOperatingHours } from "./utils/formatters";
+import { maskPhoneBR } from "@/lib/format";
 
 interface CollectionPointDesktopTableProps {
   collectionPoints: CollectionPoint[];
@@ -31,9 +37,8 @@ export function CollectionPointDesktopTable({
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Telefone</TableHead>
-              <TableHead>Endereço</TableHead>
+              <TableHead>Horários</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Horário de Funcionamento</TableHead>
               <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -45,17 +50,25 @@ export function CollectionPointDesktopTable({
                   {point.phone ? (
                     <div className="flex items-center gap-1">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{point.phone}</span>
+                      <span>{maskPhoneBR(point.phone)}</span>
                     </div>
                   ) : (
                     "Não informado"
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-start gap-1">
-                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <span>{formatAddress(point)}</span>
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <ListCollapse className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <div className="text-sm">
+                        {formatOperatingHours(point.operating_hours)}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </TableCell>
                 <TableCell>
                   {point.is_active ? (
@@ -69,12 +82,6 @@ export function CollectionPointDesktopTable({
                       <span>Inativo</span>
                     </div>
                   )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-start gap-1">
-                    <Clock className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                    <span className="whitespace-pre-line">{formatOperatingHours(point.operating_hours)}</span>
-                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end space-x-2">
