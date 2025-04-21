@@ -1,6 +1,6 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { maskCEP } from "@/lib/format";
 import type { CollectionPoint } from "@/types/collection-point";
 
 interface AddressTabProps {
@@ -10,6 +10,11 @@ interface AddressTabProps {
 }
 
 export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) {
+  const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedValue = maskCEP(e.target.value);
+    onInputChange('zip_code', maskedValue);
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -65,10 +70,11 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
           <Label htmlFor="zip_code">CEP</Label>
           <Input
             id="zip_code"
-            placeholder="CEP"
+            placeholder="00000-000"
             value={form.zip_code || ''}
-            onChange={(e) => onInputChange('zip_code', e.target.value)}
+            onChange={handleCEPChange}
             disabled={isLoading}
+            maxLength={9}
           />
         </div>
 

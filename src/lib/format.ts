@@ -1,4 +1,3 @@
-
 /**
  * Format a phone number with Brazilian mask
  */
@@ -53,4 +52,27 @@ export function formatPhoneForStorage(phone: string | null | undefined): string 
 export function extractPhoneDigits(phone: string | null | undefined): string | null {
   if (!phone) return null;
   return phone.replace(/\D/g, '');
+}
+
+/**
+ * Format CEP (Brazilian postal code)
+ */
+export function formatCEP(cep: string | null | undefined): string {
+  if (!cep) return '';
+  
+  const digits = cep.replace(/\D/g, '');
+  
+  if (digits.length <= 5) {
+    return digits;
+  } else {
+    return `${digits.substring(0, 5)}-${digits.substring(5, 8)}`;
+  }
+}
+
+/**
+ * Format input as a Brazilian CEP while typing
+ */
+export function maskCEP(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  return formatCEP(digits);
 }

@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { maskPhoneBR } from "@/lib/format";
 import type { CollectionPoint } from "@/types/collection-point";
 
 interface BasicInfoTabProps {
@@ -11,6 +12,11 @@ interface BasicInfoTabProps {
 }
 
 export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabProps) {
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedValue = maskPhoneBR(e.target.value);
+    onInputChange('phone', maskedValue);
+  };
+
   return (
     <div className="grid grid-cols-1 gap-4">
       <div className="space-y-2">
@@ -21,7 +27,7 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
           value={form.name || ''}
           onChange={(e) => onInputChange('name', e.target.value)}
           disabled={isLoading}
-          className="h-12 md:h-10" // Taller on mobile for better touch target
+          className="h-12 md:h-10"
         />
       </div>
       
@@ -29,13 +35,14 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
         <Label htmlFor="phone">Telefone</Label>
         <Input
           id="phone"
-          placeholder="Telefone de contato"
-          type="tel" // Better mobile keyboard for phone numbers
-          inputMode="tel" // Better mobile keyboard for phone numbers
+          placeholder="(00) 00000-0000"
+          type="tel"
+          inputMode="tel"
           value={form.phone || ''}
-          onChange={(e) => onInputChange('phone', e.target.value)}
+          onChange={handlePhoneChange}
           disabled={isLoading}
-          className="h-12 md:h-10" // Taller on mobile for better touch target
+          className="h-12 md:h-10"
+          maxLength={15}
         />
       </div>
 
@@ -45,7 +52,7 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
           checked={form.is_active || false}
           onCheckedChange={(checked) => onInputChange('is_active', checked)}
           disabled={isLoading}
-          className="data-[state=checked]:bg-green-600" // Green for better visual indication
+          className="data-[state=checked]:bg-green-600"
         />
         <Label htmlFor="is_active" className="text-base md:text-sm">Ponto de coleta ativo</Label>
       </div>
