@@ -49,8 +49,10 @@ export function CollectionPointFormDialog({
       errors.push("Endereço");
     }
     
-    if (!form.carrier_id && !carrierContext?.carrierId) {
-      errors.push("Transportadora");
+    // Only validate carrier_id if we're not in an establishment context
+    // This assumes that in an establishment context, the establishment_id exists
+    if (!form.establishment_id && !initialData?.establishment_id) {
+      errors.push("Estabelecimento");
     }
     
     if (errors.length > 0) {
