@@ -223,10 +223,11 @@ export default function Users() {
 
   const handleDeactivate = async (user: UserRow) => {
     try {
-      // Desativar usuário no Auth
+      // Desativar usuário no Auth - use banned_until with a far future date instead of banned property
+      const farFutureDate = new Date('2099-12-31').toISOString();
       const { error } = await supabase.auth.admin.updateUserById(
         user.id,
-        { banned: true }
+        { banned_until: farFutureDate }
       );
       if (error) throw error;
 
