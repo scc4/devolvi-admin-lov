@@ -15,9 +15,9 @@ export function CollectionPointsPrintView({ collectionPoints }: CollectionPoints
       .filter(([_, periods]) => periods.length > 0)
       .map(([day, periods]) => {
         const { open, close } = periods[0];
-        return `${daysOfWeekPtBr[day as keyof typeof daysOfWeekPtBr]}: ${open} - ${close}`;
+        return `${daysOfWeekPtBr[day as keyof typeof daysOfWeekPtBr]}: ${open}-${close}`;
       })
-      .join("\n");
+      .join(" | ");
   };
 
   const formatDateTime = (date: string) => {
@@ -31,12 +31,12 @@ export function CollectionPointsPrintView({ collectionPoints }: CollectionPoints
   };
 
   return (
-    <div className="p-8 print:p-6 bg-white text-[#403E43]">
+    <div className="p-4 print:p-4 bg-white text-[#403E43] text-sm">
       <style type="text/css" media="print">
         {`
           @page { 
             size: portrait;
-            margin: 20mm;
+            margin: 15mm;
           }
           @media print {
             body { 
@@ -44,6 +44,7 @@ export function CollectionPointsPrintView({ collectionPoints }: CollectionPoints
               -webkit-print-color-adjust: exact;
               background: white;
               color: #403E43;
+              font-size: 11pt;
             }
             * {
               -webkit-print-color-adjust: exact !important;
@@ -53,61 +54,55 @@ export function CollectionPointsPrintView({ collectionPoints }: CollectionPoints
         `}
       </style>
       
-      <div className="mb-8 border-b pb-6 print:mb-6">
-        <h1 className="text-3xl font-bold mb-4 text-primary">Relatório de Pontos de Coleta</h1>
-        <div className="flex justify-between items-end text-sm text-muted-foreground">
+      <div className="mb-4 border-b pb-3 print:mb-4">
+        <h1 className="text-2xl font-bold mb-2 text-primary">Relatório de Pontos de Coleta</h1>
+        <div className="flex justify-between items-end text-xs text-muted-foreground">
           <p>Total de pontos: {collectionPoints.length}</p>
           <p>Gerado em: {formatDateTime(new Date().toISOString())}</p>
         </div>
       </div>
 
-      <div className="grid gap-6 print:gap-4">
+      <div className="grid gap-3 print:gap-2">
         {collectionPoints.map((point, index) => (
           <div 
             key={point.id} 
             className={cn(
-              "border rounded-lg p-6 print:p-4 print:break-inside-avoid bg-white shadow-sm",
+              "border rounded p-3 print:p-2 print:break-inside-avoid bg-white shadow-sm",
               "hover:shadow-md transition-shadow duration-200"
             )}
           >
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-semibold text-primary">{point.name}</h2>
-              <span className="text-sm text-muted-foreground">#{index + 1}</span>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-6 print:gap-4">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium mb-2 text-muted-foreground">Endereço Completo</h3>
-                  <p className="text-sm">{point.address}</p>
+            <div className="flex justify-between items-start gap-2">
+              <div className="flex-1">
+                <div className="flex justify-between items-start mb-2">
+                  <h2 className="text-base font-semibold text-primary">{point.name}</h2>
+                  <span className="text-xs text-muted-foreground">#{index + 1}</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                   <div>
-                    <h3 className="font-medium mb-1 text-muted-foreground">Cidade</h3>
-                    <p className="text-sm">{point.city || "Não informado"}</p>
+                    <span className="text-muted-foreground">Endereço: </span>
+                    <span>{point.address}</span>
                   </div>
+                  
                   <div>
-                    <h3 className="font-medium mb-1 text-muted-foreground">Estado</h3>
-                    <p className="text-sm">{point.state || "Não informado"}</p>
+                    <span className="text-muted-foreground">Estabelecimento: </span>
+                    <span>{point.establishment?.name || "Não associado"}</span>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="font-medium mb-1 text-muted-foreground">Telefone</h3>
-                  <p className="text-sm">{point.phone || "Não informado"}</p>
-                </div>
-              </div>
+                  <div>
+                    <span className="text-muted-foreground">Cidade/Estado: </span>
+                    <span>{point.city || "Não informado"}/{point.state || "Não informado"}</span>
+                  </div>
 
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium mb-1 text-muted-foreground">Estabelecimento</h3>
-                  <p className="text-sm">{point.establishment?.name || "Não associado"}</p>
-                </div>
+                  <div>
+                    <span className="text-muted-foreground">Telefone: </span>
+                    <span>{point.phone || "Não informado"}</span>
+                  </div>
 
-                <div>
-                  <h3 className="font-medium mb-2 text-muted-foreground">Horário de Funcionamento</h3>
-                  <pre className="whitespace-pre-line text-sm font-normal">{formatOperatingHours(point)}</pre>
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Horário: </span>
+                    <span>{formatOperatingHours(point)}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -115,7 +110,7 @@ export function CollectionPointsPrintView({ collectionPoints }: CollectionPoints
         ))}
       </div>
 
-      <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground print:fixed print:bottom-0 print:left-0 print:right-0 print:mt-0">
+      <div className="mt-4 pt-2 border-t text-center text-xs text-muted-foreground print:fixed print:bottom-0 print:left-0 print:right-0 print:mt-0">
         <p>Fim do Relatório • Página {`{{pageNumber}}`}</p>
       </div>
     </div>
