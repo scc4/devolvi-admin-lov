@@ -21,15 +21,15 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Habilita a minificação para produção
+    // Enable minification for production
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,  // Remove console logs em produção
+        drop_console: true,  // Remove console logs in production
         drop_debugger: true
       }
     },
-    // Split chunks para melhor cache
+    // Split chunks for better cache
     rollupOptions: {
       output: {
         manualChunks: {
@@ -40,14 +40,14 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
-    // Pré-carregamento de recursos críticos
-    assetsInlineLimit: 4096, // Inline pequenos assets
+    // Preload critical resources
+    assetsInlineLimit: 4096, // Inline small assets
     cssCodeSplit: true,
     sourcemap: false
   },
-  // Otimiza as dependências
+  // Optimize dependencies
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
-    exclude: ['lovable-tagger'] // Excluir do pacote de otimização
+    exclude: ['lovable-tagger'] // Exclude from optimization package
   }
 }));
