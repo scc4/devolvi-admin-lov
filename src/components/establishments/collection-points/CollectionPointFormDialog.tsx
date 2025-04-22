@@ -81,46 +81,48 @@ export function CollectionPointFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[90vw]">
+      <DialogContent className="max-w-[90vw] h-[600px] flex flex-col">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="basic" className="w-full">
+        <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
             <TabsTrigger value="address">Endereço</TabsTrigger>
             <TabsTrigger value="hours">Horário de Funcionamento</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="basic" className="space-y-4 py-4">
-            <BasicInfoTab
-              form={form}
-              onInputChange={handleInputChange}
-              isLoading={isLoading}
-            />
-          </TabsContent>
+          <div className="flex-1 overflow-y-auto">
+            <TabsContent value="basic" className="h-full space-y-4 py-4 px-1">
+              <BasicInfoTab
+                form={form}
+                onInputChange={handleInputChange}
+                isLoading={isLoading}
+              />
+            </TabsContent>
 
-          <TabsContent value="address" className="space-y-4 py-4">
-            <AddressTab
-              form={form}
-              onInputChange={handleInputChange}
-              isLoading={isLoading}
-            />
-          </TabsContent>
+            <TabsContent value="address" className="h-full space-y-4 py-4 px-1">
+              <AddressTab
+                form={form}
+                onInputChange={handleInputChange}
+                isLoading={isLoading}
+              />
+            </TabsContent>
 
-          <TabsContent value="hours" className="space-y-6 py-4">
-            <OperatingHoursTab
-              form={form}
-              onTimeChange={handleTimeChange}
-              onAddTimePeriod={addTimePeriod}
-              onRemoveTimePeriod={removeTimePeriod}
-              isLoading={isLoading}
-            />
-          </TabsContent>
+            <TabsContent value="hours" className="h-full space-y-6 py-4 px-1">
+              <OperatingHoursTab
+                form={form}
+                onTimeChange={handleTimeChange}
+                onAddTimePeriod={addTimePeriod}
+                onRemoveTimePeriod={removeTimePeriod}
+                isLoading={isLoading}
+              />
+            </TabsContent>
+          </div>
         </Tabs>
 
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancelar
           </Button>
