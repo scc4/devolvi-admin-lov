@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
@@ -26,6 +27,8 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     refetchUnassigned,
     refetchCarrier
   } = useCollectionPointAssociation(carrierId);
+
+  const { isMobile } = useIsMobile();
 
   const handleRefresh = () => {
     refetchUnassigned();
@@ -79,10 +82,10 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
       )}
       
       <Tabs defaultValue="unassigned" className="space-y-6">
-        <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="unassigned">Pontos Disponíveis</TabsTrigger>
-            <TabsTrigger value="associated">Pontos Associados</TabsTrigger>
+        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'}`}>
+          <TabsList className={`${isMobile ? 'w-full' : ''}`}>
+            <TabsTrigger value="unassigned" className="flex-1">Pontos Disponíveis</TabsTrigger>
+            <TabsTrigger value="associated" className="flex-1">Pontos Associados</TabsTrigger>
           </TabsList>
           <CollectionPointAssociationHeader 
             onRefresh={handleRefresh}
@@ -130,4 +133,3 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     </div>
   );
 }
-

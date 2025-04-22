@@ -10,6 +10,8 @@ import {
 import { CarrierActionsDropdown } from "./CarrierActionsDropdown";
 import { formatPhoneBR } from "@/lib/format";
 import type { Carrier } from "@/types/carrier";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Card } from "@/components/ui/card";
 
 interface CarriersTableProps {
   carriers: (Carrier & { collection_points_count?: number })[];
@@ -28,6 +30,65 @@ export function CarriersTable({
   onDeactivate,
   onManageCollectionPoints,
 }: CarriersTableProps) {
+  const { isMobile } = useIsMobile();
+
+  // Mobile view
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {loading ? (
+          <Card className="p-4 text-center">
+            <p className="text-muted-foreground">Carregando...</p>
+          </Card>
+        ) : carriers.length === 0 ? (
+          <Card className="p-4 text-center">
+            <p className="text-muted-foreground">Nenhuma transportadora encontrada</p>
+          </Card>
+        ) : (
+          carriers.map((carrier) => (
+            <Card key={carrier.id} className="p-4 shadow-sm">
+              <div className="flex flex-col space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-medium">{carrier.name}</h3>
+                    <p className="text-sm text-muted-foreground">{carrier.city}</p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                      ${carrier.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                    `}
+                  >
+                    {carrier.is_active ? "Ativo" : "Inativo"}
+                  </span>
+                </div>
+                
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">Gestor:</span> {carrier.manager}</p>
+                  {carrier.phone && <p><span className="font-medium">Telefone:</span> {formatPhoneBR(carrier.phone)}</p>}
+                  {carrier.email && <p><span className="font-medium">E-mail:</span> {carrier.email}</p>}
+                </div>
+                
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <div className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                    {carrier.collection_points_count || 0} pontos
+                  </div>
+                  <CarrierActionsDropdown
+                    carrier={carrier}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onDeactivate={onDeactivate}
+                    onManageCollectionPoints={onManageCollectionPoints}
+                  />
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+    );
+  }
+
+  // Desktop view - mantém a implementação original da tabela
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
