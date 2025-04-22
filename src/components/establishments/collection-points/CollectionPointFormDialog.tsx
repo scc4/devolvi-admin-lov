@@ -81,12 +81,12 @@ export function CollectionPointFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[800px] h-[90vh] flex flex-col">
+      <DialogContent className="max-w-[95vw] sm:max-w-[1000px] h-[90vh] lg:h-[95vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col">
+        <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
             <TabsTrigger value="address">Endereço</TabsTrigger>
