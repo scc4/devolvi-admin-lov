@@ -9,6 +9,7 @@ export function useCarrierForm(carrier: Carrier, onSave: (carrier: Carrier) => P
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
 
+  // Update form data when carrier prop changes
   useEffect(() => {
     setFormData({ ...carrier });
   }, [carrier]);
@@ -25,6 +26,23 @@ export function useCarrierForm(carrier: Carrier, onSave: (carrier: Carrier) => P
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    
+    // Validate required fields
+    if (!formData.name) {
+      alert("Nome da transportadora é obrigatório");
+      return;
+    }
+    
+    if (!formData.city) {
+      alert("Cidade é obrigatória");
+      return;
+    }
+    
+    if (!formData.manager) {
+      alert("Gestor responsável é obrigatório");
+      return;
+    }
+    
     await onSave(formData);
   };
 

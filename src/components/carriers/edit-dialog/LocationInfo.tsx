@@ -38,6 +38,40 @@ export function LocationInfo({
     };
     loadStates();
   }, []);
+
+  // Determine the state based on the city when the component mounts
+  useEffect(() => {
+    const determineStateFromCity = async () => {
+      // Only run this for existing carriers with a city
+      if (formData.id && formData.city) {
+        try {
+          // Try to find the state for all cities with this name
+          const allStates = await fetchStates();
+          
+          // We need to check each state for the city
+          for (const state of allStates) {
+            setIsLoadingCities(true);
+            const cities = await fetchCitiesByState(state.sigla);
+            const cityExists = cities.some(city => city.nome === formData.city);
+            
+            if (cityExists) {
+              setSelectedState(state.sigla);
+              setAvailableCities(cities.map(city => city.nome));
+              break;
+            }
+          }
+        } catch (error) {
+          console.error("Error determining state from city:", error);
+        } finally {
+          setIsLoadingCities(false);
+        }
+      }
+    };
+    
+    if (!selectedState && formData.city) {
+      determineStateFromCity();
+    }
+  }, [formData.id, formData.city, selectedState, setIsLoadingCities, setAvailableCities]);
   
   // Load cities when state changes
   useEffect(() => {
@@ -53,8 +87,13 @@ export function LocationInfo({
         }
       }
     };
-    loadCities();
-  }, [selectedState, setFormData, setIsLoadingCities, setAvailableCities]);
+    
+    // Only load cities if we don't already have the city in the form data
+    // or if the state has changed
+    if (selectedState && (!formData.city || !availableCities.includes(formData.city))) {
+      loadCities();
+    }
+  }, [selectedState, setFormData, setIsLoadingCities, setAvailableCities, formData.city, availableCities]);
 
   return (
     <>
