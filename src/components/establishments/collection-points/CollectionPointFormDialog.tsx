@@ -10,6 +10,7 @@ import { useCollectionPointForm } from "@/hooks/useCollectionPointForm";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CollectionPointFormDialogProps {
   open: boolean;
@@ -37,6 +38,8 @@ export function CollectionPointFormDialog({
     addTimePeriod,
     removeTimePeriod,
   } = useCollectionPointForm(initialData, carrierContext);
+
+  const { isMobile } = useIsMobile();
 
   // Use our custom cleanup hook
   useDialogCleanup({ open });
@@ -74,7 +77,7 @@ export function CollectionPointFormDialog({
         
         <div className="flex-1 overflow-hidden p-6 pt-4 flex flex-col">
           <Tabs defaultValue="basic" className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsList className={`grid w-full ${isMobile ? "grid-cols-1 gap-1" : "grid-cols-3"} mb-4`}>
               <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
               <TabsTrigger value="address">Endereço</TabsTrigger>
               <TabsTrigger value="hours">Horário de Funcionamento</TabsTrigger>

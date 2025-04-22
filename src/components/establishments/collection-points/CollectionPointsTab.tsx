@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCollectionPoints } from "@/hooks/useCollectionPoints";
 import { CollectionPointsTable } from "./CollectionPointsTable";
@@ -5,6 +6,7 @@ import { CollectionPointFormDialog } from "./CollectionPointFormDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCcw } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CollectionPointsTabProps {
   establishmentId?: string;
@@ -33,6 +35,7 @@ export function CollectionPointsTab({
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
+  const { isMobile } = useIsMobile();
   
   const handleOpenCreate = () => {
     setSelectedPoint(undefined);
@@ -75,12 +78,12 @@ export function CollectionPointsTab({
         <h2 className="text-xl font-semibold">Pontos de Coleta</h2>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Atualizar
+            <RefreshCcw className="h-4 w-4" />
+            {!isMobile && <span className="ml-2">Atualizar</span>}
           </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Ponto de Coleta
+          <Button size="sm" onClick={handleOpenCreate} aria-label="Novo Ponto de Coleta">
+            <Plus className="h-4 w-4" />
+            {!isMobile && <span className="ml-2">Novo Ponto de Coleta</span>}
           </Button>
         </div>
       </div>

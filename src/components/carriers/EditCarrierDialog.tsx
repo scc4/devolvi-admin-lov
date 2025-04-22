@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ServedCitiesTab } from "./ServedCitiesTab";
 import { BasicInfoTab } from "./edit-dialog/BasicInfoTab";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EditCarrierDialogProps {
   carrier: Carrier;
@@ -19,6 +20,8 @@ export function EditCarrierDialog({
   onSave,
   isSubmitting = false
 }: EditCarrierDialogProps) {
+  const { isMobile } = useIsMobile();
+  
   // Use our custom cleanup hook instead of the old handler
   useDialogCleanup({ open: true }); // Always open when component is mounted
 
@@ -30,7 +33,7 @@ export function EditCarrierDialog({
         </DialogHeader>
 
         <Tabs defaultValue="basic">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={`grid w-full ${isMobile ? "grid-cols-1 gap-1" : "grid-cols-2"}`}>
             <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
             {/* Agora habilitamos a aba de cidades mesmo para novas transportadoras */}
             <TabsTrigger value="cities">

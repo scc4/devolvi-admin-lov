@@ -7,6 +7,7 @@ import { BasicAddressFields } from "./address/BasicAddressFields";
 import { LocationFields } from "./address/LocationFields";
 import { CoordinatesFields } from "./address/CoordinatesFields";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AddressTabProps {
   form: Partial<CollectionPoint>;
@@ -15,6 +16,8 @@ interface AddressTabProps {
 }
 
 export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) {
+  const { isMobile } = useIsMobile();
+  
   const {
     states,
     availableCities,
@@ -29,9 +32,9 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
 
   return (
     <Tabs defaultValue="address" className="h-full flex flex-col">
-      <TabsList className="mb-2 w-full">
-        <TabsTrigger value="address" className="flex-1">Endereço</TabsTrigger>
-        <TabsTrigger value="map" className="flex-1">Mapa</TabsTrigger>
+      <TabsList className={`mb-2 w-full ${isMobile ? "grid grid-cols-1 gap-1" : "flex"}`}>
+        <TabsTrigger value="address" className={isMobile ? "w-full" : "flex-1"}>Endereço</TabsTrigger>
+        <TabsTrigger value="map" className={isMobile ? "w-full" : "flex-1"}>Mapa</TabsTrigger>
       </TabsList>
 
       <TabsContent value="address" className="flex-1 overflow-auto">
