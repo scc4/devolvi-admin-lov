@@ -1,4 +1,3 @@
-
 import { useCollectionPointAssociation } from "@/hooks/useCollectionPointAssociation";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
@@ -7,6 +6,7 @@ import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { createRoot } from 'react-dom/client';
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
@@ -36,6 +36,11 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
   };
 
   const handlePrint = () => {
+    if (!carrierPoints?.length) {
+      toast.error('Não há pontos de coleta para imprimir');
+      return;
+    }
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error('Não foi possível abrir a janela de impressão');
@@ -43,10 +48,17 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     }
 
     printWindow.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
           <title>Relatório de Pontos de Coleta</title>
           <link rel="stylesheet" href="/src/index.css">
+          <style>
+            @media print {
+              body { margin: 0; background: white; }
+              @page { size: portrait; margin: 20mm; }
+            }
+          </style>
         </head>
         <body>
           <div id="print-content"></div>
@@ -56,18 +68,14 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
 
     const printContent = printWindow.document.getElementById('print-content');
     if (printContent && carrierPoints) {
-      const root = document.createElement('div');
-      root.innerHTML = `<div class="min-h-screen bg-background text-foreground">
-        ${CollectionPointsPrintView({ collectionPoints: carrierPoints }).type({
-          collectionPoints: carrierPoints
-        }).props.children}
-      </div>`;
-      printContent.appendChild(root);
+      const root = createRoot(printContent);
+      root.render(<CollectionPointsPrintView collectionPoints={carrierPoints} />);
 
-      setTimeout(() => {
+      // Wait for styles and images to load
+      printWindow.setTimeout(() => {
         printWindow.print();
         printWindow.close();
-      }, 500);
+      }, 1000);
     }
   };
 
