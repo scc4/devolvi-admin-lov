@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,8 @@ import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ServedCitiesTab } from "./ServedCitiesTab";
 
 interface EditCarrierDialogProps {
   carrier: Carrier;
@@ -25,7 +26,7 @@ export function EditCarrierDialog({
   isSubmitting = false
 }: EditCarrierDialogProps) {
   const [formData, setFormData] = useState<Carrier>({ ...carrier });
-  const [states, setStates] = useState<{ value: string; label: string; }[]>([]);
+  const [states, setStates<{ value: string; label: string; }[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
 
@@ -101,138 +102,158 @@ export function EditCarrierDialog({
 
   return (
     <Dialog open onOpenChange={() => !isSubmitting && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{carrier.id ? 'Editar' : 'Nova'} Transportadora</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome</Label>
-            <Input
-              id="name"
-              placeholder="Nome da transportadora"
-              value={formData.name || ''}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-          </div>
+        <Tabs defaultValue="basic">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
+            <TabsTrigger value="cities" disabled={!carrier.id}>
+              Cidades Atendidas
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="space-y-2">
-            <Label htmlFor="state">Estado</Label>
-            <Select
-              value={formData.state || ''}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, state: value, city: '' }))}
-              disabled={isSubmitting}
-            >
-              <SelectTrigger id="state">
-                <SelectValue placeholder={states.length ? "Selecione o estado" : "Carregando estados..."} />
-              </SelectTrigger>
-              <SelectContent>
-                {states.map((state) => (
-                  <SelectItem key={state.value} value={state.value}>
-                    {state.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="city">Cidade</Label>
-            <Select
-              value={formData.city || ''}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}
-              disabled={isSubmitting || !formData.state || isLoadingCities}
-            >
-              <SelectTrigger id="city">
-                <SelectValue 
-                  placeholder={
-                    isLoadingCities 
-                      ? "Carregando cidades..." 
-                      : formData.state 
-                        ? "Selecione a cidade" 
-                        : "Selecione um estado primeiro"
-                  } 
+          <TabsContent value="basic">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  placeholder="Nome da transportadora"
+                  value={formData.name || ''}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
                 />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="manager">Gestor Responsável</Label>
-            <Input
-              id="manager"
-              placeholder="Gestor responsável"
-              value={formData.manager || ''}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">Estado</Label>
+                <Select
+                  value={formData.state || ''}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, state: value, city: '' }))}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="state">
+                    <SelectValue placeholder={states.length ? "Selecione o estado" : "Carregando estados..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {states.map((state) => (
+                      <SelectItem key={state.value} value={state.value}>
+                        {state.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">Telefone</Label>
-            <Input
-              id="phone"
-              placeholder="(00) 00000-0000"
-              type="tel"
-              inputMode="tel"
-              value={formData.phone || ''}
-              onChange={handlePhoneChange}
-              disabled={isSubmitting}
-              maxLength={15}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="city">Cidade</Label>
+                <Select
+                  value={formData.city || ''}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}
+                  disabled={isSubmitting || !formData.state || isLoadingCities}
+                >
+                  <SelectTrigger id="city">
+                    <SelectValue 
+                      placeholder={
+                        isLoadingCities 
+                          ? "Carregando cidades..." 
+                          : formData.state 
+                            ? "Selecione a cidade" 
+                            : "Selecione um estado primeiro"
+                      } 
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Email"
-              value={formData.email || ''}
-              onChange={handleChange}
-              disabled={isSubmitting}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="manager">Gestor Responsável</Label>
+                <Input
+                  id="manager"
+                  placeholder="Gestor responsável"
+                  value={formData.manager || ''}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                />
+              </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="is_active"
-              checked={formData.is_active || false}
-              onCheckedChange={(checked) => {
-                // Convert CheckedState to boolean
-                const isActive = checked === true;
-                setFormData(prev => ({ ...prev, is_active: isActive }));
-              }}
-              disabled={isSubmitting}
-            />
-            <Label htmlFor="is_active">Transportadora ativa</Label>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone</Label>
+                <Input
+                  id="phone"
+                  placeholder="(00) 00000-0000"
+                  type="tel"
+                  inputMode="tel"
+                  value={formData.phone || ''}
+                  onChange={handlePhoneChange}
+                  disabled={isSubmitting}
+                  maxLength={15}
+                />
+              </div>
 
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                'Salvar'
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email || ''}
+                  onChange={handleChange}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="is_active"
+                  checked={formData.is_active || false}
+                  onCheckedChange={(checked) => {
+                    // Convert CheckedState to boolean
+                    const isActive = checked === true;
+                    setFormData(prev => ({ ...prev, is_active: isActive }));
+                  }}
+                  disabled={isSubmitting}
+                />
+                <Label htmlFor="is_active">Transportadora ativa</Label>
+              </div>
+              
+              <DialogFooter>
+                <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    'Salvar'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="cities">
+            {carrier.id && (
+              <ServedCitiesTab 
+                carrierId={carrier.id} 
+                isSubmitting={isSubmitting} 
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

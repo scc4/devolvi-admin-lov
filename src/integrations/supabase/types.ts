@@ -9,6 +9,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      carrier_served_cities: {
+        Row: {
+          carrier_id: string
+          city: string
+          created_at: string
+          id: string
+          state: string
+        }
+        Insert: {
+          carrier_id: string
+          city: string
+          created_at?: string
+          id?: string
+          state: string
+        }
+        Update: {
+          carrier_id?: string
+          city?: string
+          created_at?: string
+          id?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_served_cities_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carriers: {
         Row: {
           city: string
