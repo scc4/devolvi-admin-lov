@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -85,11 +84,10 @@ export function CollectionPointDesktopTable({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80">
-                      <div className="space-y-3">
+                      <div className="flex flex-col space-y-2">
                         {formatOperatingHours(point.operating_hours).split('\n').map((line, index) => (
-                          <div key={index} className="text-sm grid grid-cols-[120px,1fr] gap-2">
-                            <span className="font-medium">{line.split(':')[0]}:</span>
-                            <span>{line.split(':').slice(1).join(':').trim()}</span>
+                          <div key={index} className="text-sm flex">
+                            <span>{line}</span>
                           </div>
                         ))}
                       </div>
