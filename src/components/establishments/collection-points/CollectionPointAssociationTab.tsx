@@ -82,8 +82,8 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
       )}
       
       <Tabs defaultValue="unassigned" className="space-y-6">
-        <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'}`}>
-          <TabsList className={`${isMobile ? 'w-full' : ''}`}>
+        <div className="flex flex-col gap-4">
+          <TabsList className="w-full">
             <TabsTrigger value="unassigned" className="flex-1">Pontos Disponíveis</TabsTrigger>
             <TabsTrigger value="associated" className="flex-1">Pontos Associados</TabsTrigger>
           </TabsList>

@@ -22,6 +22,8 @@ import {
 import { formatOperatingHours } from "./utils/formatters";
 import { useCarriers } from "@/hooks/useCarriers";
 import { useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Card } from "@/components/ui/card";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
@@ -45,11 +47,13 @@ export function CollectionPointsTable({
   showDisassociateButton
 }: CollectionPointsTableProps) {
   const { carriers } = useCarriers();
+  const { isMobile } = useIsMobile();
   
   const carrierMap = useMemo(() => {
     return new Map(carriers.map(carrier => [carrier.id, carrier]));
   }, [carriers]);
 
+  // If we're showing association buttons, use the existing card layout
   if (showAssociateButton || showDisassociateButton) {
     return (
       <div className="space-y-4">
@@ -108,6 +112,85 @@ export function CollectionPointsTable({
     );
   }
 
+  // Mobile view with cards
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {isLoading ? (
+          <div className="text-center py-4">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+            <p className="mt-2 text-sm text-muted-foreground">Carregando...</p>
+          </div>
+        ) : collectionPoints.length === 0 ? (
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">Nenhum ponto de coleta encontrado.</p>
+          </Card>
+        ) : (
+          <>
+            {collectionPoints.map((point) => {
+              const status = checkOpenStatus(point);
+              return (
+                <Card key={point.id} className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium text-base">{point.name}</h3>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 -mr-2">
+                            <Clock className="h-4 w-4 mr-1" />
+                            <span className={status.isOpen ? "text-green-600" : "text-red-600"}>
+                              {status.isOpen ? "Open" : "Closed"}
+                            </span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-72">
+                          <div className="text-sm">
+                            {formatOperatingHours(point.operating_hours)}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground">{point.address}</p>
+                    
+                    <div className="flex items-center text-sm">
+                      <span className="font-medium mr-2">Transportadora:</span>
+                      {point.carrier_id ? (
+                        <span>{carrierMap.get(point.carrier_id)?.name || "Carregando..."}</span>
+                      ) : (
+                        <span className="text-destructive">Não associada</span>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2 border-t mt-2">
+                      {onEdit && (
+                        <Button variant="outline" size="sm" onClick={() => onEdit(point)}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Editar
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <Button variant="destructive" size="sm" onClick={() => onDelete(point.id)}>
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Excluir
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+            
+            <div className="bg-muted/50 p-3 rounded text-sm text-center">
+              {collectionPoints.length} Ponto(s) de Coleta no total
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop view with table
   return (
     <div className="relative overflow-x-auto">
       <Table>
@@ -143,7 +226,7 @@ export function CollectionPointsTable({
                         {carrierMap.get(point.carrier_id)?.name || "Carregando..."}
                       </span>
                     ) : (
-                      <span className="text-sm text-[#ea384c] font-medium">Não associada</span>
+                      <span className="text-sm text-destructive font-medium">Não associada</span>
                     )}
                   </TableCell>
                   <TableCell>
