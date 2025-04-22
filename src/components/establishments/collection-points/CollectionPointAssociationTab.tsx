@@ -4,11 +4,12 @@ import { CollectionPointsTable } from "./CollectionPointsTable";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw, Printer } from "lucide-react";
 import { toast } from "sonner";
-import type { CollectionPoint } from "@/types/collection-point";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
 import { Checkbox } from "@/components/ui/checkbox";
+import type { CollectionPoint } from "@/types/collection-point";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
@@ -17,14 +18,43 @@ interface CollectionPointAssociationTabProps {
 export function CollectionPointAssociationTab({ carrierId }: CollectionPointAssociationTabProps) {
   const [carrierName, setCarrierName] = useState<string>("");
   const [carrierCity, setCarrierCity] = useState<string>("");
-  const [filterByCity, setFilterByCity] = useState(false);
+  const [filterByServedCities, setFilterByServedCities] = useState(true);
+  const [servedCities, setServedCities] = useState<string[]>([]);
+
+  // Fetch carrier's served cities
+  const { data: servedCitiesData = [], isLoading: isLoadingServedCities } = useQuery({
+    queryKey: ['served-cities', carrierId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('carrier_served_cities')
+        .select('city')
+        .eq('carrier_id', carrierId);
+
+      if (error) {
+        toast.error('Erro ao carregar cidades atendidas');
+        throw error;
+      }
+      
+      return data.map(row => row.city);
+    },
+  });
+
+  // Update served cities when data changes
+  useEffect(() => {
+    setServedCities(servedCitiesData);
+  }, [servedCitiesData]);
   
-  // Fetch unassigned collection points (no carrier and no establishment)
+  // Fetch unassigned collection points
   const {
     collectionPoints: unassignedPoints,
     isLoading: isLoadingUnassigned,
     refetch: refetchUnassigned
-  } = useCollectionPoints(null, null, true, filterByCity ? carrierCity : undefined);
+  } = useCollectionPoints(null, null, true);
+  
+  // Filter points based on served cities
+  const filteredUnassignedPoints = filterByServedCities
+    ? unassignedPoints.filter(point => servedCities.includes(point.city || ''))
+    : unassignedPoints;
   
   // Fetch collection points assigned to this carrier
   const {
@@ -180,22 +210,28 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
           <div className="flex items-center space-x-2 mb-4">
             <Checkbox
               id="city-filter"
-              checked={filterByCity}
-              onCheckedChange={(checked) => setFilterByCity(checked as boolean)}
+              checked={filterByServedCities}
+              onCheckedChange={(checked) => setFilterByServedCities(checked as boolean)}
             />
             <label
               htmlFor="city-filter"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Exibir apenas pontos em {carrierCity}
+              Exibir apenas pontos em cidades atendidas
             </label>
           </div>
-          <CollectionPointsTable
-            collectionPoints={unassignedPoints}
-            isLoading={isLoadingUnassigned}
-            onAssociate={handleAssociate}
-            showAssociateButton
-          />
+          {isLoadingServedCities ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Carregando cidades atendidas...
+            </div>
+          ) : (
+            <CollectionPointsTable
+              collectionPoints={filteredUnassignedPoints}
+              isLoading={isLoadingUnassigned}
+              onAssociate={handleAssociate}
+              showAssociateButton
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="associated" className="space-y-4">
