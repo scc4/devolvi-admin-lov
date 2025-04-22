@@ -31,7 +31,8 @@ export function EditCarrierDialog({
         <Tabs defaultValue="basic">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
-            <TabsTrigger value="cities" disabled={!carrier.id}>
+            {/* Agora habilitamos a aba de cidades mesmo para novas transportadoras */}
+            <TabsTrigger value="cities">
               Cidades Atendidas
             </TabsTrigger>
           </TabsList>
@@ -46,12 +47,10 @@ export function EditCarrierDialog({
           </TabsContent>
 
           <TabsContent value="cities">
-            {carrier.id && (
-              <ServedCitiesTab 
-                carrierId={carrier.id} 
-                isSubmitting={isSubmitting} 
-              />
-            )}
+            <ServedCitiesTab 
+              carrierId={carrier.id} 
+              isSubmitting={isSubmitting}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>

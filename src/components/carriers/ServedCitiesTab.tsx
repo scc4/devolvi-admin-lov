@@ -37,6 +37,8 @@ export function ServedCitiesTab({ carrierId, isSubmitting }: ServedCitiesTabProp
   const { data: servedCities = [], refetch: refetchServedCities } = useQuery({
     queryKey: ['served-cities', carrierId],
     queryFn: async () => {
+      if (!carrierId) return [];
+      
       const { data, error } = await supabase
         .from('carrier_served_cities')
         .select('*')
@@ -45,10 +47,14 @@ export function ServedCitiesTab({ carrierId, isSubmitting }: ServedCitiesTabProp
       if (error) throw error;
       return data as ServedCity[];
     },
+    enabled: !!carrierId,
   });
 
   const handleAddCity = async () => {
-    if (!selectedState || !selectedCity) return;
+    if (!selectedState || !selectedCity || !carrierId) {
+      toast.error('Por favor, selecione o estado e a cidade');
+      return;
+    }
 
     const { error } = await supabase
       .from('carrier_served_cities')
@@ -88,6 +94,14 @@ export function ServedCitiesTab({ carrierId, isSubmitting }: ServedCitiesTabProp
     toast.success('Cidade removida com sucesso');
     refetchServedCities();
   };
+
+  if (!carrierId) {
+    return (
+      <div className="text-center py-6 text-muted-foreground">
+        Salve os dados básicos primeiro para gerenciar as cidades atendidas.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
