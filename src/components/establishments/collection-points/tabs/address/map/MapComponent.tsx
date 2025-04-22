@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -24,9 +23,10 @@ export function MapComponent({
     
     const latitude = initialLatitude || -14.235;
     const longitude = initialLongitude || -51.925;
+    const zoomLevel = initialLatitude && initialLongitude ? 15 : 4; // Higher zoom when editing
 
     // Initialize the map
-    map.current = L.map(mapContainer.current).setView([latitude, longitude], 4);
+    map.current = L.map(mapContainer.current).setView([latitude, longitude], zoomLevel);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
