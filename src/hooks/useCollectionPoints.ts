@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -54,7 +55,8 @@ export function useCollectionPoints(
       const pointData = {
         establishment_id: newPoint.establishment_id || null,
         name: newPoint.name,
-        address: null, // Always set to null
+        // Set address to a string based on available address fields
+        address: generateAddressString(newPoint),
         carrier_id: newPoint.carrier_id || null, // Set to null if empty
         phone: newPoint.phone || null,
         street: newPoint.street || null,
@@ -96,7 +98,8 @@ export function useCollectionPoints(
       const { establishment, ...pointData } = point;
       const updateData = {
         ...pointData,
-        address: null, // Always set to null
+        // Set address to a string based on available address fields
+        address: generateAddressString(point),
         carrier_id: pointData.carrier_id || null
       };
 
@@ -138,6 +141,21 @@ export function useCollectionPoints(
       console.error('Error deleting collection point:', error);
     }
   });
+
+  // Helper function to generate a complete address string from individual fields
+  const generateAddressString = (point: Partial<CollectionPoint>): string => {
+    const parts = [];
+    
+    if (point.street) parts.push(point.street);
+    if (point.number) parts.push(point.number);
+    if (point.complement) parts.push(point.complement);
+    if (point.district) parts.push(`${point.district}`);
+    if (point.city) parts.push(point.city);
+    if (point.state) parts.push(point.state);
+    if (point.zip_code) parts.push(`CEP: ${point.zip_code}`);
+    
+    return parts.length > 0 ? parts.join(', ') : point.name || 'Sem endereço';
+  };
 
   return {
     collectionPoints,
