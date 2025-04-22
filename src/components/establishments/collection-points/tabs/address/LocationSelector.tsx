@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { ChevronDown } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
@@ -109,34 +108,27 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Pesquisar estado..." />
-              <CommandEmpty>Nenhum estado encontrado.</CommandEmpty>
-              <CommandGroup className="max-h-[200px] overflow-auto">
-                {isLoadingStates ? (
-                  <CommandItem value="loading" disabled>
-                    Carregando estados...
-                  </CommandItem>
-                ) : states && states.length > 0 ? (
-                  states.map((state) => (
-                    <CommandItem
-                      key={state.value}
-                      value={state.value}
-                      onSelect={() => {
-                        onInputChange('state', state.value);
-                        setStateOpen(false);
-                      }}
-                    >
-                      {state.label}
-                    </CommandItem>
-                  ))
-                ) : (
-                  <CommandItem value="no-states" disabled>
-                    Nenhum estado encontrado.
-                  </CommandItem>
-                )}
-              </CommandGroup>
-            </Command>
+            <div className="max-h-[200px] overflow-auto p-1">
+              {isLoadingStates ? (
+                <div className="p-2 text-sm">Carregando estados...</div>
+              ) : states && states.length > 0 ? (
+                states.map((state) => (
+                  <Button
+                    key={state.value}
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      onInputChange('state', state.value);
+                      setStateOpen(false);
+                    }}
+                  >
+                    {state.label}
+                  </Button>
+                ))
+              ) : (
+                <div className="p-2 text-sm">Nenhum estado encontrado.</div>
+              )}
+            </div>
           </PopoverContent>
         </Popover>
       </div>
@@ -161,34 +153,29 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Pesquisar cidade..." />
-              <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>
-              <CommandGroup className="max-h-[200px] overflow-auto">
-                {isLoadingCities ? (
-                  <CommandItem value="loading" disabled>
-                    Carregando cidades...
-                  </CommandItem>
-                ) : form.state && availableCities && availableCities.length > 0 ? (
-                  availableCities.map((city) => (
-                    <CommandItem
-                      key={city}
-                      value={city}
-                      onSelect={() => {
-                        onInputChange('city', city);
-                        setCityOpen(false);
-                      }}
-                    >
-                      {city}
-                    </CommandItem>
-                  ))
-                ) : (
-                  <CommandItem value="no-cities" disabled>
-                    {form.state ? "Nenhuma cidade encontrada" : "Selecione um estado primeiro"}
-                  </CommandItem>
-                )}
-              </CommandGroup>
-            </Command>
+            <div className="max-h-[200px] overflow-auto p-1">
+              {isLoadingCities ? (
+                <div className="p-2 text-sm">Carregando cidades...</div>
+              ) : form.state && availableCities && availableCities.length > 0 ? (
+                availableCities.map((city) => (
+                  <Button
+                    key={city}
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      onInputChange('city', city);
+                      setCityOpen(false);
+                    }}
+                  >
+                    {city}
+                  </Button>
+                ))
+              ) : (
+                <div className="p-2 text-sm">
+                  {form.state ? "Nenhuma cidade encontrada" : "Selecione um estado primeiro"}
+                </div>
+              )}
+            </div>
           </PopoverContent>
         </Popover>
       </div>
