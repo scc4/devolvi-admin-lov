@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 /**
- * Hook para consultar CEPs na API ViaCEP
+ * Hook para consultar CEPs na API SCC4
  * @returns 
  */
 export function useCepLookup() {
@@ -22,8 +22,8 @@ export function useCepLookup() {
         return null;
       }
 
-      // Usando a API ViaCEP que é mais estável e amplamente utilizada
-      const response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+      // Usando a API SCC4 conforme solicitado
+      const response = await fetch(`https://api.cep.scc4.com.br/cep/${cleanedCep}`);
       if (!response.ok) {
         setError("CEP não encontrado.");
         setIsFetching(false);
@@ -31,9 +31,9 @@ export function useCepLookup() {
       }
       const data = await response.json();
       
-      // Verificar se o CEP existe pelo retorno da API ViaCEP
-      if (data.erro) {
-        setError("CEP não encontrado.");
+      // Verificar se o CEP existe pela estrutura mínima da resposta
+      if (!data.logradouro || !data.bairro || !data.cidade || !data.uf) {
+        setError("Dados incompletos no resultado do CEP.");
         setIsFetching(false);
         return null;
       }
@@ -42,7 +42,7 @@ export function useCepLookup() {
       return {
         rua: data.logradouro,
         bairro: data.bairro,
-        cidade: data.localidade,
+        cidade: data.cidade,
         estado: data.uf,
       };
     } catch (e) {
