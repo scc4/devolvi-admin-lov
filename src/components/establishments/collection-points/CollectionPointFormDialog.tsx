@@ -81,19 +81,19 @@ export function CollectionPointFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[1000px] h-[90vh] lg:h-[95vh] flex flex-col overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden p-4 sm:p-6">
+        <DialogHeader className="mb-2">
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
         </DialogHeader>
         
         <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 mb-2">
             <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
             <TabsTrigger value="address">Endereço</TabsTrigger>
             <TabsTrigger value="hours">Horário de Funcionamento</TabsTrigger>
           </TabsList>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-auto">
             <TabsContent value="basic" className="h-full space-y-4 py-4 px-1">
               <BasicInfoTab
                 form={form}
@@ -122,7 +122,7 @@ export function CollectionPointFormDialog({
           </div>
         </Tabs>
 
-        <DialogFooter className="mt-4">
+        <DialogFooter className="mt-4 pt-2 border-t">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancelar
           </Button>
