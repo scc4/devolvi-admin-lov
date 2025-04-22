@@ -4,14 +4,17 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { maskPhoneBR } from "@/lib/format";
 import type { CollectionPoint } from "@/types/collection-point";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
 
 interface BasicInfoTabProps {
   form: Partial<CollectionPoint>;
   onInputChange: (field: keyof CollectionPoint, value: any) => void;
   isLoading?: boolean;
+  phoneError?: string | null;
 }
 
-export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabProps) {
+export function BasicInfoTab({ form, onInputChange, isLoading, phoneError }: BasicInfoTabProps) {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskPhoneBR(e.target.value);
     onInputChange('phone', maskedValue);
@@ -41,9 +44,12 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
           value={form.phone || ''}
           onChange={handlePhoneChange}
           disabled={isLoading}
-          className="h-12 md:h-10"
+          className={`h-12 md:h-10 ${phoneError ? 'border-destructive' : ''}`}
           maxLength={15}
         />
+        {phoneError && (
+          <p className="text-sm font-medium text-destructive mt-1">{phoneError}</p>
+        )}
       </div>
 
       <div className="flex items-center space-x-2 py-2">
@@ -58,4 +64,3 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
     </div>
   );
 }
-

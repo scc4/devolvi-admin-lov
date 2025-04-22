@@ -85,8 +85,14 @@ export function useCollectionPoints(
       queryClient.invalidateQueries({ queryKey: ['collection-points'] });
       toast.success('Ponto de coleta cadastrado com sucesso');
     },
-    onError: (error) => {
-      toast.error('Erro ao cadastrar ponto de coleta');
+    onError: (error: any) => {
+      // Verificar erros específicos
+      if (error.message && error.message.includes('duplicate key') && 
+          error.message.includes('collection_points_phone_unique')) {
+        toast.error('Número de telefone já cadastrado em outro ponto de coleta');
+      } else {
+        toast.error('Erro ao cadastrar ponto de coleta');
+      }
       console.error('Error creating collection point:', error);
     }
   });
@@ -117,9 +123,15 @@ export function useCollectionPoints(
       queryClient.invalidateQueries({ queryKey: ['collection-points'] });
       toast.success('Ponto de coleta atualizado com sucesso');
     },
-    onError: (error) => {
-      toast.error('Erro ao atualizar ponto de coleta');
-      console.error('Error updating collection point:', error);
+    onError: (error: any) => {
+      // Verificar erros específicos de unicidade
+      if (error.message && error.message.includes('duplicate key') && 
+          error.message.includes('collection_points_phone_unique')) {
+        throw error; // Repassar o erro para ser tratado no componente
+      } else {
+        toast.error('Erro ao atualizar ponto de coleta');
+        console.error('Error updating collection point:', error);
+      }
     }
   });
 

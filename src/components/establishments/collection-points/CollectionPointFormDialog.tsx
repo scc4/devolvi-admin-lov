@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
 
 interface CollectionPointFormDialogProps {
   open: boolean;
@@ -38,14 +39,26 @@ export function CollectionPointFormDialog({
     addTimePeriod,
     removeTimePeriod,
   } = useCollectionPointForm(initialData, carrierContext);
+  
+  const [activeTab, setActiveTab] = useState("basic");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const { isMobile } = useIsMobile();
 
   // Use our custom cleanup hook
   useDialogCleanup({ open });
+  
+  // Reset errors when dialog is closed or opened
+  useDialogCleanup({ 
+    open, 
+    onCleanup: () => {
+      setPhoneError(null);
+    }
+  });
 
   const handleSubmit = async () => {
     const errors = [];
+    setPhoneError(null);
     
     if (!form.name?.trim()) {
       errors.push("Nome");
@@ -57,10 +70,19 @@ export function CollectionPointFormDialog({
     }
     
     try {
-      // Remove the explicit address=null setting since we handle it in the hook now
       await onSubmit({ ...form });
-    } catch (error) {
+      onOpenChange(false);
+    } catch (error: any) {
       console.error("Erro ao salvar ponto de coleta:", error);
+      
+      // Verificar se é um erro de telefone duplicado
+      if (error?.message?.includes('duplicate key') && error?.message?.includes('collection_points_phone_unique')) {
+        setPhoneError("Este número de telefone já está em uso por outro ponto de coleta");
+        setActiveTab("basic");
+        toast.error("Número de telefone já cadastrado em outro ponto de coleta");
+      } else {
+        toast.error("Erro ao salvar ponto de coleta");
+      }
     }
   };
 
@@ -72,7 +94,12 @@ export function CollectionPointFormDialog({
         </DialogHeader>
         
         <div className="flex-1 overflow-hidden p-6 pt-4 flex flex-col">
-          <Tabs defaultValue="basic" className="flex-1 flex flex-col overflow-hidden">
+          <Tabs 
+            defaultValue="basic" 
+            className="flex-1 flex flex-col overflow-hidden"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList className={`grid w-full ${isMobile ? "grid-cols-1 gap-1" : "grid-cols-3"} mb-4`}>
               <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
               <TabsTrigger value="address">Endereço</TabsTrigger>
@@ -85,6 +112,7 @@ export function CollectionPointFormDialog({
                   form={form}
                   onInputChange={handleInputChange}
                   isLoading={isLoading}
+                  phoneError={phoneError}
                 />
               </TabsContent>
 
