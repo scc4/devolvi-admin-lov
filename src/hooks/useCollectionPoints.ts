@@ -95,15 +95,18 @@ export function useCollectionPoints(
     mutationFn: async (point: Partial<CollectionPoint>) => {
       if (!point.id) throw new Error('ID do ponto de coleta não fornecido');
       
+      // Remover o campo establishment que está causando o erro
+      const { establishment, ...pointData } = point;
+      
       // Ensure carrier_id is null if empty
-      const pointData = {
-        ...point,
-        carrier_id: point.carrier_id || null
+      const updateData = {
+        ...pointData,
+        carrier_id: pointData.carrier_id || null
       };
 
       const { data, error } = await supabase
         .from('collection_points')
-        .update(pointData)
+        .update(updateData)
         .eq('id', point.id)
         .select()
         .single();
