@@ -3,8 +3,8 @@ import { Label } from "@/components/ui/label";
 import { maskCEP } from "@/lib/format";
 import type { CollectionPoint } from "@/types/collection-point";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { brazilianStates, getCitiesByState } from "@/utils/brazil-states-cities";
 import { useState, useEffect } from "react";
+import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
 
 interface AddressTabProps {
   form: Partial<CollectionPoint>;
@@ -13,25 +13,44 @@ interface AddressTabProps {
 }
 
 export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) {
+  const [states, setStates] = useState<{ value: string; label: string; }[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      const ibgeStates = await fetchStates();
+      setStates(ibgeStates.map(state => ({
+        value: state.sigla,
+        label: `${state.nome} (${state.sigla})`
+      })));
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadCities = async () => {
+      if (form.state) {
+        setIsLoadingCities(true);
+        const cities = await fetchCitiesByState(form.state);
+        setAvailableCities(cities.map(city => city.nome));
+        setIsLoadingCities(false);
+        
+        // If current city is not in the new state's cities list, clear it
+        if (form.city && !cities.find(city => city.nome === form.city)) {
+          onInputChange('city', '');
+        }
+      } else {
+        setAvailableCities([]);
+      }
+    };
+    loadCities();
+  }, [form.state]);
 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskCEP(e.target.value);
     onInputChange('zip_code', maskedValue);
   };
-
-  // Update available cities when state changes
-  useEffect(() => {
-    if (form.state) {
-      const cities = getCitiesByState(form.state);
-      setAvailableCities(cities);
-      
-      // If current city is not in the new state's cities list, clear it
-      if (form.city && !cities.includes(form.city)) {
-        onInputChange('city', '');
-      }
-    }
-  }, [form.state]);
 
   return (
     <div className="space-y-4">
@@ -101,13 +120,13 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
           <Select
             value={form.state || ''}
             onValueChange={(value) => onInputChange('state', value)}
-            disabled={isLoading}
+            disabled={isLoading || !states.length}
           >
             <SelectTrigger id="state">
-              <SelectValue placeholder="Selecione o estado" />
+              <SelectValue placeholder={states.length ? "Selecione o estado" : "Carregando estados..."} />
             </SelectTrigger>
             <SelectContent>
-              {brazilianStates.map((state) => (
+              {states.map((state) => (
                 <SelectItem key={state.value} value={state.value}>
                   {state.label}
                 </SelectItem>
@@ -123,10 +142,18 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
           <Select
             value={form.city || ''}
             onValueChange={(value) => onInputChange('city', value)}
-            disabled={isLoading || !form.state}
+            disabled={isLoading || !form.state || isLoadingCities}
           >
             <SelectTrigger id="city">
-              <SelectValue placeholder={form.state ? "Selecione a cidade" : "Selecione um estado primeiro"} />
+              <SelectValue 
+                placeholder={
+                  isLoadingCities 
+                    ? "Carregando cidades..." 
+                    : form.state 
+                      ? "Selecione a cidade" 
+                      : "Selecione um estado primeiro"
+                } 
+              />
             </SelectTrigger>
             <SelectContent>
               {availableCities.map((city) => (
