@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
+import { maskCEP } from "@/lib/format";
 import type { CollectionPoint } from "@/types/collection-point";
 
 export function useAddressForm(
