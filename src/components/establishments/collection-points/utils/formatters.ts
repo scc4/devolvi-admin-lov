@@ -4,7 +4,7 @@ import { CollectionPoint, DayOfWeek, daysOfWeekPtBr } from "@/types/collection-p
 export const formatOperatingHours = (hours: CollectionPoint['operating_hours']) => {
   if (!hours) return "Não informado";
   
-  const daysInOrder: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const daysInOrder: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'sunday', 'saturday'];
   
   return daysInOrder
     .map(day => {
