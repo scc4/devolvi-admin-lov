@@ -11,6 +11,8 @@ interface LocationInfoProps {
   isLoadingCities: boolean;
   isSubmitting?: boolean;
   setFormData: (value: React.SetStateAction<Carrier>) => void;
+  setAvailableCities: (value: React.SetStateAction<string[]>) => void;
+  setIsLoadingCities: (value: React.SetStateAction<boolean>) => void;
 }
 
 export function LocationInfo({
@@ -19,6 +21,8 @@ export function LocationInfo({
   isLoadingCities,
   isSubmitting = false,
   setFormData,
+  setAvailableCities,
+  setIsLoadingCities
 }: LocationInfoProps) {
   const [selectedState, setSelectedState] = useState("");
   const [states, setStates] = useState<Array<{value: string; label: string}>>([]);
