@@ -6,6 +6,7 @@ import { useAddressForm } from "@/hooks/useAddressForm";
 import { BasicAddressFields } from "./address/BasicAddressFields";
 import { LocationFields } from "./address/LocationFields";
 import { CoordinatesFields } from "./address/CoordinatesFields";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface AddressTabProps {
   form: Partial<CollectionPoint>;
@@ -27,37 +28,48 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
   };
 
   return (
-    <div className="space-y-4">
-      <BasicAddressFields 
-        form={form} 
-        onInputChange={onInputChange} 
-        isLoading={isLoading} 
-      />
+    <Tabs defaultValue="address" className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="address">Endereço</TabsTrigger>
+        <TabsTrigger value="map">Mapa</TabsTrigger>
+      </TabsList>
 
-      <LocationFields
-        form={form}
-        onInputChange={onInputChange}
-        states={states}
-        availableCities={availableCities}
-        isLoadingCities={isLoadingCities}
-        isLoading={isLoading}
-        handleCEPChange={handleCEPChange}
-      />
+      <TabsContent value="address">
+        <div className="space-y-4">
+          <BasicAddressFields 
+            form={form} 
+            onInputChange={onInputChange} 
+            isLoading={isLoading} 
+          />
 
-      <div className="space-y-2">
-        <Label>Localização no Mapa</Label>
-        <LocationMapPicker
-          form={form}
-          onLocationChange={handleLocationChange}
-          isLoading={isLoading}
-        />
-      </div>
+          <LocationFields
+            form={form}
+            onInputChange={onInputChange}
+            states={states}
+            availableCities={availableCities}
+            isLoadingCities={isLoadingCities}
+            isLoading={isLoading}
+            handleCEPChange={handleCEPChange}
+          />
 
-      <CoordinatesFields 
-        form={form} 
-        onInputChange={onInputChange} 
-        isLoading={isLoading} 
-      />
-    </div>
+          <CoordinatesFields 
+            form={form} 
+            onInputChange={onInputChange} 
+            isLoading={isLoading} 
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="map">
+        <div className="space-y-2">
+          <Label>Localização no Mapa</Label>
+          <LocationMapPicker
+            form={form}
+            onLocationChange={handleLocationChange}
+            isLoading={isLoading}
+          />
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 }
