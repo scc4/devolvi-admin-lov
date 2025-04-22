@@ -19,6 +19,8 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { formatOperatingHours } from "./utils/formatters";
+import { useCarriers } from "@/hooks/useCarriers";
+import { useMemo } from "react";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
@@ -41,7 +43,12 @@ export function CollectionPointsTable({
   showAssociateButton,
   showDisassociateButton
 }: CollectionPointsTableProps) {
-  // Display for association/disassociation view
+  const { carriers } = useCarriers();
+  
+  const carrierMap = useMemo(() => {
+    return new Map(carriers.map(carrier => [carrier.id, carrier]));
+  }, [carriers]);
+
   if (showAssociateButton || showDisassociateButton) {
     return (
       <div className="space-y-4">
@@ -108,6 +115,7 @@ export function CollectionPointsTable({
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Endereço</TableHead>
+            <TableHead>Transportadora</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
@@ -128,6 +136,15 @@ export function CollectionPointsTable({
                 <TableRow key={point.id}>
                   <TableCell className="font-medium">{point.name}</TableCell>
                   <TableCell>{point.address}</TableCell>
+                  <TableCell>
+                    {point.carrier_id ? (
+                      <span className="text-sm font-medium">
+                        {carrierMap.get(point.carrier_id)?.name || "Carregando..."}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Não associada</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Popover>
                       <PopoverTrigger asChild>

@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -70,9 +69,11 @@ export function CollectionPointDesktopTable({
                 </TableCell>
                 <TableCell>
                   {point.carrier_id ? (
-                    carrierMap.get(point.carrier_id)?.name || "Carregando..."
+                    <span className="text-sm font-medium">
+                      {carrierMap.get(point.carrier_id)?.name || "Carregando..."}
+                    </span>
                   ) : (
-                    "Não associada"
+                    <span className="text-sm text-muted-foreground">Não associada</span>
                   )}
                 </TableCell>
                 <TableCell>
