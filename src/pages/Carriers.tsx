@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CarriersHeader } from "@/components/carriers/CarriersHeader";
@@ -39,7 +38,7 @@ export default function Carriers() {
   );
 
   const handleAddCarrier = () => {
-    setEditCarrier({ id: '', name: '', city: '', state: '', manager: '', phone: '', email: '', is_active: true });
+    setEditCarrier({ id: '', name: '', city: '', manager: '', phone: '', email: '', is_active: true });
   };
 
   const handleCarrierSave = async (carrier: Carrier) => {

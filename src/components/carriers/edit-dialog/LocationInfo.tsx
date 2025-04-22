@@ -1,11 +1,12 @@
 
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Carrier } from "@/types/carrier";
+import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
 
 interface LocationInfoProps {
   formData: Carrier;
-  states: Array<{ value: string; label: string }>;
   availableCities: string[];
   isLoadingCities: boolean;
   isSubmitting?: boolean;
@@ -14,19 +15,50 @@ interface LocationInfoProps {
 
 export function LocationInfo({
   formData,
-  states,
   availableCities,
   isLoadingCities,
   isSubmitting = false,
   setFormData,
 }: LocationInfoProps) {
+  const [selectedState, setSelectedState] = useState("");
+  const [states, setStates] = useState<Array<{value: string; label: string}>>([]);
+  
+  // Load states when component mounts
+  useEffect(() => {
+    const loadStates = async () => {
+      const ibgeStates = await fetchStates();
+      setStates(ibgeStates.map(state => ({
+        value: state.sigla,
+        label: `${state.nome} (${state.sigla})`
+      })));
+    };
+    loadStates();
+  }, []);
+  
+  // Load cities when state changes
+  useEffect(() => {
+    const loadCities = async () => {
+      if (selectedState) {
+        setFormData(prev => ({ ...prev, city: '' }));
+        setIsLoadingCities(true);
+        try {
+          const cities = await fetchCitiesByState(selectedState);
+          setAvailableCities(cities.map(city => city.nome));
+        } finally {
+          setIsLoadingCities(false);
+        }
+      }
+    };
+    loadCities();
+  }, [selectedState, setFormData, setIsLoadingCities, setAvailableCities]);
+
   return (
     <>
       <div className="space-y-2">
         <Label htmlFor="state">Estado</Label>
         <Select
-          value={formData.state || ''}
-          onValueChange={(value) => setFormData(prev => ({ ...prev, state: value, city: '' }))}
+          value={selectedState}
+          onValueChange={setSelectedState}
           disabled={isSubmitting}
         >
           <SelectTrigger id="state">
@@ -47,14 +79,14 @@ export function LocationInfo({
         <Select
           value={formData.city || ''}
           onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}
-          disabled={isSubmitting || !formData.state || isLoadingCities}
+          disabled={isSubmitting || !selectedState || isLoadingCities}
         >
           <SelectTrigger id="city">
             <SelectValue 
               placeholder={
                 isLoadingCities 
                   ? "Carregando cidades..." 
-                  : formData.state 
+                  : selectedState 
                     ? "Selecione a cidade" 
                     : "Selecione um estado primeiro"
               } 

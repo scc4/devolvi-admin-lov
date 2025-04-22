@@ -18,13 +18,14 @@ interface BasicInfoTabProps {
 export function BasicInfoTab({ carrier, onSave, onClose, isSubmitting = false }: BasicInfoTabProps) {
   const { 
     formData, 
-    states, 
     availableCities,
     isLoadingCities,
     handlePhoneChange,
     handleChange,
     handleSubmit,
-    setFormData
+    setFormData,
+    setAvailableCities,
+    setIsLoadingCities
   } = useCarrierForm(carrier, onSave);
 
   return (
@@ -38,11 +39,12 @@ export function BasicInfoTab({ carrier, onSave, onClose, isSubmitting = false }:
 
       <LocationInfo
         formData={formData}
-        states={states}
         availableCities={availableCities}
         isLoadingCities={isLoadingCities}
         isSubmitting={isSubmitting}
         setFormData={setFormData}
+        setAvailableCities={setAvailableCities}
+        setIsLoadingCities={setIsLoadingCities}
       />
 
       <ContactInfo

@@ -4,11 +4,6 @@ import type { Carrier } from "@/types/carrier";
 import { fetchCitiesByState } from "@/services/ibge-api";
 import { maskPhoneBR } from "@/lib/format";
 
-interface CarrierFormState {
-  value: string;
-  label: string;
-}
-
 export function useCarrierForm(carrier: Carrier, onSave: (carrier: Carrier) => Promise<void>) {
   const [formData, setFormData] = useState<Carrier>({ ...carrier });
   const [availableCities, setAvailableCities] = useState<string[]>([]);
@@ -38,6 +33,8 @@ export function useCarrierForm(carrier: Carrier, onSave: (carrier: Carrier) => P
     availableCities,
     isLoadingCities,
     setFormData,
+    setAvailableCities,
+    setIsLoadingCities,
     handlePhoneChange,
     handleChange,
     handleSubmit
