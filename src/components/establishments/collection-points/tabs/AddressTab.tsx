@@ -1,4 +1,3 @@
-
 import { Label } from "@/components/ui/label";
 import type { CollectionPoint } from "@/types/collection-point";
 import { LocationMapPicker } from './LocationMapPicker';
@@ -55,16 +54,12 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
             handleCEPChange={handleCEPChange}
           />
 
-          <CoordinatesFields 
-            form={form} 
-            onInputChange={onInputChange} 
-            isLoading={isLoading} 
-          />
+          {/* Removido CoordinatesFields da aba endereço */}
         </div>
       </TabsContent>
 
       <TabsContent value="map" className="flex-1 mt-0">
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col gap-4">
           <Label className="mb-2">Localização no Mapa</Label>
           <div className="flex-1 min-h-[300px]">
             <LocationMapPicker
