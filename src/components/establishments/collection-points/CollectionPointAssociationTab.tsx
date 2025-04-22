@@ -1,117 +1,31 @@
-import { useState, useEffect } from "react";
-import { useCollectionPoints } from "@/hooks/useCollectionPoints";
+
+import { useCollectionPointAssociation } from "@/hooks/useCollectionPointAssociation";
 import { CollectionPointsTable } from "./CollectionPointsTable";
-import { Button } from "@/components/ui/button";
-import { RefreshCcw, Printer } from "lucide-react";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { CollectionPoint } from "@/types/collection-point";
+import { toast } from "sonner";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
 }
 
 export function CollectionPointAssociationTab({ carrierId }: CollectionPointAssociationTabProps) {
-  const [carrierName, setCarrierName] = useState<string>("");
-  const [carrierCity, setCarrierCity] = useState<string>("");
-  const [filterByServedCities, setFilterByServedCities] = useState(true);
-  const [servedCities, setServedCities] = useState<string[]>([]);
-
-  // Fetch carrier's served cities
-  const { data: servedCitiesData = [], isLoading: isLoadingServedCities } = useQuery({
-    queryKey: ['served-cities', carrierId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('carrier_served_cities')
-        .select('city')
-        .eq('carrier_id', carrierId);
-
-      if (error) {
-        toast.error('Erro ao carregar cidades atendidas');
-        throw error;
-      }
-      
-      return data.map(row => row.city);
-    },
-  });
-
-  // Update served cities when data changes
-  useEffect(() => {
-    setServedCities(servedCitiesData);
-  }, [servedCitiesData]);
-  
-  // Fetch unassigned collection points
   const {
-    collectionPoints: unassignedPoints,
-    isLoading: isLoadingUnassigned,
-    refetch: refetchUnassigned
-  } = useCollectionPoints(null, null, true);
-  
-  // Filter points based on served cities
-  const filteredUnassignedPoints = filterByServedCities
-    ? unassignedPoints.filter(point => servedCities.includes(point.city || ''))
-    : unassignedPoints;
-  
-  // Fetch collection points assigned to this carrier
-  const {
-    collectionPoints: carrierPoints,
-    isLoading: isLoadingCarrier,
-    refetch: refetchCarrier
-  } = useCollectionPoints(undefined, carrierId);
-
-  // Ensure proper cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Clear any lingering portal elements on unmount
-      document.body.style.pointerEvents = '';
-      const overlays = document.querySelectorAll('[data-radix-portal]');
-      overlays.forEach(overlay => {
-        if (!overlay.contains(document.activeElement)) {
-          (overlay as HTMLElement).style.display = 'none';
-        }
-      });
-    };
-  }, []);
-
-  const handleAssociate = async (point: CollectionPoint) => {
-    try {
-      const { error } = await supabase
-        .from('collection_points')
-        .update({ carrier_id: carrierId })
-        .eq('id', point.id);
-
-      if (error) throw error;
-      
-      toast.success('Ponto de coleta associado com sucesso');
-      refetchUnassigned();
-      refetchCarrier();
-    } catch (error) {
-      console.error('Error associating collection point:', error);
-      toast.error('Erro ao associar ponto de coleta');
-    }
-  };
-
-  const handleDisassociate = async (point: CollectionPoint) => {
-    try {
-      const { error } = await supabase
-        .from('collection_points')
-        .update({ carrier_id: null })
-        .eq('id', point.id);
-
-      if (error) throw error;
-      
-      toast.success('Ponto de coleta desassociado com sucesso');
-      refetchUnassigned();
-      refetchCarrier();
-    } catch (error) {
-      console.error('Error disassociating collection point:', error);
-      toast.error('Erro ao desassociar ponto de coleta');
-    }
-  };
+    carrierName,
+    filterByServedCities,
+    setFilterByServedCities,
+    filteredUnassignedPoints,
+    carrierPoints,
+    isLoadingServedCities,
+    isLoadingUnassigned,
+    isLoadingCarrier,
+    handleAssociate,
+    handleDisassociate,
+    refetchUnassigned,
+    refetchCarrier
+  } = useCollectionPointAssociation(carrierId);
 
   const handleRefresh = () => {
     refetchUnassigned();
@@ -137,7 +51,6 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
       </html>
     `);
 
-    // Render the print view component
     const printContent = printWindow.document.getElementById('print-content');
     if (printContent && carrierPoints) {
       const root = document.createElement('div');
@@ -148,31 +61,12 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
       </div>`;
       printContent.appendChild(root);
 
-      // Wait for styles to load
       setTimeout(() => {
         printWindow.print();
         printWindow.close();
       }, 500);
     }
   };
-
-  // Fetch carrier details (name and city)
-  useEffect(() => {
-    const fetchCarrierDetails = async () => {
-      const { data, error } = await supabase
-        .from('carriers')
-        .select('name, city')
-        .eq('id', carrierId)
-        .single();
-      
-      if (data) {
-        setCarrierName(data.name);
-        setCarrierCity(data.city);
-      }
-    };
-    
-    fetchCarrierDetails();
-  }, [carrierId]);
 
   return (
     <div className="space-y-6">
@@ -190,20 +84,10 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
             <TabsTrigger value="unassigned">Pontos Disponíveis</TabsTrigger>
             <TabsTrigger value="associated">Pontos Associados</TabsTrigger>
           </TabsList>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
-              <RefreshCcw className="h-4 w-4 mr-2" />
-              Atualizar
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handlePrint}
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir
-            </Button>
-          </div>
+          <CollectionPointAssociationHeader 
+            onRefresh={handleRefresh}
+            onPrint={handlePrint}
+          />
         </div>
 
         <TabsContent value="unassigned" className="space-y-4">
@@ -246,3 +130,4 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     </div>
   );
 }
+
