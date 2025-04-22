@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,9 +79,12 @@ export function useCarriers() {
 
   const editMutation = useMutation({
     mutationFn: async (updates: Carrier) => {
+      // Remove the collection_points_count field which is not in the database
+      const { collection_points_count, ...carrierData } = updates as Carrier & { collection_points_count?: number };
+      
       const { data, error } = await supabase
         .from('carriers')
-        .upsert(updates)
+        .upsert(carrierData)
         .select()
         .single();
 
