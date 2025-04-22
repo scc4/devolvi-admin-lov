@@ -88,17 +88,7 @@ export function LocationFields({
             </SelectContent>
           </Select>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="address">Endereço Completo *</Label>
-          <Input
-            id="address"
-            placeholder="Endereço completo"
-            value={form.address || ''}
-            onChange={(e) => onInputChange('address', e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
+        {/* Removido o campo Endereço Completo */}
       </div>
     </>
   );

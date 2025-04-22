@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -50,13 +49,14 @@ export function useCollectionPoints(
     mutationFn: async (newPoint: Partial<CollectionPoint>) => {
       // Validação mínima necessária
       if (!newPoint.name) throw new Error('Nome do ponto de coleta não fornecido');
-      if (!newPoint.address) throw new Error('Endereço não fornecido');
-      
+      // Removida validação de address
+
       // Prepare data for insertion, ensuring carrier_id is null if empty
       const pointData = {
         establishment_id: newPoint.establishment_id || null,
         name: newPoint.name,
-        address: newPoint.address,
+        // Não incluir address no insert, ou passar como null/undefined
+        address: newPoint.address ?? null,
         carrier_id: newPoint.carrier_id || null, // Set to null if empty
         phone: newPoint.phone || null,
         street: newPoint.street || null,
@@ -95,12 +95,10 @@ export function useCollectionPoints(
     mutationFn: async (point: Partial<CollectionPoint>) => {
       if (!point.id) throw new Error('ID do ponto de coleta não fornecido');
       
-      // Remover o campo establishment que está causando o erro
       const { establishment, ...pointData } = point;
-      
-      // Ensure carrier_id is null if empty
       const updateData = {
         ...pointData,
+        address: point.address ?? null,
         carrier_id: pointData.carrier_id || null
       };
 

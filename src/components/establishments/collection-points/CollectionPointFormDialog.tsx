@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -45,24 +44,22 @@ export function CollectionPointFormDialog({
   useDialogCleanup({ open });
 
   const handleSubmit = async () => {
-    // Enhanced validation with detailed errors
+    // Remover validação obrigatória para address
     const errors = [];
     
     if (!form.name?.trim()) {
       errors.push("Nome");
     }
-    
-    if (!form.address?.trim()) {
-      errors.push("Endereço");
-    }
-    
+    // Não obrigar mais o endereço completo (address)
+
     if (errors.length > 0) {
       toast.error(`Por favor, preencha os campos obrigatórios: ${errors.join(', ')}`);
       return;
     }
     
     try {
-      await onSubmit(form);
+      // Passar address como null se não existir
+      await onSubmit({ ...form, address: undefined });
     } catch (error) {
       console.error("Erro ao salvar ponto de coleta:", error);
     }
