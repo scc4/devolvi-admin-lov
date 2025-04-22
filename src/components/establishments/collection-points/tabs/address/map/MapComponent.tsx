@@ -1,58 +1,54 @@
 
 import { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { MapPin } from 'lucide-react';
 
 interface MapComponentProps {
-  mapboxToken: string;
   initialLatitude?: number | null;
   initialLongitude?: number | null;
   onLocationChange: (lat: number, lng: number) => void;
 }
 
 export function MapComponent({ 
-  mapboxToken, 
   initialLatitude, 
   initialLongitude, 
   onLocationChange 
 }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
+  const map = useRef<L.Map | null>(null);
+  const marker = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current) return;
     
-    mapboxgl.accessToken = mapboxToken;
-    
     const latitude = initialLatitude || -14.235;
     const longitude = initialLongitude || -51.925;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [longitude, latitude],
-      zoom: 4
-    });
+    // Initialize the map
+    map.current = L.map(mapContainer.current).setView([latitude, longitude], 4);
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map.current);
 
+    // Add zoom control
+    L.control.zoom({ position: 'topright' }).addTo(map.current);
+
+    // Initialize marker if coordinates are provided
     if (initialLatitude && initialLongitude) {
-      marker.current = new mapboxgl.Marker()
-        .setLngLat([initialLongitude, initialLatitude])
-        .addTo(map.current);
+      marker.current = L.marker([initialLatitude, initialLongitude]).addTo(map.current);
     }
 
+    // Handle map clicks
     map.current.on('click', (e) => {
-      const { lng, lat } = e.lngLat;
+      const { lat, lng } = e.latlng;
       
       if (marker.current) {
-        marker.current.setLngLat([lng, lat]);
+        marker.current.setLatLng([lat, lng]);
       } else {
-        marker.current = new mapboxgl.Marker()
-          .setLngLat([lng, lat])
-          .addTo(map.current!);
+        marker.current = L.marker([lat, lng]).addTo(map.current!);
       }
       
       onLocationChange(lat, lng);
@@ -61,7 +57,7 @@ export function MapComponent({
     return () => {
       map.current?.remove();
     };
-  }, [mapboxToken, initialLatitude, initialLongitude]);
+  }, [initialLatitude, initialLongitude]);
 
   return (
     <div className="space-y-4">
