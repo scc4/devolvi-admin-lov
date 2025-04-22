@@ -44,13 +44,11 @@ export function CollectionPointFormDialog({
   useDialogCleanup({ open });
 
   const handleSubmit = async () => {
-    // Remover validação obrigatória para address
     const errors = [];
     
     if (!form.name?.trim()) {
       errors.push("Nome");
     }
-    // Não obrigar mais o endereço completo (address)
 
     if (errors.length > 0) {
       toast.error(`Por favor, preencha os campos obrigatórios: ${errors.join(', ')}`);
@@ -58,8 +56,7 @@ export function CollectionPointFormDialog({
     }
     
     try {
-      // Passar address como null se não existir
-      await onSubmit({ ...form, address: undefined });
+      await onSubmit({ ...form, address: null });
     } catch (error) {
       console.error("Erro ao salvar ponto de coleta:", error);
     }

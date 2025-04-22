@@ -88,7 +88,6 @@ export function LocationFields({
             </SelectContent>
           </Select>
         </div>
-        {/* Removido o campo Endereço Completo */}
       </div>
     </>
   );

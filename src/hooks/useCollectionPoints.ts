@@ -49,14 +49,12 @@ export function useCollectionPoints(
     mutationFn: async (newPoint: Partial<CollectionPoint>) => {
       // Validação mínima necessária
       if (!newPoint.name) throw new Error('Nome do ponto de coleta não fornecido');
-      // Removida validação de address
-
+      
       // Prepare data for insertion, ensuring carrier_id is null if empty
       const pointData = {
         establishment_id: newPoint.establishment_id || null,
         name: newPoint.name,
-        // Não incluir address no insert, ou passar como null/undefined
-        address: newPoint.address ?? null,
+        address: null, // Always set to null
         carrier_id: newPoint.carrier_id || null, // Set to null if empty
         phone: newPoint.phone || null,
         street: newPoint.street || null,
@@ -98,7 +96,7 @@ export function useCollectionPoints(
       const { establishment, ...pointData } = point;
       const updateData = {
         ...pointData,
-        address: point.address ?? null,
+        address: null, // Always set to null
         carrier_id: pointData.carrier_id || null
       };
 
