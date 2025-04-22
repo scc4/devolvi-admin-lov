@@ -28,14 +28,14 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
   };
 
   return (
-    <Tabs defaultValue="address" className="space-y-4 h-full">
-      <TabsList className="mb-2">
-        <TabsTrigger value="address">Endereço</TabsTrigger>
-        <TabsTrigger value="map">Mapa</TabsTrigger>
+    <Tabs defaultValue="address" className="h-full flex flex-col">
+      <TabsList className="mb-2 w-full">
+        <TabsTrigger value="address" className="flex-1">Endereço</TabsTrigger>
+        <TabsTrigger value="map" className="flex-1">Mapa</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="address" className="h-full overflow-auto">
-        <div className="space-y-4">
+      <TabsContent value="address" className="flex-1 overflow-auto">
+        <div className="space-y-4 pb-2">
           <BasicAddressFields 
             form={form} 
             onInputChange={onInputChange} 
@@ -60,10 +60,10 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
         </div>
       </TabsContent>
 
-      <TabsContent value="map" className="h-full">
-        <div className="space-y-2 h-full">
-          <Label>Localização no Mapa</Label>
-          <div className="h-[calc(100%-2rem)]">
+      <TabsContent value="map" className="flex-1 mt-0">
+        <div className="h-full flex flex-col">
+          <Label className="mb-2">Localização no Mapa</Label>
+          <div className="flex-1 min-h-[300px]">
             <LocationMapPicker
               form={form}
               onLocationChange={handleLocationChange}

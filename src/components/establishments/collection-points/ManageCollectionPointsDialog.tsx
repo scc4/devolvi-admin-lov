@@ -48,11 +48,15 @@ export function ManageCollectionPointsDialog({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[90vh] sm:h-[95vh]">
-          <SheetHeader className="mb-4">
-            <SheetTitle>{dialogTitle}</SheetTitle>
-          </SheetHeader>
-          <Content />
+        <SheetContent side="bottom" className="h-[90vh] sm:h-[95vh] p-0 pt-6">
+          <div className="h-full flex flex-col">
+            <SheetHeader className="px-4 pb-2">
+              <SheetTitle>{dialogTitle}</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-auto px-4 pb-4">
+              <Content />
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
     );
@@ -61,11 +65,13 @@ export function ManageCollectionPointsDialog({
   // Desktop view uses Dialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] w-[1200px] h-[95vh] max-h-[95vh] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
-        <Content />
+        <div className="flex-1 overflow-auto p-6 pt-4">
+          <Content />
+        </div>
       </DialogContent>
     </Dialog>
   );

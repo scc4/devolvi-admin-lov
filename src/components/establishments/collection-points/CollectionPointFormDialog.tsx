@@ -9,7 +9,6 @@ import { OperatingHoursTab } from "./tabs/OperatingHoursTab";
 import { useCollectionPointForm } from "@/hooks/useCollectionPointForm";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
-import { useEffect } from "react";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 
 interface CollectionPointFormDialogProps {
@@ -68,48 +67,50 @@ export function CollectionPointFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[95vw] md:max-w-[95vw] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden p-4 sm:p-6">
-        <DialogHeader className="mb-2">
+      <DialogContent className="max-w-[95vw] w-[1200px] h-[95vh] max-h-[95vh] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="basic" className="w-full flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3 mb-2">
-            <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
-            <TabsTrigger value="address">Endereço</TabsTrigger>
-            <TabsTrigger value="hours">Horário de Funcionamento</TabsTrigger>
-          </TabsList>
+        <div className="flex-1 overflow-hidden p-6 pt-4 flex flex-col">
+          <Tabs defaultValue="basic" className="flex-1 flex flex-col overflow-hidden">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
+              <TabsTrigger value="address">Endereço</TabsTrigger>
+              <TabsTrigger value="hours">Horário de Funcionamento</TabsTrigger>
+            </TabsList>
 
-          <div className="flex-1 overflow-auto">
-            <TabsContent value="basic" className="h-full space-y-4 py-4 px-1">
-              <BasicInfoTab
-                form={form}
-                onInputChange={handleInputChange}
-                isLoading={isLoading}
-              />
-            </TabsContent>
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="basic" className="h-full overflow-auto">
+                <BasicInfoTab
+                  form={form}
+                  onInputChange={handleInputChange}
+                  isLoading={isLoading}
+                />
+              </TabsContent>
 
-            <TabsContent value="address" className="h-full space-y-4 py-4 px-1">
-              <AddressTab
-                form={form}
-                onInputChange={handleInputChange}
-                isLoading={isLoading}
-              />
-            </TabsContent>
+              <TabsContent value="address" className="h-full overflow-auto">
+                <AddressTab
+                  form={form}
+                  onInputChange={handleInputChange}
+                  isLoading={isLoading}
+                />
+              </TabsContent>
 
-            <TabsContent value="hours" className="h-full space-y-6 py-4 px-1">
-              <OperatingHoursTab
-                form={form}
-                onTimeChange={handleTimeChange}
-                onAddTimePeriod={addTimePeriod}
-                onRemoveTimePeriod={removeTimePeriod}
-                isLoading={isLoading}
-              />
-            </TabsContent>
-          </div>
-        </Tabs>
+              <TabsContent value="hours" className="h-full overflow-auto">
+                <OperatingHoursTab
+                  form={form}
+                  onTimeChange={handleTimeChange}
+                  onAddTimePeriod={addTimePeriod}
+                  onRemoveTimePeriod={removeTimePeriod}
+                  isLoading={isLoading}
+                />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
 
-        <DialogFooter className="mt-4 pt-2 border-t">
+        <DialogFooter className="px-6 py-4 border-t">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancelar
           </Button>
