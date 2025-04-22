@@ -56,11 +56,15 @@ export function CollectionPointsTable({
               <div className="space-y-1">
                 <h3 className="font-semibold">{point.name}</h3>
                 <p className="text-sm text-gray-600">{point.address}</p>
-                {point.establishment_id && (
-                  <p className="text-xs text-gray-500">
-                    <strong>Estabelecimento:</strong> {point.establishment?.name || 'Não definido'}
-                  </p>
-                )}
+                <div className="text-xs text-gray-500 space-y-0.5">
+                  {point.city && <p><strong>Cidade:</strong> {point.city}</p>}
+                  {point.district && <p><strong>Bairro:</strong> {point.district}</p>}
+                  {point.establishment_id && (
+                    <p>
+                      <strong>Estabelecimento:</strong> {point.establishment?.name || 'Não definido'}
+                    </p>
+                  )}
+                </div>
               </div>
               {showAssociateButton && (
                 <Button
