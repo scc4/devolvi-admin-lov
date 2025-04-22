@@ -73,7 +73,7 @@ export function CollectionPointDesktopTable({
                       {carrierMap.get(point.carrier_id)?.name || "Carregando..."}
                     </span>
                   ) : (
-                    <span className="text-sm text-muted-foreground">Não associada</span>
+                    <span className="text-sm text-[#ea384c] font-medium">Não associada</span>
                   )}
                 </TableCell>
                 <TableCell>
