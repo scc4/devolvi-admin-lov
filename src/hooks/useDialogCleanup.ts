@@ -1,34 +1,33 @@
 
 import { useEffect } from "react";
 
-interface UseDialogCleanupProps {
-  open: boolean;
-}
-
 /**
- * Hook to properly clean up after dialog/modal closes
- * Fixes issues with pointer-events and lingering portal elements
+ * Hook para garantir a limpeza adequada de modais quando fechados
+ * Evita problemas comuns em dispositivos móveis como sobreposição,
+ * scroll bloqueado e eventos de toque
  */
-export function useDialogCleanup({ open }: UseDialogCleanupProps) {
+export function useDialogCleanup({ open }: { open: boolean }) {
   useEffect(() => {
-    // Only run cleanup when dialog closes
+    // Cleanup effects when dialog closes
     if (!open) {
-      // Clean up any lingering portal elements and reset pointer-events
-      const cleanup = () => {
+      // Adiciona timeout para permitir que as animações terminem
+      const timeout = setTimeout(() => {
+        // Remove any lingering pointer-events style on body
         document.body.style.pointerEvents = '';
         
-        // Find and clean up any stray radix portals
+        // Find and hide any stray dialog overlays
         const overlays = document.querySelectorAll('[data-radix-portal]');
         overlays.forEach(overlay => {
           if (!overlay.contains(document.activeElement)) {
             (overlay as HTMLElement).style.display = 'none';
           }
         });
-      };
+        
+        // Guarantee scroll is enabled
+        document.body.style.overflow = '';
+      }, 300);
       
-      // Execute cleanup with a small delay to ensure dialog animations complete
-      const timeoutId = setTimeout(cleanup, 300);
-      return () => clearTimeout(timeoutId);
+      return () => clearTimeout(timeout);
     }
   }, [open]);
 }

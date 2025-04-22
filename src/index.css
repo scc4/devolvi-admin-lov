@@ -91,27 +91,81 @@
     @apply border-border;
   }
 
+  html {
+    @apply overflow-x-hidden;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    @apply min-h-screen w-full touch-manipulation;
   }
   
   /* Mobile-first focus */
   html, body {
-    @apply text-base min-h-screen w-full overscroll-none;
+    @apply text-base min-h-[100dvh] w-full overscroll-none;
   }
   
-  input, select, textarea {
+  /* Previne zoom em iOS */
+  input, select, textarea, button {
     @apply text-base md:text-sm;
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px; 
   }
   
-  /* Better tap targets on mobile */
+  /* Melhores áreas de toque em mobile (44x44px) */
   button, 
   [role="button"],
   a.button,
-  .clickable {
-    @apply min-h-[44px] min-w-[44px];
+  .clickable,
+  label[for],
+  select,
+  summary {
+    @apply min-h-[44px] min-w-[44px] md:min-h-[32px];
+  }
+  
+  /* Melhora espaçamento em elementos interativos */
+  button:not(.unstyled), 
+  .button,
+  [role="button"],
+  .interactive {
+    @apply touch-manipulation;
+  }
+  
+  /* Remove outline azul em Chrome/Safari */
+  a:focus,
+  button:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    @apply outline-none ring-2 ring-primary/40 ring-offset-2 ring-offset-background;
+  }
+  
+  /* Melhor legibilidade */
+  p, li, blockquote {
+    @apply leading-relaxed;
+  }
+  
+  /* Tamanhos responsivos para headers */
+  h1 {
+    @apply text-2xl font-bold md:text-3xl;
+  }
+  
+  h2 {
+    @apply text-xl font-bold md:text-2xl;
+  }
+  
+  h3 {
+    @apply text-lg font-semibold md:text-xl;
+  }
+  
+  /* Fixar problema comum em Safari iOS */
+  button,
+  [type="button"],
+  [type="reset"],
+  [type="submit"] {
+    -webkit-appearance: button;
   }
 }
 
@@ -140,33 +194,83 @@
 
 /* Mobile-first components */
 @layer components {
-  .mobile-container {
+  /* Containers com padding adequado para mobile primeiro */
+  .container-mobile {
     @apply w-full px-4 md:px-6;
   }
   
-  .mobile-card {
-    @apply modernize-card;
+  /* Cards com borda e sombra sutis, padding maior em mobile */
+  .responsive-card {
+    @apply p-4 md:p-6 border rounded-md shadow-sm;
   }
   
-  .mobile-section {
-    @apply py-4 md:py-6;
+  /* Botões otimizados para toque */
+  .touch-button {
+    @apply h-12 md:h-10 px-4 py-2 rounded-md flex items-center justify-center;
+  }
+  
+  /* Inputs otimizados para mobile */
+  .mobile-input {
+    @apply h-12 md:h-10 w-full px-4 py-2 rounded-md;
+  }
+  
+  /* Section com padding responsivo */
+  .section-responsive {
+    @apply py-6 md:py-8 px-4 md:px-6;
+  }
+  
+  /* Titles responsivos */
+  .title-responsive {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+  
+  /* Lista responsiva */
+  .responsive-list {
+    @apply space-y-3 md:space-y-2;
+  }
+  
+  /* NavBar responsiva com altura adequada */
+  .navbar-responsive {
+    @apply h-16 md:h-14 px-4 md:px-6;
+  }
+  
+  /* Grid responsivo para cards */
+  .card-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+  
+  /* Tabela responsiva para mobile */
+  .table-container-responsive {
+    @apply w-full overflow-x-auto rounded-md border;
   }
 }
 
 /* Mobile-first utilities */
 @layer utilities {
-  .mobile-visible {
+  /* Visibilidade responsiva */
+  .mobile-only {
     @apply block md:hidden;
   }
   
-  .desktop-visible {
+  .desktop-only {
     @apply hidden md:block;
   }
   
+  /* Otimização de scroll para touch */
   .touch-scroll {
     @apply overflow-auto overscroll-contain -webkit-overflow-scrolling-touch;
   }
   
+  /* Safe areas para notch em iOS */
+  .safe-top {
+    @apply pt-safe-top;
+  }
+  
+  .safe-bottom {
+    @apply pb-safe-bottom;
+  }
+  
+  /* Backgrounds com cores suaves */
   .bg-soft-primary {
     @apply bg-blue-50;
   }
@@ -189,5 +293,55 @@
   
   .text-modernize {
     @apply text-[#2a3547];
+  }
+  
+  /* Remove tap highlight em mobile */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Previne drag em imagens */
+  .no-drag {
+    @apply select-none;
+    -webkit-user-drag: none;
+  }
+  
+  /* Tamanhos de fonte responsivos */
+  .text-responsive-xs {
+    @apply text-xs md:text-[0.7rem];
+  }
+  
+  .text-responsive-sm {
+    @apply text-sm md:text-xs;
+  }
+  
+  .text-responsive-base {
+    @apply text-base md:text-sm;
+  }
+  
+  .text-responsive-lg {
+    @apply text-lg md:text-base;
+  }
+  
+  /* Espacamentos responsivos */
+  .gap-responsive {
+    @apply gap-4 md:gap-2;
+  }
+  
+  .p-responsive {
+    @apply p-4 md:p-3;
+  }
+  
+  .m-responsive {
+    @apply m-4 md:m-3;
+  }
+  
+  /* Melhorias em elementos interativos */
+  .interactive {
+    @apply transition-all duration-200;
+  }
+  
+  .interactive:active {
+    @apply scale-95;
   }
 }

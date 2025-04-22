@@ -9,6 +9,21 @@
   background-color: #f5f9ff;
 }
 
+body {
+  /* Prevent iOS text size adjustment after orientation change */
+  -webkit-text-size-adjust: 100%;
+  /* Prevent overscroll bounce effect */
+  overscroll-behavior-y: none;
+  /* Ensure full height */
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+/* Fix for iOS viewport height issue */
+html {
+  height: -webkit-fill-available;
+}
+
 /* Larger screens */
 @media (min-width: 768px) {
   #root {
@@ -17,14 +32,14 @@
 }
 
 .logo {
-  height: 2.5em;
+  height: 2rem;
   will-change: filter;
   transition: filter 300ms;
 }
 
 @media (min-width: 768px) {
   .logo {
-    height: 3em;
+    height: 2.5rem;
   }
 }
 
@@ -53,16 +68,29 @@
 
 /* Modernize-specific styles */
 .modernize-content {
-  padding: 1.5rem;
+  padding: 1rem;
   background-color: #f5f9ff;
+}
+
+@media (min-width: 768px) {
+  .modernize-content {
+    padding: 1.5rem;
+  }
 }
 
 .modernize-card {
   background-color: #ffffff;
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
+  padding: 1.25rem;
   transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .modernize-card {
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
 }
 
 .modernize-card:hover {
@@ -83,10 +111,21 @@
   background-color: #6366f1;
   color: #ffffff;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  min-height: 44px; /* Optimal touch target size */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .modernize-btn-primary {
+    padding: 0.5rem 1rem;
+    min-height: 38px;
+  }
 }
 
 .modernize-btn-primary:hover {
@@ -133,6 +172,28 @@
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  width: 100%;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Form elements optimized for mobile */
+input, select, textarea, button {
+  font-size: 16px; /* Prevents zoom on iOS */
+  max-width: 100%;
+}
+
+/* Improve touch targets */
+button, .button, a[role="button"], .clickable {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (min-width: 768px) {
+  button, .button, a[role="button"], .clickable {
+    min-height: 32px;
+    min-width: 32px;
+  }
 }
 
 /* Table modernize styles */
@@ -145,18 +206,68 @@
 .table-modernize th {
   color: #6c757d;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   text-align: left;
-  padding: 1rem;
+  padding: 0.75rem;
   border-bottom: 1px solid #f0f0f0;
 }
 
+@media (min-width: 768px) {
+  .table-modernize th {
+    font-size: 0.875rem;
+    padding: 1rem;
+  }
+}
+
 .table-modernize td {
-  padding: 1rem;
+  padding: 0.75rem;
   border-bottom: 1px solid #f0f0f0;
   color: #2a3547;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .table-modernize td {
+    padding: 1rem;
+  }
 }
 
 .table-modernize tr:hover {
   background-color: #f9fafb;
+}
+
+/* Ensure mobile inputs don't overflow */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure images are responsive */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile friendly list styles */
+ul, ol {
+  padding-left: 1.5rem;
+}
+
+/* Handle long words and break URLs */
+p, h1, h2, h3, h4, h5, h6, a {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  -ms-word-break: break-all;
+  word-break: break-word;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
