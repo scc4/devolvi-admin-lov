@@ -59,6 +59,8 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           />
         </div>
       </div>
+      {/* O campo de Endereço Completo foi removido conforme solicitado */}
     </>
   );
 }
+
