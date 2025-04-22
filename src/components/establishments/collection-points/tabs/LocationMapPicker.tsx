@@ -1,6 +1,12 @@
 
+import { lazy, Suspense } from 'react';
 import type { CollectionPoint } from '@/types/collection-point';
-import { MapComponent } from './address/map/MapComponent';
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load the heavy MapComponent
+const MapComponent = lazy(() => 
+  import('./address/map/MapComponent').then(module => ({ default: module.MapComponent }))
+);
 
 interface LocationMapPickerProps {
   form: Partial<CollectionPoint>;
@@ -10,10 +16,12 @@ interface LocationMapPickerProps {
 
 export function LocationMapPicker({ form, onLocationChange, isLoading }: LocationMapPickerProps) {
   return (
-    <MapComponent
-      initialLatitude={form.latitude}
-      initialLongitude={form.longitude}
-      onLocationChange={onLocationChange}
-    />
+    <Suspense fallback={<Skeleton className="h-[500px] w-full rounded-lg" />}>
+      <MapComponent
+        initialLatitude={form.latitude}
+        initialLongitude={form.longitude}
+        onLocationChange={onLocationChange}
+      />
+    </Suspense>
   );
 }

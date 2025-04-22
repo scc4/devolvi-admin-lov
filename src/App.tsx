@@ -1,23 +1,51 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import DashboardLayout from "./components/layout/DashboardLayout";
-import Dashboard from "./pages/Dashboard";
-import Users from "./pages/Users";
-import Carriers from "./pages/Carriers";
-import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Auth from "./pages/Auth";
-import Establishments from "./pages/Establishments";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const queryClient = new QueryClient();
+// Eager load critical components
+import DashboardLayout from "./components/layout/DashboardLayout";
+import Auth from "./pages/Auth";
+
+// Lazy load non-critical pages
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Users = lazy(() => import("./pages/Users"));
+const Carriers = lazy(() => import("./pages/Carriers"));
+const Establishments = lazy(() => import("./pages/Establishments"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 60000,
+    },
+  },
+});
+
+const LoadingFallback = () => (
+  <div className="w-full h-[calc(100vh-64px)] flex items-center justify-center p-4">
+    <div className="w-full max-w-md space-y-4">
+      <Skeleton className="h-8 w-3/4 mx-auto" />
+      <Skeleton className="h-64 w-full" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-4/6" />
+      </div>
+    </div>
+  </div>
+);
 
 const RootRedirect = () => {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <LoadingFallback />;
   return <Navigate to={isAuthenticated ? "/dashboard" : "/auth"} replace />;
 };
 
@@ -37,13 +65,33 @@ const App = () => (
                 <DashboardLayout />
               </ProtectedRoute>
             }>
-              <Route index element={<Dashboard />} />
-              <Route path="/dashboard/users" element={<Users />} />
-              <Route path="/dashboard/carriers" element={<Carriers />} />
-              <Route path="/dashboard/establishments" element={<Establishments />} />
+              <Route index element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Dashboard />
+                </Suspense>
+              } />
+              <Route path="/dashboard/users" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Users />
+                </Suspense>
+              } />
+              <Route path="/dashboard/carriers" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Carriers />
+                </Suspense>
+              } />
+              <Route path="/dashboard/establishments" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Establishments />
+                </Suspense>
+              } />
             </Route>
             <Route path="/users" element={<Navigate to="/dashboard/users" replace />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <NotFound />
+              </Suspense>
+            } />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
