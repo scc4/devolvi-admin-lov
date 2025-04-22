@@ -57,7 +57,7 @@ export function MapComponent({
     return () => {
       map.current?.remove();
     };
-  }, [initialLatitude, initialLongitude]);
+  }, [initialLatitude, initialLongitude, onLocationChange]);
 
   return (
     <div className="space-y-4">
