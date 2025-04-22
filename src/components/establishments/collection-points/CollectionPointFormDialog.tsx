@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -81,7 +80,7 @@ export function CollectionPointFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] md:max-w-[1200px] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden p-4 sm:p-6">
+      <DialogContent className="max-w-[95vw] sm:max-w-[95vw] md:max-w-[95vw] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden p-4 sm:p-6">
         <DialogHeader className="mb-2">
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
         </DialogHeader>
