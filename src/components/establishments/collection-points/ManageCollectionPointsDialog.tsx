@@ -5,7 +5,7 @@ import { CollectionPointsTab } from "./CollectionPointsTab";
 import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
 import type { EstablishmentWithDetails } from "@/types/establishment";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect } from "react";
+import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 
 interface ManageCollectionPointsDialogProps {
   open: boolean;
@@ -23,26 +23,9 @@ export function ManageCollectionPointsDialog({
   carrierContext
 }: ManageCollectionPointsDialogProps) {
   const { isMobile } = useIsMobile();
-
-  // Enhanced cleanup when dialog/sheet is closed
-  useEffect(() => {
-    if (!open) {
-      // Clean up any lingering portal elements and reset pointer-events
-      const cleanup = () => {
-        document.body.style.pointerEvents = '';
-        const overlays = document.querySelectorAll('[data-radix-portal]');
-        overlays.forEach(overlay => {
-          if (!overlay.contains(document.activeElement)) {
-            (overlay as HTMLElement).style.display = 'none';
-          }
-        });
-      };
-      
-      // Execute cleanup with a small delay to ensure dialog animations complete
-      const timeoutId = setTimeout(cleanup, 300);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [open]);
+  
+  // Use our custom cleanup hook
+  useDialogCleanup({ open });
 
   // Determine title based on context
   const dialogTitle = establishment 

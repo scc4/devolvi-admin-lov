@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneBR, formatPhoneForStorage } from "@/lib/format";
+import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 
 // Allow only Admin or Owner
 type RoleValue = "admin" | "owner";
@@ -27,6 +28,9 @@ export function EditDialog({ user, onClose, onEdit }: EditDialogProps) {
     role: user.role === "admin" || user.role === "owner" ? user.role : "admin" as RoleValue,
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Use our custom cleanup hook - always open when component is mounted
+  useDialogCleanup({ open: true });
 
   const handleSubmit = async () => {
     setSubmitting(true);

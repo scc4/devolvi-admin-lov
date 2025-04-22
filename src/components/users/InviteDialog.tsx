@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { maskPhoneBR, formatPhoneForStorage } from "@/lib/format";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 
 // Permit only admin or owner roles
 type RoleValue = "admin" | "owner";
@@ -25,6 +26,9 @@ interface InviteDialogProps {
 export function InviteDialog({ open, onOpenChange, onInvite, isLoading = false }: InviteDialogProps) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", role: "admin" as RoleValue });
   const [submitting, setSubmitting] = useState(false);
+
+  // Use our custom cleanup hook
+  useDialogCleanup({ open });
 
   const handleInvite = async () => {
     setSubmitting(true);

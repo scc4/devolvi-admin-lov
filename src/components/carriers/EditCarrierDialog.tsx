@@ -4,7 +4,7 @@ import type { Carrier } from "@/types/carrier";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ServedCitiesTab } from "./ServedCitiesTab";
 import { BasicInfoTab } from "./edit-dialog/BasicInfoTab";
-import { useDialogHandlers } from "./edit-dialog/useDialogHandlers";
+import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 
 interface EditCarrierDialogProps {
   carrier: Carrier;
@@ -19,7 +19,8 @@ export function EditCarrierDialog({
   onSave,
   isSubmitting = false
 }: EditCarrierDialogProps) {
-  useDialogHandlers({ isSubmitting, onClose });
+  // Use our custom cleanup hook instead of the old handler
+  useDialogCleanup({ open: true }); // Always open when component is mounted
 
   return (
     <Dialog open onOpenChange={() => !isSubmitting && onClose()}>

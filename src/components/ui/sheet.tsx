@@ -6,7 +6,23 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-const Sheet = SheetPrimitive.Root
+const Sheet = ({ onOpenChange, ...props }: SheetPrimitive.DialogProps) => {
+  // Add additional cleanup when sheet closes
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Ensure pointer events are restored
+      setTimeout(() => {
+        document.body.style.pointerEvents = '';
+      }, 100);
+    }
+    
+    if (onOpenChange) {
+      onOpenChange(open);
+    }
+  };
+
+  return <SheetPrimitive.Root onOpenChange={handleOpenChange} {...props} />;
+}
 
 const SheetTrigger = SheetPrimitive.Trigger
 
