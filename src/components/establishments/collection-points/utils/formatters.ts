@@ -7,9 +7,11 @@ export const formatOperatingHours = (hours: CollectionPoint['operating_hours']) 
   return Object.entries(hours)
     .map(([day, periods]) => {
       const dayName = daysOfWeekPtBr[day as DayOfWeek];
-      if (!periods || periods.length === 0) return `${dayName}: Fechado`;
+      if (!periods || periods.length === 0) {
+        return `${dayName}: Fechado`;
+      }
       
-      const timeRanges = periods.map(p => `${p.open} - ${p.close}`).join(', ');
+      const timeRanges = periods.map(p => `${p.open} às ${p.close}`).join(', ');
       return `${dayName}: ${timeRanges}`;
     })
     .join('\n');

@@ -85,8 +85,13 @@ export function CollectionPointDesktopTable({
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80">
-                      <div className="text-sm">
-                        {formatOperatingHours(point.operating_hours)}
+                      <div className="space-y-1.5">
+                        {formatOperatingHours(point.operating_hours).split('\n').map((line, index) => (
+                          <div key={index} className="text-sm grid grid-cols-[120px,1fr] gap-2">
+                            <span className="font-medium">{line.split(':')[0]}:</span>
+                            <span>{line.split(':')[1]}</span>
+                          </div>
+                        ))}
                       </div>
                     </PopoverContent>
                   </Popover>
