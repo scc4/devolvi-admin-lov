@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useCollectionPoints } from "@/hooks/useCollectionPoints";
 import { CollectionPointsTable } from "./CollectionPointsTable";
@@ -9,6 +8,7 @@ import type { CollectionPoint } from "@/types/collection-point";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
@@ -16,20 +16,22 @@ interface CollectionPointAssociationTabProps {
 
 export function CollectionPointAssociationTab({ carrierId }: CollectionPointAssociationTabProps) {
   const [carrierName, setCarrierName] = useState<string>("");
+  const [carrierCity, setCarrierCity] = useState<string>("");
+  const [filterByCity, setFilterByCity] = useState(false);
   
   // Fetch unassigned collection points (no carrier and no establishment)
   const {
     collectionPoints: unassignedPoints,
     isLoading: isLoadingUnassigned,
     refetch: refetchUnassigned
-  } = useCollectionPoints(null, null, true); // Set fetchUnassigned to true
+  } = useCollectionPoints(null, null, true, filterByCity ? carrierCity : undefined);
   
   // Fetch collection points assigned to this carrier
   const {
     collectionPoints: carrierPoints,
     isLoading: isLoadingCarrier,
     refetch: refetchCarrier
-  } = useCollectionPoints(undefined, carrierId); // fetch carrier points
+  } = useCollectionPoints(undefined, carrierId);
 
   // Ensure proper cleanup on unmount
   useEffect(() => {
@@ -124,21 +126,22 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     }
   };
 
-  // Fetch carrier name
+  // Fetch carrier details (name and city)
   useEffect(() => {
-    const fetchCarrierName = async () => {
+    const fetchCarrierDetails = async () => {
       const { data, error } = await supabase
         .from('carriers')
-        .select('name')
+        .select('name, city')
         .eq('id', carrierId)
         .single();
       
       if (data) {
         setCarrierName(data.name);
+        setCarrierCity(data.city);
       }
     };
     
-    fetchCarrierName();
+    fetchCarrierDetails();
   }, [carrierId]);
 
   return (
@@ -174,6 +177,19 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
         </div>
 
         <TabsContent value="unassigned" className="space-y-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <Checkbox
+              id="city-filter"
+              checked={filterByCity}
+              onCheckedChange={(checked) => setFilterByCity(checked as boolean)}
+            />
+            <label
+              htmlFor="city-filter"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Exibir apenas pontos em {carrierCity}
+            </label>
+          </div>
           <CollectionPointsTable
             collectionPoints={unassignedPoints}
             isLoading={isLoadingUnassigned}

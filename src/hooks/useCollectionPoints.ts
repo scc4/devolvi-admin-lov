@@ -7,12 +7,13 @@ import type { CollectionPoint } from "@/types/collection-point";
 export function useCollectionPoints(
   establishmentId?: string | null, 
   carrierId?: string | null,
-  fetchUnassigned?: boolean
+  fetchUnassigned?: boolean,
+  cityFilter?: string
 ) {
   const queryClient = useQueryClient();
   
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
-    queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned],
+    queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned, cityFilter],
     queryFn: async () => {
       let query = supabase
         .from('collection_points')
@@ -24,8 +25,9 @@ export function useCollectionPoints(
       if (fetchUnassigned) {
         query = query.is('carrier_id', null);
         
-        // Don't filter by establishment_id for unassigned points - show all available points
-        // This way we show all points that don't have a carrier
+        if (cityFilter) {
+          query = query.eq('city', cityFilter);
+        }
       } else if (establishmentId) {
         query = query.eq('establishment_id', establishmentId);
       } else if (carrierId) {
