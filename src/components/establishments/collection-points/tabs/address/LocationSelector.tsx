@@ -18,20 +18,29 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
   const [states, setStates] = useState<{ value: string; label: string; }[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [stateOpen, setStateOpen] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
 
   useEffect(() => {
     const loadStates = async () => {
+      setIsLoadingStates(true);
       try {
         const ibgeStates = await fetchStates();
-        setStates(ibgeStates?.map(state => ({
-          value: state.sigla,
-          label: `${state.nome} (${state.sigla})`
-        })) || []);
+        if (Array.isArray(ibgeStates) && ibgeStates.length > 0) {
+          setStates(ibgeStates.map(state => ({
+            value: state.sigla,
+            label: `${state.nome} (${state.sigla})`
+          })));
+        } else {
+          console.error('No states returned from API');
+          setStates([]);
+        }
       } catch (error) {
         console.error('Error fetching states:', error);
         setStates([]);
+      } finally {
+        setIsLoadingStates(false);
       }
     };
     loadStates();
@@ -43,26 +52,41 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
         setIsLoadingCities(true);
         try {
           const cities = await fetchCitiesByState(form.state);
-          setAvailableCities(cities?.map(city => city.nome) || []);
-          
-          if (form.city && !cities?.find(city => city.nome === form.city)) {
-            onInputChange('city', '');
+          if (Array.isArray(cities) && cities.length > 0) {
+            const cityNames = cities.map(city => city.nome);
+            setAvailableCities(cityNames);
+            
+            if (form.city && !cityNames.includes(form.city)) {
+              onInputChange('city', '');
+            }
+          } else {
+            console.error('No cities returned from API for state:', form.state);
+            setAvailableCities([]);
+            if (form.city) {
+              onInputChange('city', '');
+            }
           }
         } catch (error) {
           console.error('Error fetching cities:', error);
           setAvailableCities([]);
+          if (form.city) {
+            onInputChange('city', '');
+          }
         } finally {
           setIsLoadingCities(false);
         }
       } else {
         setAvailableCities([]);
+        if (form.city) {
+          onInputChange('city', '');
+        }
       }
     };
     loadCities();
   }, [form.state]);
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="state">Estado</Label>
         <Popover open={stateOpen} onOpenChange={setStateOpen}>
@@ -72,11 +96,15 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
               role="combobox"
               aria-expanded={stateOpen}
               className="w-full justify-between"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingStates}
             >
-              {form.state && states.length > 0
-                ? states.find((state) => state.value === form.state)?.label || "Selecione o estado..."
-                : "Selecione o estado..."}
+              {isLoadingStates ? (
+                "Carregando estados..."
+              ) : form.state && states.length > 0 ? (
+                states.find((state) => state.value === form.state)?.label || "Selecione o estado..."
+              ) : (
+                "Selecione o estado..."
+              )}
               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -85,11 +113,15 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
               <CommandInput placeholder="Pesquisar estado..." />
               <CommandEmpty>Nenhum estado encontrado.</CommandEmpty>
               <CommandGroup className="max-h-[200px] overflow-auto">
-                {states && states.length > 0 ? 
+                {isLoadingStates ? (
+                  <CommandItem value="loading" disabled>
+                    Carregando estados...
+                  </CommandItem>
+                ) : states && states.length > 0 ? (
                   states.map((state) => (
                     <CommandItem
                       key={state.value}
-                      value={state.label}
+                      value={state.value}
                       onSelect={() => {
                         onInputChange('state', state.value);
                         setStateOpen(false);
@@ -97,11 +129,12 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
                     >
                       {state.label}
                     </CommandItem>
-                  )) : 
-                  <CommandItem value="loading" disabled>
-                    Carregando estados...
+                  ))
+                ) : (
+                  <CommandItem value="no-states" disabled>
+                    Nenhum estado encontrado.
                   </CommandItem>
-                }
+                )}
               </CommandGroup>
             </Command>
           </PopoverContent>
@@ -136,7 +169,7 @@ export function LocationSelector({ form, onInputChange, isLoading }: LocationSel
                   <CommandItem value="loading" disabled>
                     Carregando cidades...
                   </CommandItem>
-                ) : availableCities && availableCities.length > 0 ? (
+                ) : form.state && availableCities && availableCities.length > 0 ? (
                   availableCities.map((city) => (
                     <CommandItem
                       key={city}

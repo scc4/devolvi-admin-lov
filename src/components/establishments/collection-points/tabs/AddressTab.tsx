@@ -12,21 +12,21 @@ interface AddressTabProps {
 
 export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <StreetAddressInputs 
-        form={form} 
+        form={form || {}} 
         onInputChange={onInputChange} 
         isLoading={isLoading} 
       />
       
       <LocationSelector 
-        form={form} 
+        form={form || {}} 
         onInputChange={onInputChange} 
         isLoading={isLoading} 
       />
       
       <LocationInputs 
-        form={form} 
+        form={form || {}} 
         onInputChange={onInputChange} 
         isLoading={isLoading} 
       />
