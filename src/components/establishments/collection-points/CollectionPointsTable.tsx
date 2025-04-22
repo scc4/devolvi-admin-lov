@@ -47,6 +47,11 @@ export function CollectionPointsTable({
       <div className="space-y-4">
         {collectionPoints.map((point) => (
           <div key={point.id} className="bg-white p-4 rounded-lg shadow border">
+            {point.establishment_id && (
+              <h2 className="text-lg font-semibold mb-3 text-primary">
+                {point.establishment?.name || 'Estabelecimento não definido'}
+              </h2>
+            )}
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <h3 className="font-semibold">{point.name}</h3>
