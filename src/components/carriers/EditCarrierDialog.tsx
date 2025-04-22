@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -206,7 +207,11 @@ export function EditCarrierDialog({
             <Checkbox
               id="is_active"
               checked={formData.is_active || false}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+              onCheckedChange={(checked) => {
+                // Convert CheckedState to boolean
+                const isActive = checked === true;
+                setFormData(prev => ({ ...prev, is_active: isActive }));
+              }}
               disabled={isSubmitting}
             />
             <Label htmlFor="is_active">Transportadora ativa</Label>
