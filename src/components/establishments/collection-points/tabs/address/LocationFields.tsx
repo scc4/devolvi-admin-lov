@@ -48,6 +48,7 @@ export function LocationFields({
     if (!cep || cep.replace(/\D/g, "").length !== 8) {
       return;
     }
+    
     const result = await fetchCep(cep);
     if (result) {
       onInputChange("street", result.rua);
