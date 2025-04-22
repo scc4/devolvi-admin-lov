@@ -14,6 +14,8 @@ interface CollectionPointAssociationTabProps {
 }
 
 export function CollectionPointAssociationTab({ carrierId }: CollectionPointAssociationTabProps) {
+  const [carrierName, setCarrierName] = useState<string>("");
+  
   const {
     collectionPoints: unassignedPoints,
     isLoading: isLoadingUnassigned,
@@ -119,46 +121,73 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     }
   };
 
+  // Fetch carrier name
+  useEffect(() => {
+    const fetchCarrierName = async () => {
+      const { data, error } = await supabase
+        .from('carriers')
+        .select('name')
+        .eq('id', carrierId)
+        .single();
+      
+      if (data) {
+        setCarrierName(data.name);
+      }
+    };
+    
+    fetchCarrierName();
+  }, [carrierId]);
+
   return (
-    <Tabs defaultValue="unassigned" className="space-y-6">
-      <div className="flex items-center justify-between">
-        <TabsList>
-          <TabsTrigger value="unassigned">Pontos Disponíveis</TabsTrigger>
-          <TabsTrigger value="associated">Pontos Associados</TabsTrigger>
-        </TabsList>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleRefresh}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Atualizar
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handlePrint}
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Imprimir
-          </Button>
+    <div className="space-y-6">
+      {carrierName && (
+        <div className="bg-muted/50 p-4 rounded-lg">
+          <h2 className="text-xl font-semibold text-primary">
+            Transportadora: {carrierName}
+          </h2>
         </div>
-      </div>
+      )}
+      
+      <Tabs defaultValue="unassigned" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="unassigned">Pontos Disponíveis</TabsTrigger>
+            <TabsTrigger value="associated">Pontos Associados</TabsTrigger>
+          </TabsList>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handlePrint}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimir
+            </Button>
+          </div>
+        </div>
 
-      <TabsContent value="unassigned" className="space-y-4">
-        <CollectionPointsTable
-          collectionPoints={unassignedPoints}
-          isLoading={isLoadingUnassigned}
-          onAssociate={handleAssociate}
-          showAssociateButton
-        />
-      </TabsContent>
+        <TabsContent value="unassigned" className="space-y-4">
+          <CollectionPointsTable
+            collectionPoints={unassignedPoints}
+            isLoading={isLoadingUnassigned}
+            onAssociate={handleAssociate}
+            showAssociateButton
+          />
+        </TabsContent>
 
-      <TabsContent value="associated" className="space-y-4">
-        <CollectionPointsTable
-          collectionPoints={carrierPoints}
-          isLoading={isLoadingCarrier}
-          onDisassociate={handleDisassociate}
-          showDisassociateButton
-        />
-      </TabsContent>
-    </Tabs>
+        <TabsContent value="associated" className="space-y-4">
+          <CollectionPointsTable
+            collectionPoints={carrierPoints}
+            isLoading={isLoadingCarrier}
+            onDisassociate={handleDisassociate}
+            showDisassociateButton
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
