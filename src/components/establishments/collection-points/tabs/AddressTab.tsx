@@ -2,6 +2,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { maskCEP } from "@/lib/format";
 import type { CollectionPoint } from "@/types/collection-point";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { brazilianStates, getCitiesByState } from "@/utils/brazil-states-cities";
+import { useState, useEffect } from "react";
 
 interface AddressTabProps {
   form: Partial<CollectionPoint>;
@@ -10,10 +13,25 @@ interface AddressTabProps {
 }
 
 export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) {
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskCEP(e.target.value);
     onInputChange('zip_code', maskedValue);
   };
+
+  // Update available cities when state changes
+  useEffect(() => {
+    if (form.state) {
+      const cities = getCitiesByState(form.state);
+      setAvailableCities(cities);
+      
+      // If current city is not in the new state's cities list, clear it
+      if (form.city && !cities.includes(form.city)) {
+        onInputChange('city', '');
+      }
+    }
+  }, [form.state]);
 
   return (
     <div className="space-y-4">
@@ -79,27 +97,45 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="city">Cidade</Label>
-          <Input
-            id="city"
-            placeholder="Cidade"
-            value={form.city || ''}
-            onChange={(e) => onInputChange('city', e.target.value)}
+          <Label htmlFor="state">Estado</Label>
+          <Select
+            value={form.state || ''}
+            onValueChange={(value) => onInputChange('state', value)}
             disabled={isLoading}
-          />
+          >
+            <SelectTrigger id="state">
+              <SelectValue placeholder="Selecione o estado" />
+            </SelectTrigger>
+            <SelectContent>
+              {brazilianStates.map((state) => (
+                <SelectItem key={state.value} value={state.value}>
+                  {state.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="state">Estado</Label>
-          <Input
-            id="state"
-            placeholder="Estado"
-            value={form.state || ''}
-            onChange={(e) => onInputChange('state', e.target.value)}
-            disabled={isLoading}
-          />
+          <Label htmlFor="city">Cidade</Label>
+          <Select
+            value={form.city || ''}
+            onValueChange={(value) => onInputChange('city', value)}
+            disabled={isLoading || !form.state}
+          >
+            <SelectTrigger id="city">
+              <SelectValue placeholder={form.state ? "Selecione a cidade" : "Selecione um estado primeiro"} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCities.map((city) => (
+                <SelectItem key={city} value={city}>
+                  {city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
