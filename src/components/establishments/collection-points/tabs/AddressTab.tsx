@@ -26,11 +26,17 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
 
   useEffect(() => {
     const loadStates = async () => {
-      const ibgeStates = await fetchStates();
-      setStates(ibgeStates.map(state => ({
-        value: state.sigla,
-        label: `${state.nome} (${state.sigla})`
-      })));
+      try {
+        const ibgeStates = await fetchStates();
+        // Ensure we always set an array, even if the API returns null/undefined
+        setStates(ibgeStates?.map(state => ({
+          value: state.sigla,
+          label: `${state.nome} (${state.sigla})`
+        })) || []);
+      } catch (error) {
+        console.error('Error fetching states:', error);
+        setStates([]);
+      }
     };
     loadStates();
   }, []);
@@ -39,12 +45,19 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
     const loadCities = async () => {
       if (form.state) {
         setIsLoadingCities(true);
-        const cities = await fetchCitiesByState(form.state);
-        setAvailableCities(cities.map(city => city.nome));
-        setIsLoadingCities(false);
-        
-        if (form.city && !cities.find(city => city.nome === form.city)) {
-          onInputChange('city', '');
+        try {
+          const cities = await fetchCitiesByState(form.state);
+          // Ensure we always set an array, even if the API returns null/undefined
+          setAvailableCities(cities?.map(city => city.nome) || []);
+          
+          if (form.city && !cities?.find(city => city.nome === form.city)) {
+            onInputChange('city', '');
+          }
+        } catch (error) {
+          console.error('Error fetching cities:', error);
+          setAvailableCities([]);
+        } finally {
+          setIsLoadingCities(false);
         }
       } else {
         setAvailableCities([]);
@@ -130,10 +143,10 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
                 role="combobox"
                 aria-expanded={stateOpen}
                 className="w-full justify-between"
-                disabled={isLoading || !states.length}
+                disabled={isLoading}
               >
-                {form.state
-                  ? states.find((state) => state.value === form.state)?.label
+                {form.state && states.length > 0
+                  ? states.find((state) => state.value === form.state)?.label || "Selecione o estado..."
                   : "Selecione o estado..."}
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -142,19 +155,24 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
               <Command>
                 <CommandInput placeholder="Pesquisar estado..." />
                 <CommandEmpty>Nenhum estado encontrado.</CommandEmpty>
-                <CommandGroup>
-                  {states.length > 0 && states.map((state) => (
-                    <CommandItem
-                      key={state.value}
-                      value={state.label}
-                      onSelect={() => {
-                        onInputChange('state', state.value);
-                        setStateOpen(false);
-                      }}
-                    >
-                      {state.label}
+                <CommandGroup className="max-h-[200px] overflow-auto">
+                  {states && states.length > 0 ? 
+                    states.map((state) => (
+                      <CommandItem
+                        key={state.value}
+                        value={state.label}
+                        onSelect={() => {
+                          onInputChange('state', state.value);
+                          setStateOpen(false);
+                        }}
+                      >
+                        {state.label}
+                      </CommandItem>
+                    )) : 
+                    <CommandItem value="loading" disabled>
+                      Carregando estados...
                     </CommandItem>
-                  ))}
+                  }
                 </CommandGroup>
               </Command>
             </PopoverContent>
@@ -174,9 +192,9 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
                 className="w-full justify-between"
                 disabled={isLoading || !form.state || isLoadingCities}
               >
-                {form.city || (isLoadingCities 
+                {isLoadingCities 
                   ? "Carregando cidades..." 
-                  : form.state 
+                  : form.city || (form.state 
                     ? "Selecione a cidade" 
                     : "Selecione um estado primeiro")}
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -186,19 +204,29 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
               <Command>
                 <CommandInput placeholder="Pesquisar cidade..." />
                 <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>
-                <CommandGroup>
-                  {availableCities.length > 0 && availableCities.map((city) => (
-                    <CommandItem
-                      key={city}
-                      value={city}
-                      onSelect={() => {
-                        onInputChange('city', city);
-                        setCityOpen(false);
-                      }}
-                    >
-                      {city}
+                <CommandGroup className="max-h-[200px] overflow-auto">
+                  {isLoadingCities ? (
+                    <CommandItem value="loading" disabled>
+                      Carregando cidades...
                     </CommandItem>
-                  ))}
+                  ) : availableCities && availableCities.length > 0 ? (
+                    availableCities.map((city) => (
+                      <CommandItem
+                        key={city}
+                        value={city}
+                        onSelect={() => {
+                          onInputChange('city', city);
+                          setCityOpen(false);
+                        }}
+                      >
+                        {city}
+                      </CommandItem>
+                    ))
+                  ) : (
+                    <CommandItem value="no-cities" disabled>
+                      {form.state ? "Nenhuma cidade encontrada" : "Selecione um estado primeiro"}
+                    </CommandItem>
+                  )}
                 </CommandGroup>
               </Command>
             </PopoverContent>
