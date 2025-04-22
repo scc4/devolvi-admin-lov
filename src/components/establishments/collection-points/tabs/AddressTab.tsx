@@ -1,3 +1,4 @@
+
 import { Label } from "@/components/ui/label";
 import type { CollectionPoint } from "@/types/collection-point";
 import { LocationMapPicker } from './LocationMapPicker';
@@ -27,13 +28,13 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
   };
 
   return (
-    <Tabs defaultValue="address" className="space-y-6">
-      <TabsList>
+    <Tabs defaultValue="address" className="space-y-4 h-full">
+      <TabsList className="mb-2">
         <TabsTrigger value="address">Endereço</TabsTrigger>
         <TabsTrigger value="map">Mapa</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="address">
+      <TabsContent value="address" className="h-full overflow-auto">
         <div className="space-y-4">
           <BasicAddressFields 
             form={form} 
@@ -59,14 +60,16 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
         </div>
       </TabsContent>
 
-      <TabsContent value="map" className="min-h-[600px]">
-        <div className="space-y-2">
+      <TabsContent value="map" className="h-full">
+        <div className="space-y-2 h-full">
           <Label>Localização no Mapa</Label>
-          <LocationMapPicker
-            form={form}
-            onLocationChange={handleLocationChange}
-            isLoading={isLoading}
-          />
+          <div className="h-[calc(100%-2rem)]">
+            <LocationMapPicker
+              form={form}
+              onLocationChange={handleLocationChange}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </TabsContent>
     </Tabs>

@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -9,6 +10,7 @@ import { useCollectionPointForm } from "@/hooks/useCollectionPointForm";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useEffect } from "react";
+import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 
 interface CollectionPointFormDialogProps {
   open: boolean;
@@ -37,6 +39,9 @@ export function CollectionPointFormDialog({
     removeTimePeriod,
   } = useCollectionPointForm(initialData, carrierContext);
 
+  // Use our custom cleanup hook
+  useDialogCleanup({ open });
+
   const handleSubmit = async () => {
     // Enhanced validation with detailed errors
     const errors = [];
@@ -60,23 +65,6 @@ export function CollectionPointFormDialog({
       console.error("Erro ao salvar ponto de coleta:", error);
     }
   };
-
-  // Ensure proper cleanup when dialog is closed
-  useEffect(() => {
-    const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && open) {
-        onOpenChange(false);
-      }
-    };
-
-    if (open) {
-      document.addEventListener('keydown', handleEscapeKey);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
-  }, [open, onOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
