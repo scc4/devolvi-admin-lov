@@ -1,7 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { maskPhoneBR } from "@/lib/format";
 import type { CollectionPoint } from "@/types/collection-point";
 
@@ -47,15 +47,15 @@ export function BasicInfoTab({ form, onInputChange, isLoading }: BasicInfoTabPro
       </div>
 
       <div className="flex items-center space-x-2 py-2">
-        <Switch 
+        <Checkbox 
           id="is_active" 
           checked={form.is_active || false}
-          onCheckedChange={(checked) => onInputChange('is_active', checked)}
+          onCheckedChange={(checked) => onInputChange('is_active', checked === true)}
           disabled={isLoading}
-          className="data-[state=checked]:bg-green-600"
         />
         <Label htmlFor="is_active" className="text-base md:text-sm">Ponto de coleta ativo</Label>
       </div>
     </div>
   );
 }
+
