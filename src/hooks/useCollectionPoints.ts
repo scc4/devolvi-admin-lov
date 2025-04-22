@@ -1,11 +1,12 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 
 export function useCollectionPoints(
-  establishmentId?: string, 
-  carrierId?: string,
+  establishmentId?: string | null, 
+  carrierId?: string | null,
   fetchUnassigned?: boolean
 ) {
   const queryClient = useQueryClient();
@@ -21,9 +22,10 @@ export function useCollectionPoints(
         `);
       
       if (fetchUnassigned) {
-        query = query
-          .is('carrier_id', null)
-          .is('establishment_id', null);
+        query = query.is('carrier_id', null);
+        
+        // Don't filter by establishment_id for unassigned points - show all available points
+        // This way we show all points that don't have a carrier
       } else if (establishmentId) {
         query = query.eq('establishment_id', establishmentId);
       } else if (carrierId) {

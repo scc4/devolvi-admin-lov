@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useCollectionPoints } from "@/hooks/useCollectionPoints";
 import { CollectionPointsTable } from "./CollectionPointsTable";
@@ -16,12 +17,14 @@ interface CollectionPointAssociationTabProps {
 export function CollectionPointAssociationTab({ carrierId }: CollectionPointAssociationTabProps) {
   const [carrierName, setCarrierName] = useState<string>("");
   
+  // Fetch unassigned collection points (no carrier and no establishment)
   const {
     collectionPoints: unassignedPoints,
     isLoading: isLoadingUnassigned,
     refetch: refetchUnassigned
-  } = useCollectionPoints(undefined, undefined, true); // fetch unassigned points
-
+  } = useCollectionPoints(null, null, true); // Set fetchUnassigned to true
+  
+  // Fetch collection points assigned to this carrier
   const {
     collectionPoints: carrierPoints,
     isLoading: isLoadingCarrier,
