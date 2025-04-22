@@ -4,9 +4,13 @@ import { CollectionPoint, DayOfWeek, daysOfWeekPtBr } from "@/types/collection-p
 export const formatOperatingHours = (hours: CollectionPoint['operating_hours']) => {
   if (!hours) return "Não informado";
   
-  return Object.entries(hours)
-    .map(([day, periods]) => {
-      const dayName = daysOfWeekPtBr[day as DayOfWeek];
+  const daysInOrder: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  
+  return daysInOrder
+    .map(day => {
+      const dayName = daysOfWeekPtBr[day];
+      const periods = hours[day];
+      
       if (!periods || periods.length === 0) {
         return `${dayName}: Fechado`;
       }
