@@ -24,22 +24,24 @@ export function useAddressForm(
   }, []);
 
   useEffect(() => {
-    const loadCities = async () => {
-      if (form.state) {
-        setIsLoadingCities(true);
-        const cities = await fetchCitiesByState(form.state);
+    // A pesquisa de cidades só deve acontecer se o campo state foi alterado manualmente/modificado.
+    // O fluxo automático do CEP preenche os campos diretamente!
+    if (form.state) {
+      setIsLoadingCities(true);
+      fetchCitiesByState(form.state).then(cities => {
         setAvailableCities(cities.map(city => city.nome));
         setIsLoadingCities(false);
-        
+
+        // Se a cidade não está mais disponível na lista, limpa o campo
         if (form.city && !cities.find(city => city.nome === form.city)) {
           onInputChange('city', '');
         }
-      } else {
-        setAvailableCities([]);
-      }
-    };
-    loadCities();
-  }, [form.state]);
+      });
+    } else {
+      setAvailableCities([]);
+    }
+    // eslint-disable-next-line
+  }, [form.state]); // não incluir onInputChange para não criar loops
 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskCEP(e.target.value);
