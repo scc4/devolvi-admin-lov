@@ -61,7 +61,7 @@ export function MapComponent({
 
   return (
     <div className="space-y-4">
-      <div className="h-[400px] relative rounded-lg overflow-hidden">
+      <div className="h-[500px] relative rounded-lg overflow-hidden">
         <div ref={mapContainer} className="absolute inset-0" />
       </div>
       <p className="text-sm text-muted-foreground flex items-center gap-2">

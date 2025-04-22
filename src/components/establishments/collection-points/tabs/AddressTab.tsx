@@ -1,4 +1,3 @@
-
 import { Label } from "@/components/ui/label";
 import type { CollectionPoint } from "@/types/collection-point";
 import { LocationMapPicker } from './LocationMapPicker';
@@ -60,7 +59,7 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
         </div>
       </TabsContent>
 
-      <TabsContent value="map">
+      <TabsContent value="map" className="min-h-[600px]">
         <div className="space-y-2">
           <Label>Localização no Mapa</Label>
           <LocationMapPicker
