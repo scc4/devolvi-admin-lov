@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export function EditCarrierDialog({
   isSubmitting = false
 }: EditCarrierDialogProps) {
   const [formData, setFormData] = useState<Carrier>({ ...carrier });
-  const [states, setStates<{ value: string; label: string; }[]>([]);
+  const [states, setStates] = useState<{ value: string; label: string; }[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
 
