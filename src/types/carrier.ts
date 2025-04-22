@@ -3,6 +3,7 @@ export interface Carrier {
   id: string;
   name: string;
   city: string;
+  state: string;
   manager: string;
   phone: string | null;
   email: string | null;

@@ -45,6 +45,7 @@ export function useCarriers() {
     mutationFn: async (carrier: Partial<Carrier>) => {
       // Make sure required fields are present
       if (!carrier.name) throw new Error('Nome da transportadora é obrigatório');
+      if (!carrier.state) throw new Error('Estado é obrigatório');
       if (!carrier.city) throw new Error('Cidade é obrigatória');
       if (!carrier.manager) throw new Error('Gestor responsável é obrigatório');
 
@@ -52,6 +53,7 @@ export function useCarriers() {
         .from('carriers')
         .insert({
           name: carrier.name,
+          state: carrier.state,
           city: carrier.city,
           manager: carrier.manager,
           phone: carrier.phone || null,

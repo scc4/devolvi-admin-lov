@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,9 @@ import { Loader2 } from "lucide-react";
 import { maskPhoneBR } from "@/lib/format";
 import type { Carrier } from "@/types/carrier";
 import { useState, useEffect } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface EditCarrierDialogProps {
   carrier: Carrier;
@@ -22,6 +24,34 @@ export function EditCarrierDialog({
   isSubmitting = false
 }: EditCarrierDialogProps) {
   const [formData, setFormData] = useState<Carrier>({ ...carrier });
+  const [states, setStates] = useState<{ value: string; label: string; }[]>([]);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      const ibgeStates = await fetchStates();
+      setStates(ibgeStates.map(state => ({
+        value: state.sigla,
+        label: `${state.nome} (${state.sigla})`
+      })));
+    };
+    loadStates();
+  }, []);
+
+  useEffect(() => {
+    const loadCities = async () => {
+      if (formData.state) {
+        setIsLoadingCities(true);
+        const cities = await fetchCitiesByState(formData.state);
+        setAvailableCities(cities.map(city => city.nome));
+        setIsLoadingCities(false);
+      } else {
+        setAvailableCities([]);
+      }
+    };
+    loadCities();
+  }, [formData.state]);
 
   // Load initial data when dialog opens or carrier changes
   useEffect(() => {
@@ -58,14 +88,14 @@ export function EditCarrierDialog({
     setFormData(prev => ({ ...prev, phone: maskedValue }));
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    await onSave(formData);
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await onSave(formData);
   };
 
   return (
@@ -88,14 +118,51 @@ export function EditCarrierDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="city">Cidade</Label>
-            <Input
-              id="city"
-              placeholder="Cidade"
-              value={formData.city || ''}
-              onChange={handleChange}
+            <Label htmlFor="state">Estado</Label>
+            <Select
+              value={formData.state || ''}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, state: value, city: '' }))}
               disabled={isSubmitting}
-            />
+            >
+              <SelectTrigger id="state">
+                <SelectValue placeholder={states.length ? "Selecione o estado" : "Carregando estados..."} />
+              </SelectTrigger>
+              <SelectContent>
+                {states.map((state) => (
+                  <SelectItem key={state.value} value={state.value}>
+                    {state.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="city">Cidade</Label>
+            <Select
+              value={formData.city || ''}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}
+              disabled={isSubmitting || !formData.state || isLoadingCities}
+            >
+              <SelectTrigger id="city">
+                <SelectValue 
+                  placeholder={
+                    isLoadingCities 
+                      ? "Carregando cidades..." 
+                      : formData.state 
+                        ? "Selecione a cidade" 
+                        : "Selecione um estado primeiro"
+                  } 
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -135,6 +202,16 @@ export function EditCarrierDialog({
             />
           </div>
 
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_active"
+              checked={formData.is_active || false}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+              disabled={isSubmitting}
+            />
+            <Label htmlFor="is_active">Transportadora ativa</Label>
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
               Cancelar
@@ -155,4 +232,3 @@ export function EditCarrierDialog({
     </Dialog>
   );
 }
-
