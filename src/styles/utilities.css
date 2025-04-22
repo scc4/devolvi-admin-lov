@@ -1,0 +1,92 @@
+
+@tailwind utilities;
+
+@layer utilities {
+  /* Visibility utilities */
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden md:block;
+  }
+  
+  /* Touch optimizations */
+  .touch-scroll {
+    @apply overflow-auto overscroll-contain -webkit-overflow-scrolling-touch;
+  }
+  
+  /* iOS safe areas */
+  .safe-top {
+    @apply pt-safe-top;
+  }
+  
+  .safe-bottom {
+    @apply pb-safe-bottom;
+  }
+  
+  /* Soft background colors */
+  .bg-soft-primary {
+    @apply bg-blue-50;
+  }
+  
+  .bg-soft-success {
+    @apply bg-green-50;
+  }
+  
+  .bg-soft-warning {
+    @apply bg-amber-50;
+  }
+  
+  .bg-soft-danger {
+    @apply bg-red-50;
+  }
+  
+  .bg-soft-info {
+    @apply bg-sky-50;
+  }
+  
+  .text-modernize {
+    @apply text-[#2a3547];
+  }
+  
+  /* Mobile optimizations */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .no-drag {
+    @apply select-none;
+    -webkit-user-drag: none;
+  }
+  
+  /* Responsive text sizes */
+  .text-responsive-xs {
+    @apply text-xs md:text-[0.7rem];
+  }
+  
+  .text-responsive-sm {
+    @apply text-sm md:text-xs;
+  }
+  
+  .text-responsive-base {
+    @apply text-base md:text-sm;
+  }
+  
+  .text-responsive-lg {
+    @apply text-lg md:text-base;
+  }
+  
+  /* Responsive spacing */
+  .gap-responsive {
+    @apply gap-4 md:gap-2;
+  }
+  
+  .p-responsive {
+    @apply p-4 md:p-3;
+  }
+  
+  .m-responsive {
+    @apply m-4 md:m-3;
+  }
+}

@@ -1,0 +1,42 @@
+
+@tailwind components;
+
+@layer components {
+  /* Modernize theme components */
+  .modernize-card {
+    @apply bg-white rounded-lg shadow-card hover:shadow-card-hover transition-shadow p-5 border border-gray-100;
+  }
+  
+  .modernize-stat-card {
+    @apply modernize-card flex flex-col;
+  }
+  
+  .modernize-sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-md text-[#2a3547] hover:bg-[#f5f6fa] transition-colors;
+  }
+  
+  .modernize-sidebar-item.active {
+    @apply bg-[#e4e7ff] text-primary;
+  }
+  
+  .modernize-button {
+    @apply bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md transition-colors;
+  }
+
+  /* Mobile optimized components */
+  .container-mobile {
+    @apply w-full px-4 md:px-6;
+  }
+  
+  .responsive-card {
+    @apply p-4 md:p-6 border rounded-md shadow-sm;
+  }
+  
+  .touch-button {
+    @apply h-12 md:h-10 px-4 py-2 rounded-md flex items-center justify-center;
+  }
+  
+  .mobile-input {
+    @apply h-12 md:h-10 w-full px-4 py-2 rounded-md;
+  }
+}
