@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { maskCEP } from "@/lib/format";
@@ -142,7 +143,7 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
                 <CommandInput placeholder="Pesquisar estado..." />
                 <CommandEmpty>Nenhum estado encontrado.</CommandEmpty>
                 <CommandGroup>
-                  {states.map((state) => (
+                  {states.length > 0 && states.map((state) => (
                     <CommandItem
                       key={state.value}
                       value={state.label}
@@ -186,7 +187,7 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
                 <CommandInput placeholder="Pesquisar cidade..." />
                 <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>
                 <CommandGroup>
-                  {availableCities.map((city) => (
+                  {availableCities.length > 0 && availableCities.map((city) => (
                     <CommandItem
                       key={city}
                       value={city}
