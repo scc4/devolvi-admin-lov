@@ -6,7 +6,13 @@ import { useEffect } from "react";
  * Evita problemas comuns em dispositivos móveis como sobreposição,
  * scroll bloqueado e eventos de toque
  */
-export function useDialogCleanup({ open }: { open: boolean }) {
+export function useDialogCleanup({ 
+  open, 
+  onCleanup 
+}: { 
+  open: boolean; 
+  onCleanup?: () => void;
+}) {
   useEffect(() => {
     // Cleanup effects when dialog closes
     if (!open) {
@@ -25,9 +31,14 @@ export function useDialogCleanup({ open }: { open: boolean }) {
         
         // Guarantee scroll is enabled
         document.body.style.overflow = '';
+        
+        // Call custom cleanup function if provided
+        if (onCleanup) {
+          onCleanup();
+        }
       }, 300);
       
       return () => clearTimeout(timeout);
     }
-  }, [open]);
+  }, [open, onCleanup]);
 }
