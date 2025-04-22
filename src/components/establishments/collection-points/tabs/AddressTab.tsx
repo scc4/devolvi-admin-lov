@@ -5,6 +5,7 @@ import type { CollectionPoint } from "@/types/collection-point";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
+import { LocationMapPicker } from './LocationMapPicker';
 
 interface AddressTabProps {
   form: Partial<CollectionPoint>;
@@ -50,6 +51,11 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskCEP(e.target.value);
     onInputChange('zip_code', maskedValue);
+  };
+
+  const handleLocationChange = (lat: number, lng: number) => {
+    onInputChange('latitude', lat);
+    onInputChange('longitude', lng);
   };
 
   return (
@@ -175,6 +181,15 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
             disabled={isLoading}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Localização no Mapa</Label>
+        <LocationMapPicker
+          form={form}
+          onLocationChange={handleLocationChange}
+          isLoading={isLoading}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
