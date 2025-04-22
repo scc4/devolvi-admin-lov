@@ -1,4 +1,4 @@
-
+import React from 'react';
 import {
   Table,
   TableBody,
@@ -53,7 +53,7 @@ export function CollectionPointsTable({
                 <p className="text-sm text-gray-600">{point.address}</p>
                 {point.establishment_id && (
                   <p className="text-xs text-gray-500">
-                    Estabelecimento: {point.establishment?.name || 'Não definido'}
+                    <strong>Estabelecimento:</strong> {point.establishment?.name || 'Não definido'}
                   </p>
                 )}
               </div>
