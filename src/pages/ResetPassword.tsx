@@ -51,11 +51,11 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
-      // Update user's password using the provided code
-      const { error } = await supabase.auth.updateUser({ 
-        password: password 
-      }, { 
-        passwordResetToken: code 
+      // Use the verifyOtp method to verify the reset token and update the password in one step
+      const { error } = await supabase.auth.verifyOtp({
+        type: 'recovery',
+        token: code,
+        newPassword: password
       });
 
       if (error) throw error;
