@@ -13,9 +13,10 @@ import { CollectionPointTableRow } from "./table/CollectionPointTableRow";
 
 interface CollectionPointDesktopViewProps {
   collectionPoints: CollectionPoint[];
-  isLoading: boolean;
+  isLoading?: boolean;
   onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
+  onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
   carrierMap: Map<string, { name: string }>;
 }
 
@@ -24,6 +25,7 @@ export function CollectionPointDesktopView({
   isLoading,
   onEdit,
   onDelete,
+  onAssignCarrier,
   carrierMap
 }: CollectionPointDesktopViewProps) {
   if (isLoading) {
@@ -54,6 +56,7 @@ export function CollectionPointDesktopView({
                 point={point}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onAssignCarrier={onAssignCarrier}
                 carrierMap={carrierMap}
               />
             ))

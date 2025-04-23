@@ -12,6 +12,7 @@ interface CollectionPointTableRowProps {
   point: CollectionPoint;
   onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
+  onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
   carrierMap: Map<string, { name: string }>;
 }
 
@@ -19,6 +20,7 @@ export function CollectionPointTableRow({
   point,
   onEdit,
   onDelete,
+  onAssignCarrier,
   carrierMap
 }: CollectionPointTableRowProps) {
   const status = checkOpenStatus(point);
