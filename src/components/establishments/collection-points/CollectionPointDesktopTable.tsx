@@ -44,6 +44,20 @@ export function CollectionPointDesktopTable({
     return new Map(carriers.map(carrier => [carrier.id, carrier]));
   }, [carriers]);
 
+  const getSimpleAddress = (point: CollectionPoint) => {
+    const parts = [];
+    if (point.street) parts.push(point.street);
+    if (point.number) parts.push(point.number);
+    return parts.length > 0 ? parts.join(', ') : 'Não informado';
+  };
+
+  const getLocation = (point: CollectionPoint) => {
+    const parts = [];
+    if (point.city) parts.push(point.city);
+    if (point.state) parts.push(point.state);
+    return parts.length > 0 ? parts.join('/') : 'Não informado';
+  };
+
   // Mobile view
   if (isMobile) {
     return (
@@ -64,6 +78,16 @@ export function CollectionPointDesktopTable({
                   <span>{maskPhoneBR(point.phone)}</span>
                 </div>
               )}
+
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{getSimpleAddress(point)}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm">
+                <Building className="h-4 w-4 text-muted-foreground" />
+                <span>{getLocation(point)}</span>
+              </div>
               
               {point.carrier_id ? (
                 <div className="flex items-center gap-2 text-sm">
@@ -127,6 +151,8 @@ export function CollectionPointDesktopTable({
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Endereço</TableHead>
+              <TableHead>Cidade/UF</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Transportadora</TableHead>
               <TableHead>Horários</TableHead>
@@ -137,7 +163,7 @@ export function CollectionPointDesktopTable({
           <TableBody>
             {collectionPoints.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={8} className="text-center py-8">
                   <p className="text-muted-foreground">Nenhum ponto de coleta encontrado</p>
                 </TableCell>
               </TableRow>
@@ -145,6 +171,8 @@ export function CollectionPointDesktopTable({
               collectionPoints.map((point) => (
                 <TableRow key={point.id}>
                   <TableCell>{point.name}</TableCell>
+                  <TableCell>{getSimpleAddress(point)}</TableCell>
+                  <TableCell>{getLocation(point)}</TableCell>
                   <TableCell>
                     {point.phone ? (
                       <div className="flex items-center gap-1">
