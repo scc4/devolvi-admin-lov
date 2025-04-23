@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -13,10 +13,22 @@ const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [invalidLink, setInvalidLink] = useState(false);
 
-  // Get the token from the URL
-  const token = searchParams.get('token');
-  const type = searchParams.get('type');
+  // Get the code from the URL (this is what Supabase uses in reset password links)
+  const code = searchParams.get('code');
+
+  useEffect(() => {
+    // If there's no code, the link is invalid
+    if (!code) {
+      setInvalidLink(true);
+      toast({
+        title: "Link inválido",
+        description: "O link de redefinição de senha é inválido ou expirou.",
+        variant: "destructive"
+      });
+    }
+  }, [code]);
 
   const validatePasswords = () => {
     if (password.length < 6) {
@@ -34,14 +46,16 @@ const ResetPassword = () => {
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validatePasswords()) return;
+    if (!validatePasswords() || !code) return;
     
     setIsLoading(true);
 
     try {
-      // Update user's password using the token
-      const { error } = await supabase.auth.updateUser({
-        password: password
+      // Update user's password using the provided code
+      const { error } = await supabase.auth.updateUser({ 
+        password: password 
+      }, { 
+        passwordResetToken: code 
       });
 
       if (error) throw error;
@@ -64,6 +78,22 @@ const ResetPassword = () => {
       setIsLoading(false);
     }
   };
+
+  if (invalidLink) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+        <div className="w-full max-w-md space-y-6 text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Link inválido</h2>
+          <p className="text-gray-600">
+            O link de redefinição de senha é inválido ou expirou.
+          </p>
+          <Button onClick={() => navigate('/auth')}>
+            Voltar para login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">

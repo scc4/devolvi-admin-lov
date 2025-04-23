@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -69,6 +70,14 @@ const App = () => (
                 </Suspense>
               } 
             />
+            <Route 
+              path="/auth/reset-password" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ResetPassword />
+                </Suspense>
+              } 
+            />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardLayout />
@@ -101,14 +110,6 @@ const App = () => (
                 <NotFound />
               </Suspense>
             } />
-            <Route 
-              path="/auth/reset-password" 
-              element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <ResetPassword />
-                </Suspense>
-              } 
-            />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
