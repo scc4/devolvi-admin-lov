@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,7 @@ const Users = lazy(() => import("./pages/Users"));
 const Carriers = lazy(() => import("./pages/Carriers"));
 const Establishments = lazy(() => import("./pages/Establishments"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ConfirmRegistration = lazy(() => import("./pages/ConfirmRegistration"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +60,14 @@ const App = () => (
             <Route path="/" element={<RootRedirect />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route 
+              path="/auth/confirm" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ConfirmRegistration />
+                </Suspense>
+              } 
+            />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardLayout />
