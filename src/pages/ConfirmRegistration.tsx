@@ -11,13 +11,31 @@ const ConfirmRegistration = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  // Get the token from the URL
+  // Get the token and other parameters from the URL
   const token = searchParams.get('token');
   const type = searchParams.get('type');
 
+  const validatePasswords = () => {
+    if (password.length < 6) {
+      setPasswordError('A senha deve ter pelo menos 6 caracteres');
+      return false;
+    }
+    if (password !== confirmPassword) {
+      setPasswordError('As senhas não coincidem');
+      return false;
+    }
+    setPasswordError(null);
+    return true;
+  };
+
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validatePasswords()) return;
+    
     setIsLoading(true);
 
     try {
@@ -48,15 +66,46 @@ const ConfirmRegistration = () => {
   };
 
   useEffect(() => {
-    if (!token || type !== 'invite') {
-      toast({
-        title: "Link inválido",
-        description: "O link de confirmação é inválido ou expirou.",
-        variant: "destructive"
-      });
-      navigate('/auth');
-    }
-  }, [token, type, navigate]);
+    const checkLink = async () => {
+      if (!token) {
+        toast({
+          title: "Link inválido",
+          description: "O link de confirmação está incompleto ou expirou.",
+          variant: "destructive"
+        });
+        navigate('/auth');
+        return;
+      }
+
+      try {
+        // Verify the token without updating the password yet
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: 'invite',
+        });
+
+        if (error) {
+          console.error('Error verifying token:', error);
+          toast({
+            title: "Link inválido ou expirado",
+            description: "O link de confirmação é inválido ou expirou. Entre em contato com o administrador para um novo convite.",
+            variant: "destructive"
+          });
+          navigate('/auth');
+        }
+      } catch (error: any) {
+        console.error('Error in token verification:', error);
+        toast({
+          title: "Erro na verificação",
+          description: "Ocorreu um erro ao verificar o link de convite.",
+          variant: "destructive"
+        });
+        navigate('/auth');
+      }
+    };
+
+    checkLink();
+  }, [token, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
@@ -86,6 +135,27 @@ const ConfirmRegistration = () => {
                 minLength={6}
               />
             </div>
+            
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Confirme a senha
+              </label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="mt-1"
+                placeholder="Digite sua senha novamente"
+                minLength={6}
+              />
+            </div>
+            
+            {passwordError && (
+              <div className="text-red-500 text-sm">{passwordError}</div>
+            )}
           </div>
 
           <Button

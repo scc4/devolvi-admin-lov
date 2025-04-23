@@ -49,6 +49,11 @@ serve(async (req) => {
       signUpUrl = inviteUrl;
     }
 
+    // For better UX, modify the URL to point to our custom confirmation page
+    // Replace the default auth endpoint with our application's confirm page
+    const appUrl = new URL(req.url).origin;
+    const confirmUrl = signUpUrl.replace("/auth/v1/verify", "/auth/confirm");
+
     const emailResponse = await resend.emails.send({
       from: "Modernize Admin <onboarding@resend.dev>",
       to: [email],
@@ -57,7 +62,7 @@ serve(async (req) => {
         <h1>Olá ${name}!</h1>
         <p>Você foi convidado para acessar o Modernize Admin.</p>
         <p>Clique no link abaixo para criar sua conta:</p>
-        <p><a href="${signUpUrl}">Aceitar Convite</a></p>
+        <p><a href="${confirmUrl}">Aceitar Convite</a></p>
         <p>Se você não solicitou este convite, pode ignorar este email.</p>
       `,
     });
