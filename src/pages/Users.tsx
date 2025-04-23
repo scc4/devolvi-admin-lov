@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { InviteDialog } from "@/components/users/InviteDialog";
@@ -63,21 +64,21 @@ export default function Users() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="border-none shadow-md">
-        <CardHeader>
+    <div className="space-y-6 p-6 bg-soft-purple min-h-screen">
+      <Card className="border-none shadow-lg bg-white">
+        <CardHeader className="bg-primary/10 py-4">
           <UsersHeader onInvite={() => setInviteOpen(true)} />
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <UsersSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
           
           {error ? (
-            <div className="flex flex-col items-center justify-center p-8 border rounded-md text-center">
+            <div className="flex flex-col items-center justify-center p-8 border rounded-md text-center bg-soft-danger">
               <p className="text-destructive mb-4">Erro ao carregar dados dos usuários</p>
               <Button 
                 variant="outline" 
                 onClick={handleRetry}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 text-destructive hover:bg-destructive/10"
               >
                 <RefreshCcw className="h-4 w-4" />
                 Tentar novamente

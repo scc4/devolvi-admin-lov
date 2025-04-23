@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableHeader,
@@ -32,34 +33,39 @@ export function UsersTable({
   onResetPassword
 }: UsersTableProps) {
   return (
-    <div className="relative">
+    <div className="relative bg-soft-purple rounded-lg">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-primary/10">
           <TableRow>
-            <TableHead className="w-[100px]">ID</TableHead>
-            <TableHead>Nome</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <TableHead className="text-primary font-semibold">Nome</TableHead>
+            <TableHead className="text-primary font-semibold">Email</TableHead>
+            <TableHead className="text-primary font-semibold">Status</TableHead>
+            <TableHead className="text-right text-primary font-semibold">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">Carregando...</TableCell>
+              <TableCell colSpan={4} className="text-center text-muted-foreground py-4">Carregando...</TableCell>
             </TableRow>
           ) : users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">Nenhum usuário encontrado.</TableCell>
+              <TableCell colSpan={4} className="text-center text-muted-foreground py-4">Nenhum usuário encontrado.</TableCell>
             </TableRow>
           ) : (
             users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.id}</TableCell>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
+              <TableRow key={user.id} className="hover:bg-primary/5 transition-colors">
+                <TableCell className="font-medium text-foreground">{user.name}</TableCell>
+                <TableCell className="text-muted-foreground">{user.email}</TableCell>
                 <TableCell>
-                  <Badge variant="outline">
+                  <Badge 
+                    variant="outline" 
+                    className={`
+                      ${user.status === 'Ativo' ? 'bg-soft-success text-green-700' : 
+                        user.status === 'Inativo' ? 'bg-soft-danger text-red-700' : 
+                        'bg-soft-warning text-amber-700'}
+                    `}
+                  >
                     {user.status}
                   </Badge>
                 </TableCell>
