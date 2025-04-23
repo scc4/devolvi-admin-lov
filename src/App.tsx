@@ -19,6 +19,7 @@ const Carriers = lazy(() => import("./pages/Carriers"));
 const Establishments = lazy(() => import("./pages/Establishments"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ConfirmRegistration = lazy(() => import("./pages/ConfirmRegistration"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +101,14 @@ const App = () => (
                 <NotFound />
               </Suspense>
             } />
+            <Route 
+              path="/auth/reset-password" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ResetPassword />
+                </Suspense>
+              } 
+            />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
