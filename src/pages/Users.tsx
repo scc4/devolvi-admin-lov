@@ -1,22 +1,16 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { InviteDialog } from "@/components/users/InviteDialog";
-import { EditDialog } from "@/components/users/EditDialog";
-import { ConfirmActionDialog } from "@/components/users/ConfirmActionDialog";
 import { UsersHeader } from "@/components/users/UsersHeader";
-import { UsersSearch } from "@/components/users/UsersSearch";
-import { UsersTable } from "@/components/users/UsersTable";
+import { UsersContent } from "@/components/users/UsersContent";
+import { UsersModals } from "@/components/users/UsersModals";
 import { useUsers } from "@/hooks/useUsers";
 import { UserRow } from "@/types/user";
 import { useAuth } from "@/context/AuthContext";
 import { useUserInvite } from "@/hooks/useUserInvite";
-import { Button } from "@/components/ui/button";
-import { RefreshCcw } from "lucide-react";
-import { ResetPasswordDialog } from "@/components/users/ResetPasswordDialog";
 
 export default function Users() {
-  const { user: currentUser, roles: currentUserRoles } = useAuth();
+  const { roles: currentUserRoles } = useAuth();
   const isAdmin = currentUserRoles.includes("admin") || currentUserRoles.includes("owner");
   
   const {
@@ -39,8 +33,7 @@ export default function Users() {
 
   const filteredUsers = users.filter((user) =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.id.includes(searchTerm)
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleInviteUser = async (form: { name: string; email: string; phone?: string; role: "admin" | "owner" }) => {
@@ -59,8 +52,11 @@ export default function Users() {
     }
   };
 
-  const handleRetry = () => {
-    loadUsers();
+  const handleConfirmAction = () => {
+    if (!confirmModal) return;
+    if (confirmModal.action === "delete") handleDelete(confirmModal.user);
+    if (confirmModal.action === "deactivate") handleDeactivate(confirmModal.user);
+    if (confirmModal.action === "invite") handleResendInviteUser(confirmModal.user);
   };
 
   return (
@@ -70,75 +66,35 @@ export default function Users() {
           <UsersHeader onInvite={() => setInviteOpen(true)} />
         </CardHeader>
         <CardContent className="p-6">
-          <UsersSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
-          
-          {error ? (
-            <div className="flex flex-col items-center justify-center p-8 border rounded-md text-center bg-soft-danger">
-              <p className="text-destructive mb-4">Erro ao carregar dados dos usuários</p>
-              <Button 
-                variant="outline" 
-                onClick={handleRetry}
-                className="flex items-center gap-2 text-destructive hover:bg-destructive/10"
-              >
-                <RefreshCcw className="h-4 w-4" />
-                Tentar novamente
-              </Button>
-            </div>
-          ) : (
-            <UsersTable
-              users={filteredUsers}
-              loading={loading}
-              onEdit={setEditUser}
-              onDelete={(user) => setConfirmModal({ action: "delete", user })}
-              onDeactivate={(user) => setConfirmModal({ action: "deactivate", user })}
-              onResendInvite={(user) => setConfirmModal({ action: "invite", user })}
-              onResetPassword={setResetPasswordUser}
-            />
-          )}
+          <UsersContent
+            error={error}
+            loading={loading}
+            users={filteredUsers}
+            searchTerm={searchTerm}
+            onSearch={setSearchTerm}
+            onRetry={loadUsers}
+            onEdit={setEditUser}
+            onDelete={(user) => setConfirmModal({ action: "delete", user })}
+            onDeactivate={(user) => setConfirmModal({ action: "deactivate", user })}
+            onResendInvite={(user) => setConfirmModal({ action: "invite", user })}
+            onResetPassword={setResetPasswordUser}
+          />
         </CardContent>
       </Card>
 
-      {/* Modais */}
-      <InviteDialog 
-        open={inviteOpen} 
-        onOpenChange={setInviteOpen} 
-        onInvite={handleInviteUser} 
-        isLoading={isInviteLoading}
-      />
-      
-      {editUser && (
-        <EditDialog
-          user={{
-            id: editUser.id,
-            name: editUser.name,
-            phone: editUser.phone,
-            role: editUser.role === "admin" || editUser.role === "owner" ? editUser.role : "admin",
-          }}
-          onClose={() => setEditUser(null)}
-          onEdit={handleEdit}
-        />
-      )}
-      
-      {confirmModal && (
-        <ConfirmActionDialog
-          open={!!confirmModal}
-          action={confirmModal.action}
-          user={confirmModal.user}
-          onCancel={() => setConfirmModal(null)}
-          onConfirm={() => {
-            if (!confirmModal) return;
-            if (confirmModal.action === "delete") handleDelete(confirmModal.user);
-            if (confirmModal.action === "deactivate") handleDeactivate(confirmModal.user);
-            if (confirmModal.action === "invite") handleResendInviteUser(confirmModal.user);
-          }}
-        />
-      )}
-
-      {/* Reset Password Dialog */}
-      <ResetPasswordDialog
-        user={resetPasswordUser}
-        open={!!resetPasswordUser}
-        onOpenChange={(open) => !open && setResetPasswordUser(null)}
+      <UsersModals
+        inviteOpen={inviteOpen}
+        editUser={editUser}
+        confirmModal={confirmModal}
+        resetPasswordUser={resetPasswordUser}
+        isInviteLoading={isInviteLoading}
+        onInviteOpenChange={setInviteOpen}
+        onEditClose={() => setEditUser(null)}
+        onConfirmCancel={() => setConfirmModal(null)}
+        onResetPasswordChange={(open) => !open && setResetPasswordUser(null)}
+        onInvite={handleInviteUser}
+        onEdit={handleEdit}
+        onConfirm={handleConfirmAction}
       />
     </div>
   );
