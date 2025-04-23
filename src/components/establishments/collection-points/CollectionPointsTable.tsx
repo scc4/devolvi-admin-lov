@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Clock } from "lucide-react";
+import { Edit, Trash2, Clock, MapPin, Building } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 import { checkOpenStatus } from "./utils/checkOpenStatus";
 import {
@@ -52,6 +52,20 @@ export function CollectionPointsTable({
   const carrierMap = useMemo(() => {
     return new Map(carriers.map(carrier => [carrier.id, carrier]));
   }, [carriers]);
+  
+  const getSimpleAddress = (point: CollectionPoint) => {
+    const parts = [];
+    if (point.street) parts.push(point.street);
+    if (point.number) parts.push(point.number);
+    return parts.length > 0 ? parts.join(', ') : 'Não informado';
+  };
+
+  const getLocation = (point: CollectionPoint) => {
+    const parts = [];
+    if (point.city) parts.push(point.city);
+    if (point.state) parts.push(point.state);
+    return parts.length > 0 ? parts.join('/') : 'Não informado';
+  };
 
   // If we're showing association buttons, use the existing card layout
   if (showAssociateButton || showDisassociateButton) {
@@ -67,9 +81,9 @@ export function CollectionPointsTable({
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <h3 className="font-semibold">{point.name}</h3>
-                <p className="text-sm text-gray-600">{point.address}</p>
+                <p className="text-sm text-gray-600">{getSimpleAddress(point)}</p>
+                <p className="text-xs text-gray-500">{getLocation(point)}</p>
                 <div className="text-xs text-gray-500 space-y-0.5">
-                  {point.city && <p><strong>Cidade:</strong> {point.city}</p>}
                   {point.district && <p><strong>Bairro:</strong> {point.district}</p>}
                   {point.establishment_id && (
                     <p>
@@ -151,7 +165,15 @@ export function CollectionPointsTable({
                       </Popover>
                     </div>
                     
-                    <p className="text-sm text-muted-foreground">{point.address}</p>
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>{getSimpleAddress(point)}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm">
+                      <Building className="h-4 w-4 text-muted-foreground" />
+                      <span>{getLocation(point)}</span>
+                    </div>
                     
                     <div className="flex items-center text-sm">
                       <span className="font-medium mr-2">Transportadora:</span>
@@ -199,6 +221,7 @@ export function CollectionPointsTable({
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Endereço</TableHead>
+            <TableHead>Cidade/UF</TableHead>
             <TableHead>Transportadora</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
@@ -207,11 +230,11 @@ export function CollectionPointsTable({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-4">Carregando...</TableCell>
+              <TableCell colSpan={6} className="text-center py-4">Carregando...</TableCell>
             </TableRow>
           ) : collectionPoints.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-4">Nenhum ponto de coleta encontrado.</TableCell>
+              <TableCell colSpan={6} className="text-center py-4">Nenhum ponto de coleta encontrado.</TableCell>
             </TableRow>
           ) : (
             collectionPoints.map((point) => {
@@ -219,7 +242,8 @@ export function CollectionPointsTable({
               return (
                 <TableRow key={point.id}>
                   <TableCell className="font-medium">{point.name}</TableCell>
-                  <TableCell>{point.address}</TableCell>
+                  <TableCell>{getSimpleAddress(point)}</TableCell>
+                  <TableCell>{getLocation(point)}</TableCell>
                   <TableCell>
                     {point.carrier_id ? (
                       <span className="text-sm font-medium">
@@ -269,7 +293,7 @@ export function CollectionPointsTable({
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={4}>
+            <TableCell colSpan={6}>
               {collectionPoints.length} Ponto(s) de Coleta no total
             </TableCell>
           </TableRow>
