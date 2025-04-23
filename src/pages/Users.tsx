@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { InviteDialog } from "@/components/users/InviteDialog";
@@ -13,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useUserInvite } from "@/hooks/useUserInvite";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
+import { ResetPasswordDialog } from "@/components/users/ResetPasswordDialog";
 
 export default function Users() {
   const { user: currentUser, roles: currentUserRoles } = useAuth();
@@ -34,6 +34,7 @@ export default function Users() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editUser, setEditUser] = useState<UserRow | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
+  const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
 
   const filteredUsers = users.filter((user) =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,6 +91,7 @@ export default function Users() {
               onDelete={(user) => setConfirmModal({ action: "delete", user })}
               onDeactivate={(user) => setConfirmModal({ action: "deactivate", user })}
               onResendInvite={(user) => setConfirmModal({ action: "invite", user })}
+              onResetPassword={setResetPasswordUser}
             />
           )}
         </CardContent>
@@ -130,6 +132,13 @@ export default function Users() {
           }}
         />
       )}
+
+      {/* Reset Password Dialog */}
+      <ResetPasswordDialog
+        user={resetPasswordUser}
+        open={!!resetPasswordUser}
+        onOpenChange={(open) => !open && setResetPasswordUser(null)}
+      />
     </div>
   );
 }

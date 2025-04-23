@@ -6,8 +6,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash, Ban, Mail, MoreVertical } from "lucide-react";
+import { Edit, Trash, Ban, Mail, MoreVertical, Key } from "lucide-react";
 import { UserRow } from "@/types/user";
+import { useAuth } from "@/context/AuthContext";
 
 interface UserActionsDropdownProps {
   user: UserRow;
@@ -15,6 +16,7 @@ interface UserActionsDropdownProps {
   onDelete: (user: UserRow) => void;
   onDeactivate: (user: UserRow) => void;
   onResendInvite: (user: UserRow) => void;
+  onResetPassword: (user: UserRow) => void;
 }
 
 export function UserActionsDropdown({
@@ -23,7 +25,11 @@ export function UserActionsDropdown({
   onDelete,
   onDeactivate,
   onResendInvite,
+  onResetPassword,
 }: UserActionsDropdownProps) {
+  const { roles } = useAuth();
+  const isOwner = roles.includes('owner');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -48,6 +54,12 @@ export function UserActionsDropdown({
           <DropdownMenuItem onClick={() => onResendInvite(user)} className="cursor-pointer">
             <Mail className="mr-2 h-4 w-4" />
             <span>Reenviar convite</span>
+          </DropdownMenuItem>
+        )}
+        {isOwner && (
+          <DropdownMenuItem onClick={() => onResetPassword(user)} className="cursor-pointer">
+            <Key className="mr-2 h-4 w-4" />
+            <span>Alterar Senha</span>
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
