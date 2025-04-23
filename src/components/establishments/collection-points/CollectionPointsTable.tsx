@@ -1,36 +1,17 @@
+
 import { useCarriers } from "@/hooks/useCarriers";
 import { useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { CollectionPoint } from "@/types/collection-point";
 import { CollectionPointMobileView } from "./components/CollectionPointMobileView";
 import { CollectionPointDesktopView } from "./components/CollectionPointDesktopView";
-import React from 'react';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Clock, MapPin, Building } from "lucide-react";
-import { checkOpenStatus } from "./utils/checkOpenStatus";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { formatOperatingHours } from "./utils/formatters";
-import { Card } from "@/components/ui/card";
 
 interface CollectionPointsTableProps {
   collectionPoints: CollectionPoint[];
-  isLoading: boolean;
+  isLoading?: boolean;
   onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
+  onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
   onAssociate?: (point: CollectionPoint) => void;
   onDisassociate?: (point: CollectionPoint) => void;
   showAssociateButton?: boolean;
@@ -39,9 +20,10 @@ interface CollectionPointsTableProps {
 
 export function CollectionPointsTable({ 
   collectionPoints,
-  isLoading,
+  isLoading = false,
   onEdit,
   onDelete,
+  onAssignCarrier,
   onAssociate,
   onDisassociate,
   showAssociateButton,
@@ -94,22 +76,20 @@ export function CollectionPointsTable({
                 </div>
               </div>
               {showAssociateButton && (
-                <Button
+                <button
                   onClick={() => onAssociate?.(point)}
-                  variant="outline"
-                  size="sm"
+                  className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90 transition-colors"
                 >
                   Associar
-                </Button>
+                </button>
               )}
               {showDisassociateButton && (
-                <Button
+                <button
                   onClick={() => onDisassociate?.(point)}
-                  variant="outline"
-                  size="sm"
+                  className="bg-destructive text-white px-3 py-1 rounded text-sm hover:bg-destructive/90 transition-colors"
                 >
                   Desassociar
-                </Button>
+                </button>
               )}
             </div>
           </div>
@@ -142,6 +122,7 @@ export function CollectionPointsTable({
       isLoading={isLoading}
       onEdit={onEdit}
       onDelete={onDelete}
+      onAssignCarrier={onAssignCarrier}
       carrierMap={carrierMap}
     />
   );
