@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EstablishmentsHeader } from "@/components/establishments/EstablishmentsHeader";
@@ -5,7 +6,7 @@ import { EstablishmentsSearch } from "@/components/establishments/Establishments
 import { EstablishmentsTable } from "@/components/establishments/EstablishmentsTable";
 import { EstablishmentFormDialog } from "@/components/establishments/EstablishmentFormDialog";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
-import { useEstablishments } from "@/hooks/useEstablishments";
+import { useEstablishmentCasesWithDI } from "@/presentation/hooks/useEstablishmentCasesWithDI";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
@@ -18,8 +19,10 @@ export default function Establishments() {
     loadEstablishments,
     handleEdit,
     handleDelete,
-    handleCreate
-  } = useEstablishments();
+    handleCreate,
+    isCreating,
+    isUpdating
+  } = useEstablishmentCasesWithDI();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -97,7 +100,7 @@ export default function Establishments() {
         onOpenChange={setEditDialogOpen}
         onSubmit={handleFormSubmit}
         initialData={selectedEstablishment}
-        isLoading={false}
+        isLoading={isCreating || isUpdating}
       />
 
       {selectedEstablishment && (
