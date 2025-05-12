@@ -1,31 +1,36 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CarriersHeader } from "@/components/carriers/CarriersHeader";
 import { CarriersSearch } from "@/components/carriers/CarriersSearch";
 import { CarriersTable } from "@/components/carriers/CarriersTable";
-import { useCarriers } from "@/hooks/useCarriers";
 import { EditCarrierDialog } from "@/components/carriers/EditCarrierDialog";
 import { ConfirmActionDialog } from "@/components/carriers/ConfirmActionDialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
+import { useCarrierCasesWithDI } from "@/presentation/hooks/useCarrierCasesWithDI";
+import { carrierAdapter } from "@/adapters/carriers/carrierAdapter";
 import type { Carrier } from "@/types/carrier";
 
 export default function Carriers() {
   const {
-    carriers,
+    carriers: carrierDTOs,
     loading,
     error,
     loadCarriers,
-    handleCreate,
-    handleEdit,
-    handleDelete,
-    handleDeactivate,
+    handleCreate: createCarrier,
+    handleEdit: editCarrier,
+    handleDelete: deleteCarrier,
+    handleDeactivate: deactivateCarrier,
     isCreating
-  } = useCarriers();
+  } = useCarrierCasesWithDI();
+  
+  // Convert DTOs to UI models
+  const carriers = carrierAdapter.toUIModelList(carrierDTOs);
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [editCarrier, setEditCarrier] = useState<Carrier | null>(null);
+  const [editCarrierData, setEditCarrierData] = useState<Carrier | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate", carrier: Carrier }>(null);
   const [managePointsCarrier, setManagePointsCarrier] = useState<Carrier | null>(null);
 
@@ -38,25 +43,31 @@ export default function Carriers() {
   );
 
   const handleAddCarrier = () => {
-    setEditCarrier({ id: '', name: '', city: '', manager: '', phone: '', email: '', is_active: true });
+    setEditCarrierData({ id: '', name: '', city: '', manager: '', phone: '', email: '', is_active: true });
   };
 
   const handleCarrierSave = async (carrier: Carrier) => {
+    // Convert UI model to DTO
+    const carrierDTO = carrierAdapter.toDomainDTO(carrier);
+    
     if (!carrier.id) {
-      await handleCreate(carrier);
+      await createCarrier(carrierDTO);
     } else {
-      await handleEdit(carrier);
+      await editCarrier(carrierDTO);
     }
-    setEditCarrier(null);
+    setEditCarrierData(null);
   };
 
   const handleConfirmAction = async () => {
     if (!confirmModal) return;
     
+    // Convert UI model to DTO
+    const carrierDTO = carrierAdapter.toDomainDTO(confirmModal.carrier);
+    
     if (confirmModal.action === "delete") {
-      await handleDelete(confirmModal.carrier);
+      await deleteCarrier(carrierDTO);
     } else if (confirmModal.action === "deactivate") {
-      await handleDeactivate(confirmModal.carrier);
+      await deactivateCarrier(carrierDTO);
     }
     
     setConfirmModal(null);
@@ -87,7 +98,7 @@ export default function Carriers() {
             <CarriersTable
               carriers={filteredCarriers}
               loading={loading}
-              onEdit={setEditCarrier}
+              onEdit={setEditCarrierData}
               onDelete={(carrier) => setConfirmModal({ action: "delete", carrier })}
               onDeactivate={(carrier) => setConfirmModal({ action: "deactivate", carrier })}
               onManageCollectionPoints={setManagePointsCarrier}
@@ -96,10 +107,10 @@ export default function Carriers() {
         </CardContent>
       </Card>
 
-      {editCarrier && (
+      {editCarrierData && (
         <EditCarrierDialog
-          carrier={editCarrier}
-          onClose={() => setEditCarrier(null)}
+          carrier={editCarrierData}
+          onClose={() => setEditCarrierData(null)}
           onSave={handleCarrierSave}
           isSubmitting={isCreating}
         />

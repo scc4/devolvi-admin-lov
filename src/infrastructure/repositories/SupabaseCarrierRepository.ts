@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Carrier } from '../../domain/entities/Carrier';
 import { ICarrierRepository } from '../../domain/repositories/ICarrierRepository';
+import { Phone } from '../../domain/valueObjects/Phone';
 
 /**
  * Supabase implementation of the Carrier repository
@@ -108,14 +109,18 @@ export class SupabaseCarrierRepository implements ICarrierRepository {
 
   /**
    * Maps a database record to a Carrier domain entity
+   * Uses the Phone Value Object for phone number handling
    */
   private mapToEntity(record: any): Carrier {
+    // Convert the database phone value using the Phone value object
+    const phoneValueObject = new Phone(record.phone);
+    
     return new Carrier({
       id: record.id,
       name: record.name,
       city: record.city,
       manager: record.manager,
-      phone: record.phone,
+      phone: phoneValueObject.isEmpty() ? null : phoneValueObject.getRawValue(),
       email: record.email,
       isActive: record.is_active,
       createdAt: new Date(record.created_at),

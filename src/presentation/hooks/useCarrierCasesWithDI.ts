@@ -1,6 +1,6 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import { useState, useCallback } from 'react';
+import { toast } from "sonner";
 import { CarrierDTO } from '../../application/dto/CarrierDTO';
 import { container } from '../../infrastructure/di/container';
 
@@ -11,7 +11,9 @@ export function useCarrierCasesWithDI() {
   const [carriers, setCarriers] = useState<CarrierDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   
   // Get use cases from container
   const getAllCarriersUseCase = container.getAllCarriersUseCase();
@@ -30,156 +32,126 @@ export function useCarrierCasesWithDI() {
       console.error("Error loading carriers:", err);
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar transportadoras';
       setError(errorMessage);
-      toast({ 
-        title: "Erro ao carregar transportadoras", 
-        description: errorMessage, 
-        variant: "destructive" 
+      toast.error("Erro ao carregar transportadoras", {
+        description: errorMessage
       });
     } finally {
       setLoading(false);
     }
-  }, [getAllCarriersUseCase, toast]);
+  }, [getAllCarriersUseCase]);
 
-  useEffect(() => {
-    loadCarriers();
-  }, [loadCarriers]);
-
-  const handleCreate = async (carrierData: {
-    name: string;
-    city: string;
-    manager: string;
-    phone?: string | null;
-    email?: string | null;
-    isActive?: boolean;
-  }): Promise<{ success: boolean; carrier?: CarrierDTO }> => {
+  const handleCreate = async (carrier: Partial<CarrierDTO>) => {
+    setIsCreating(true);
     try {
-      const result = await createCarrierUseCase.execute(carrierData);
-      
+      const result = await createCarrierUseCase.execute({
+        name: carrier.name || '',
+        city: carrier.city || '',
+        manager: carrier.manager || '',
+        phone: carrier.phone,
+        email: carrier.email,
+        isActive: carrier.isActive !== undefined ? carrier.isActive : true
+      });
+
       if (result.success && result.carrier) {
-        toast({
-          title: "Transportadora criada",
-          description: "A transportadora foi criada com sucesso."
-        });
-        await loadCarriers(); // Refresh the list
-        return { success: true, carrier: result.carrier };
+        await loadCarriers(); // Reload carriers to get updated list
+        toast.success("Transportadora cadastrada com sucesso");
+        return result.carrier;
       } else {
-        toast({
-          title: "Erro ao criar transportadora",
-          description: result.error?.message || "Ocorreu um erro inesperado.",
-          variant: "destructive"
+        toast.error("Erro ao cadastrar transportadora", {
+          description: result.error?.message
         });
-        return { success: false };
+        throw result.error;
       }
     } catch (error) {
       console.error("Error creating carrier:", error);
-      toast({
-        title: "Erro ao criar transportadora",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado.",
-        variant: "destructive"
-      });
-      return { success: false };
+      toast.error("Erro ao cadastrar transportadora");
+      throw error;
+    } finally {
+      setIsCreating(false);
     }
   };
 
-  const handleUpdate = async (carrierId: string, carrierData: {
-    name?: string;
-    city?: string;
-    manager?: string;
-    phone?: string | null;
-    email?: string | null;
-    isActive?: boolean;
-  }): Promise<{ success: boolean; carrier?: CarrierDTO }> => {
+  const handleEdit = async (carrier: CarrierDTO) => {
+    setIsUpdating(true);
     try {
       const result = await updateCarrierUseCase.execute({
-        id: carrierId,
-        ...carrierData
+        id: carrier.id,
+        name: carrier.name,
+        city: carrier.city,
+        manager: carrier.manager,
+        phone: carrier.phone,
+        email: carrier.email,
+        isActive: carrier.isActive
       });
-      
-      if (result.success && result.carrier) {
-        toast({
-          title: "Transportadora atualizada",
-          description: "A transportadora foi atualizada com sucesso."
-        });
-        await loadCarriers(); // Refresh the list
-        return { success: true, carrier: result.carrier };
+
+      if (result.success) {
+        await loadCarriers(); // Reload carriers to get updated list
+        toast.success("Transportadora atualizada com sucesso");
       } else {
-        toast({
-          title: "Erro ao atualizar transportadora",
-          description: result.error?.message || "Ocorreu um erro inesperado.",
-          variant: "destructive"
+        toast.error("Erro ao atualizar transportadora", {
+          description: result.error?.message
         });
-        return { success: false };
+        throw result.error;
       }
     } catch (error) {
       console.error("Error updating carrier:", error);
-      toast({
-        title: "Erro ao atualizar transportadora",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado.",
-        variant: "destructive"
-      });
-      return { success: false };
+      toast.error("Erro ao atualizar transportadora");
+      throw error;
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  const handleDelete = async (carrierId: string): Promise<{ success: boolean }> => {
+  const handleDelete = async (carrier: CarrierDTO) => {
+    setIsDeleting(true);
     try {
-      const result = await deleteCarrierUseCase.execute(carrierId);
+      const result = await deleteCarrierUseCase.execute(carrier.id);
       
       if (result.success) {
-        toast({
-          title: "Transportadora excluída",
-          description: "A transportadora foi excluída com sucesso."
-        });
-        await loadCarriers(); // Refresh the list
-        return { success: true };
+        await loadCarriers(); // Reload carriers to get updated list
+        toast.success("Transportadora excluída com sucesso");
       } else {
-        toast({
-          title: "Erro ao excluir transportadora",
-          description: result.error?.message || "Ocorreu um erro inesperado.",
-          variant: "destructive"
+        toast.error("Erro ao excluir transportadora", {
+          description: result.error?.message
         });
-        return { success: false };
+        throw result.error;
       }
     } catch (error) {
       console.error("Error deleting carrier:", error);
-      toast({
-        title: "Erro ao excluir transportadora",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado.",
-        variant: "destructive"
-      });
-      return { success: false };
+      toast.error("Erro ao excluir transportadora");
+      throw error;
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleDeactivate = async (carrierId: string): Promise<{ success: boolean }> => {
+  const handleDeactivate = async (carrier: CarrierDTO) => {
+    setIsUpdating(true);
     try {
-      const result = await deactivateCarrierUseCase.execute(carrierId);
+      const result = await deactivateCarrierUseCase.execute(carrier.id);
       
       if (result.success) {
-        toast({
-          title: "Transportadora desativada",
-          description: "A transportadora foi desativada com sucesso."
-        });
-        await loadCarriers(); // Refresh the list
-        return { success: true };
+        await loadCarriers(); // Reload carriers to get updated list
+        toast.success("Transportadora desativada com sucesso");
       } else {
-        toast({
-          title: "Erro ao desativar transportadora",
-          description: result.error?.message || "Ocorreu um erro inesperado.",
-          variant: "destructive"
+        toast.error("Erro ao desativar transportadora", {
+          description: result.error?.message
         });
-        return { success: false };
+        throw result.error;
       }
     } catch (error) {
       console.error("Error deactivating carrier:", error);
-      toast({
-        title: "Erro ao desativar transportadora",
-        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado.",
-        variant: "destructive"
-      });
-      return { success: false };
+      toast.error("Erro ao desativar transportadora");
+      throw error;
+    } finally {
+      setIsUpdating(false);
     }
   };
+
+  // Load carriers on first render
+  useCallback(() => {
+    loadCarriers();
+  }, [loadCarriers])();
 
   return {
     carriers,
@@ -187,8 +159,11 @@ export function useCarrierCasesWithDI() {
     error,
     loadCarriers,
     handleCreate,
-    handleUpdate,
+    handleEdit,
     handleDelete,
-    handleDeactivate
+    handleDeactivate,
+    isCreating,
+    isUpdating,
+    isDeleting
   };
 }
