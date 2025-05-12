@@ -1,5 +1,4 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from "sonner";
 import { CarrierDTO } from '../../application/dto/CarrierDTO';
 import { container } from '../../infrastructure/di/container';
@@ -39,6 +38,11 @@ export function useCarrierCasesWithDI() {
       setLoading(false);
     }
   }, [getAllCarriersUseCase]);
+
+  // Load carriers on first render using useEffect
+  useEffect(() => {
+    loadCarriers();
+  }, [loadCarriers]);
 
   const handleCreate = async (carrier: Partial<CarrierDTO>) => {
     setIsCreating(true);
@@ -147,11 +151,6 @@ export function useCarrierCasesWithDI() {
       setIsUpdating(false);
     }
   };
-
-  // Load carriers on first render
-  useCallback(() => {
-    loadCarriers();
-  }, [loadCarriers])();
 
   return {
     carriers,
