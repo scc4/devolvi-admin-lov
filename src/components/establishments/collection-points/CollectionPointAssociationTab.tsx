@@ -12,12 +12,14 @@ import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
 import type { CollectionPoint } from "@/types/collection-point";
 
 interface CollectionPointAssociationTabProps {
-  carrierId: string;
+  carrierId?: string;
+  establishmentId?: string;
   skipCarrierHeader?: boolean;
 }
 
 export function CollectionPointAssociationTab({ 
   carrierId,
+  establishmentId,
   skipCarrierHeader = false 
 }: CollectionPointAssociationTabProps) {
   const {
@@ -34,7 +36,7 @@ export function CollectionPointAssociationTab({
     setFilterByServedCities,
     refetchUnassigned,
     refetchCarrier
-  } = useCollectionPointAssociation(carrierId);
+  } = useCollectionPointAssociation(carrierId || '');
 
   const [activeTab, setActiveTab] = useState<"available" | "associated">("available");
   const [isPrinting, setIsPrinting] = useState(false);
@@ -56,7 +58,7 @@ export function CollectionPointAssociationTab({
     }
   };
 
-  if (isLoadingServedCities) {
+  if (isLoadingServedCities && carrierId) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-64" />
@@ -69,7 +71,7 @@ export function CollectionPointAssociationTab({
 
   return (
     <div className="space-y-4">
-      {!skipCarrierHeader && (
+      {!skipCarrierHeader && carrierId && (
         <>
           <CollectionPointAssociationHeader
             carrierName={carrierName}
@@ -96,7 +98,7 @@ export function CollectionPointAssociationTab({
         </>
       )}
 
-      {activeTab === "available" ? (
+      {carrierId && activeTab === "available" ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Pontos Disponíveis</h2>
@@ -129,7 +131,7 @@ export function CollectionPointAssociationTab({
             onAction={(point: CollectionPoint) => handleAssociate(point)}
           />
         </div>
-      ) : (
+      ) : carrierId ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Pontos Associados</h2>
@@ -152,9 +154,9 @@ export function CollectionPointAssociationTab({
             onAction={(point: CollectionPoint) => handleDisassociate(point)}
           />
         </div>
-      )}
+      ) : null}
 
-      {isPrinting && (
+      {isPrinting && carrierId && (
         <CollectionPointsPrintView
           collectionPoints={carrierPoints}
           title={`Pontos de Coleta - ${carrierName}`}

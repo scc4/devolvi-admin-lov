@@ -58,48 +58,48 @@ export function CollectionPointsTable({
   if (showAssociateButton || showDisassociateButton || actionLabel) {
     return (
       <div className="space-y-4">
-        {collectionPoints.map((point) => (
-          <div key={point.id} className="bg-white p-4 rounded-lg shadow border">
-            {point.establishment_id && (
-              <h2 className="text-lg font-semibold mb-3 text-primary">
-                {point.establishment?.name || 'Estabelecimento não definido'}
-              </h2>
-            )}
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <h3 className="font-semibold">{point.name}</h3>
-                <p className="text-sm text-gray-600">{getSimpleAddress(point)}</p>
-                <p className="text-xs text-gray-500">{getLocation(point)}</p>
-                <div className="text-xs text-gray-500 space-y-0.5">
-                  {point.district && <p><strong>Bairro:</strong> {point.district}</p>}
-                  {point.establishment_id && (
-                    <p>
-                      <strong>Estabelecimento:</strong> {point.establishment?.name || 'Não definido'}
-                    </p>
-                  )}
+        {collectionPoints.length > 0 ? (
+          collectionPoints.map((point) => (
+            <div key={point.id} className="bg-white p-4 rounded-lg shadow border">
+              {point.establishment_id && (
+                <h2 className="text-lg font-semibold mb-3 text-primary">
+                  {point.establishment?.name || 'Estabelecimento não definido'}
+                </h2>
+              )}
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <h3 className="font-semibold">{point.name}</h3>
+                  <p className="text-sm text-gray-600">{getSimpleAddress(point)}</p>
+                  <p className="text-xs text-gray-500">{getLocation(point)}</p>
+                  <div className="text-xs text-gray-500 space-y-0.5">
+                    {point.district && <p><strong>Bairro:</strong> {point.district}</p>}
+                    {point.establishment_id && (
+                      <p>
+                        <strong>Estabelecimento:</strong> {point.establishment?.name || 'Não definido'}
+                      </p>
+                    )}
+                  </div>
                 </div>
+                {(showAssociateButton || (actionLabel === "Associar" && onAction)) && (
+                  <button
+                    onClick={() => (onAssociate ? onAssociate(point) : onAction && onAction(point))}
+                    className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    {actionLabel || "Associar"}
+                  </button>
+                )}
+                {(showDisassociateButton || (actionLabel === "Desassociar" && onAction)) && (
+                  <button
+                    onClick={() => (onDisassociate ? onDisassociate(point) : onAction && onAction(point))}
+                    className="bg-destructive text-white px-3 py-1 rounded text-sm hover:bg-destructive/90 transition-colors"
+                  >
+                    {actionLabel || "Desassociar"}
+                  </button>
+                )}
               </div>
-              {(showAssociateButton || (actionLabel && onAction)) && (
-                <button
-                  onClick={() => (onAssociate ? onAssociate(point) : onAction && onAction(point))}
-                  className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90 transition-colors"
-                >
-                  {actionLabel || "Associar"}
-                </button>
-              )}
-              {(showDisassociateButton || (actionLabel === "Desassociar" && onAction)) && (
-                <button
-                  onClick={() => (onDisassociate ? onDisassociate(point) : onAction && onAction(point))}
-                  className="bg-destructive text-white px-3 py-1 rounded text-sm hover:bg-destructive/90 transition-colors"
-                >
-                  {actionLabel || "Desassociar"}
-                </button>
-              )}
             </div>
-          </div>
-        ))}
-        
-        {collectionPoints.length === 0 && (
+          ))
+        ) : (
           <div className="text-center py-8 text-gray-500">
             {(showAssociateButton || actionLabel === "Associar")
               ? "Não há pontos de coleta disponíveis para associação"

@@ -1,128 +1,83 @@
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CollectionPointsTab } from "./CollectionPointsTab";
 import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
-import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { CollectionPointsTab } from "./CollectionPointsTab";
+import { useCollectionPointsDialog } from "@/hooks/useCollectionPointsDialog";
 import type { Carrier } from "@/types/carrier";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { useEffect, useState } from "react";
+import type { Establishment } from "@/types/establishment";
 
 interface ManageCollectionPointsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  establishment?: Establishment;
   carrier?: Carrier;
-  establishmentId?: string;
-  establishmentName?: string;
 }
 
 export function ManageCollectionPointsDialog({
   open,
   onOpenChange,
+  establishment,
   carrier,
-  establishmentId,
-  establishmentName
 }: ManageCollectionPointsDialogProps) {
-  const { isMobile } = useBreakpoint("md");
-  const [isReady, setIsReady] = useState(false);
+  const [activeTab, setActiveTab] = useState("collection-points");
   
-  // Contexto simples para controle de diálogo
-  const isCarrierDialog = Boolean(carrier?.id);
-  const title = isCarrierDialog 
-    ? `Pontos de Coleta - ${carrier?.name}`
-    : establishmentId 
-      ? `Pontos de Coleta - ${establishmentName || establishmentId}`
-      : "Pontos de Coleta";
-      
-  const description = isCarrierDialog
-    ? "Gerencie os pontos de coleta associados a esta transportadora."
-    : "Gerencie os pontos de coleta.";
-  
-  // Diagnóstico de propriedades
-  console.log("ManageCollectionPointsDialog props:", {
-    open,
-    carrier,
-    establishmentId,
+  const {
     isCarrierDialog,
-    isReady
+    isEstablishmentDialog,
+    title,
+    description,
+    isStable,
+    dialogMountedRef,
+    handleDialogError,
+  } = useCollectionPointsDialog({
+    open,
+    onOpenChange,
+    establishmentId: establishment?.id,
+    establishmentName: establishment?.name,
+    carrierId: carrier?.id,
+    carrierName: carrier?.name,
   });
-  
-  // Garantir que o conteúdo só seja renderizado após o diálogo estar aberto
-  useEffect(() => {
-    if (open) {
-      const timer = setTimeout(() => {
-        setIsReady(true);
-      }, 50);
-      return () => clearTimeout(timer);
-    } else {
-      setIsReady(false);
-    }
-  }, [open]);
-
-  // Gerar uma chave estável baseada na entidade
-  const dialogId = isCarrierDialog 
-    ? `carrier-dialog-${carrier?.id}` 
-    : `establishment-dialog-${establishmentId}`;
-
-  const handleDialogError = (error: any) => {
-    console.error("Collection points dialog error:", error);
-    onOpenChange(false);
-    setTimeout(() => {
-      alert("Ocorreu um erro ao carregar os pontos de coleta. Tente novamente.");
-    }, 100);
-  };
 
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={onOpenChange}
-    >
-      <DialogContent 
-        className="max-w-4xl max-h-[85vh] overflow-y-auto" 
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        id={dialogId}
-      >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span>{title}</span>
-          </DialogTitle>
-          <DialogDescription>
-            {description}
-          </DialogDescription>
-        </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex flex-col space-y-1.5 text-center sm:text-left px-2">
+          <h2 className="text-lg font-semibold leading-none tracking-tight">{title}</h2>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
 
-        {isReady && (
-          <ErrorBoundary 
-            fallback={<div className="p-4 text-center text-destructive">
-              Ocorreu um erro ao carregar os pontos de coleta. 
-              <button 
-                onClick={() => window.location.reload()}
-                className="block mx-auto mt-2 text-sm underline"
-              >
-                Recarregar página
-              </button>
-            </div>}
-            onError={handleDialogError}
-          >
-            {isCarrierDialog && carrier?.id && (
-              // For carrier context, only show association management
-              <div className="pt-4 pb-2">
-                <CollectionPointAssociationTab 
-                  carrierId={carrier?.id} 
-                  skipCarrierHeader={false}
-                />
-              </div>
-            )}
+        <div className="flex-1 overflow-auto">
+          {isCarrierDialog && carrier?.id && (
+            <CollectionPointAssociationTab 
+              carrierId={carrier.id} 
+              skipCarrierHeader={true} 
+            />
+          )}
 
-            {establishmentId && (
-              <div className="pt-4 pb-2">
+          {isEstablishmentDialog && establishment?.id && (
+            <Tabs defaultValue="collection-points" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="collection-points">Pontos de Coleta</TabsTrigger>
+                <TabsTrigger value="association">Associação</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="collection-points" className="space-y-4">
                 <CollectionPointsTab 
-                  establishmentId={establishmentId}
+                  establishmentId={establishment.id} 
+                  establishmentName={establishment.name} 
                 />
-              </div>
-            )}
-          </ErrorBoundary>
-        )}
+              </TabsContent>
+              
+              <TabsContent value="association" className="space-y-4">
+                <CollectionPointAssociationTab 
+                  establishmentId={establishment.id} 
+                />
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

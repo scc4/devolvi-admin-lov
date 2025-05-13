@@ -71,8 +71,6 @@ export function useCollectionPointsDialog({
       if (timeoutRef.current !== null) {
         clearTimeout(timeoutRef.current);
       }
-      document.body.style.pointerEvents = '';
-      document.body.style.overflow = '';
     };
   }, [open]);
 
