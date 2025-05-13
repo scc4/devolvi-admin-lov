@@ -7,6 +7,8 @@ export function useCollectionPoints(
   carrierId?: string,
   unassigned?: boolean
 ) {
+  console.log("useCollectionPoints hook called with:", { establishmentId, carrierId, unassigned });
+  
   // Use the DDD implementation with DI
   const {
     collectionPoints,

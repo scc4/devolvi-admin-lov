@@ -384,6 +384,30 @@ export type Database = {
           },
         ]
       }
+      phone_temporary_code: {
+        Row: {
+          code: number
+          email: string
+          expires_at: string
+          id: string
+          phone: string
+        }
+        Insert: {
+          code: number
+          email: string
+          expires_at: string
+          id?: string
+          phone: string
+        }
+        Update: {
+          code?: number
+          email?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

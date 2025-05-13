@@ -16,6 +16,10 @@ export function useEstablishmentCases() {
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   
+  // Flag para controlar se o componente está montado
+  const isMountedRef = useRef(true);
+  const hasInitialLoadRef = useRef(false);
+  
   // Use useRef para evitar recreações dos use cases
   const useCasesRef = useRef({
     getAllEstablishmentsUseCase: container.getAllEstablishmentsUseCase(),
@@ -24,18 +28,21 @@ export function useEstablishmentCases() {
     deleteEstablishmentUseCase: container.deleteEstablishmentUseCase()
   });
 
-  // Flag para controlar se o componente está montado
-  const isMounted = useRef(true);
-
   // Limpar a flag quando o componente for desmontado
   useEffect(() => {
     return () => {
-      isMounted.current = false;
+      isMountedRef.current = false;
     };
   }, []);
 
   const loadEstablishments = useCallback(async () => {
-    if (!isMounted.current) return;
+    if (!isMountedRef.current) return;
+    
+    // Evitar carregamento duplo
+    if (hasInitialLoadRef.current && !loading) {
+      console.log("Skipping repeated establishments load");
+      return;
+    }
     
     console.log("Loading establishments...");
     setLoading(true);
@@ -44,13 +51,14 @@ export function useEstablishmentCases() {
     try {
       const establishmentDTOs = await useCasesRef.current.getAllEstablishmentsUseCase.execute();
       
-      if (isMounted.current) {
+      if (isMountedRef.current) {
         console.log("Establishments loaded:", establishmentDTOs.length);
         setEstablishments(establishmentAdapter.toUIModelList(establishmentDTOs));
+        hasInitialLoadRef.current = true;
       }
     } catch (err) {
       console.error("Error loading establishments:", err);
-      if (isMounted.current) {
+      if (isMountedRef.current) {
         const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar estabelecimentos';
         setError(errorMessage);
         toast.error("Erro ao carregar estabelecimentos", {
@@ -58,19 +66,21 @@ export function useEstablishmentCases() {
         });
       }
     } finally {
-      if (isMounted.current) {
+      if (isMountedRef.current) {
         setLoading(false);
       }
     }
-  }, []); // Sem dependências para evitar loops
+  }, [loading]); // Adicionado loading como dependência para evitar chamadas redundantes
 
   // Load establishments on first render using useEffect
   useEffect(() => {
-    loadEstablishments();
+    if (!hasInitialLoadRef.current) {
+      loadEstablishments();
+    }
   }, [loadEstablishments]);
 
   const handleCreate = async (establishment: Partial<EstablishmentWithDetails>) => {
-    if (!isMounted.current) return;
+    if (!isMountedRef.current) return;
     
     setIsCreating(true);
     try {
@@ -99,14 +109,14 @@ export function useEstablishmentCases() {
       toast.error("Erro ao cadastrar estabelecimento");
       throw error;
     } finally {
-      if (isMounted.current) {
+      if (isMountedRef.current) {
         setIsCreating(false);
       }
     }
   };
 
   const handleEdit = async (establishment: EstablishmentWithDetails) => {
-    if (!isMounted.current) return;
+    if (!isMountedRef.current) return;
     
     setIsUpdating(true);
     try {
@@ -133,14 +143,14 @@ export function useEstablishmentCases() {
       toast.error("Erro ao atualizar estabelecimento");
       throw error;
     } finally {
-      if (isMounted.current) {
+      if (isMountedRef.current) {
         setIsUpdating(false);
       }
     }
   };
 
   const handleDelete = async (establishment: EstablishmentWithDetails) => {
-    if (!isMounted.current) return;
+    if (!isMountedRef.current) return;
     
     setIsDeleting(true);
     try {
@@ -160,7 +170,7 @@ export function useEstablishmentCases() {
       toast.error("Erro ao excluir estabelecimento");
       throw error;
     } finally {
-      if (isMounted.current) {
+      if (isMountedRef.current) {
         setIsDeleting(false);
       }
     }

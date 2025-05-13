@@ -7,6 +7,7 @@ import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { useCollectionPointsDialog } from "@/hooks/useCollectionPointsDialog";
 import type { Carrier } from "@/types/carrier";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { useEffect } from "react";
 
 interface ManageCollectionPointsDialogProps {
   open: boolean;
@@ -40,11 +41,24 @@ export function ManageCollectionPointsDialog({
     carrierId: carrier?.id,
     carrierName: carrier?.name
   });
+  
+  // Log para diagnóstico das propriedades
+  console.log("ManageCollectionPointsDialog props:", {
+    open,
+    carrier,
+    establishmentId,
+    isCarrierDialog
+  });
+  
+  // Force rerender on open change
+  useEffect(() => {
+    console.log("Dialog open state changed:", open);
+  }, [open]);
 
   // Create a stable key based on the dialog type to prevent remounting issues
   const dialogKey = isCarrierDialog 
-    ? `carrier-dialog-${carrier?.id}` 
-    : `establishment-dialog-${establishmentId}`;
+    ? `carrier-dialog-${carrier?.id}-${Date.now()}` 
+    : `establishment-dialog-${establishmentId}-${Date.now()}`;
 
   return (
     <Dialog 
@@ -83,7 +97,7 @@ export function ManageCollectionPointsDialog({
           </div>}
           onError={handleDialogError}
         >
-          {isCarrierDialog && (
+          {isCarrierDialog && carrier?.id && (
             <Tabs defaultValue="manage" className="mt-4">
               <TabsList className={`${isMobile ? 'flex flex-col space-y-1 h-auto' : ''}`}>
                 <TabsTrigger value="manage" className="flex-1">

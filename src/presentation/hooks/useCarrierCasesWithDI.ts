@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 import { CarrierDTO } from '../../application/dto/CarrierDTO';
 import { container } from '../../infrastructure/di/container';
@@ -16,6 +16,10 @@ export function useCarrierCasesWithDI() {
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   
+  // Flag para controlar carregamento inicial
+  const isMountedRef = useRef(true);
+  const hasInitialLoadRef = useRef(false);
+  
   // Get use cases from container
   const getAllCarriersUseCase = container.getAllCarriersUseCase();
   const createCarrierUseCase = container.createCarrierUseCase();
@@ -23,7 +27,22 @@ export function useCarrierCasesWithDI() {
   const deleteCarrierUseCase = container.deleteCarrierUseCase();
   const deactivateCarrierUseCase = container.deactivateCarrierUseCase();
 
+  // Limpar a flag quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const loadCarriers = useCallback(async () => {
+    if (!isMountedRef.current) return;
+    
+    // Evitar carregamentos duplicados
+    if (hasInitialLoadRef.current && !loading) {
+      console.log("Skipping repeated carriers load");
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -52,22 +71,32 @@ export function useCarrierCasesWithDI() {
       );
       
       console.log("Carriers with collection points count:", carriersWithCounts);
-      setCarriers(carriersWithCounts);
+      
+      if (isMountedRef.current) {
+        setCarriers(carriersWithCounts);
+        hasInitialLoadRef.current = true;
+      }
     } catch (err) {
       console.error("Error loading carriers:", err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar transportadoras';
-      setError(errorMessage);
-      toast.error("Erro ao carregar transportadoras", {
-        description: errorMessage
-      });
+      if (isMountedRef.current) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar transportadoras';
+        setError(errorMessage);
+        toast.error("Erro ao carregar transportadoras", {
+          description: errorMessage
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  }, [getAllCarriersUseCase]);
+  }, [getAllCarriersUseCase, loading]);
 
   // Load carriers on first render using useEffect
   useEffect(() => {
-    loadCarriers();
+    if (!hasInitialLoadRef.current) {
+      loadCarriers();
+    }
   }, [loadCarriers]);
 
   const handleCreate = async (carrier: Partial<CarrierDTO>) => {
@@ -97,7 +126,9 @@ export function useCarrierCasesWithDI() {
       toast.error("Erro ao cadastrar transportadora");
       throw error;
     } finally {
-      setIsCreating(false);
+      if (isMountedRef.current) {
+        setIsCreating(false);
+      }
     }
   };
 
@@ -128,7 +159,9 @@ export function useCarrierCasesWithDI() {
       toast.error("Erro ao atualizar transportadora");
       throw error;
     } finally {
-      setIsUpdating(false);
+      if (isMountedRef.current) {
+        setIsUpdating(false);
+      }
     }
   };
 
@@ -151,7 +184,9 @@ export function useCarrierCasesWithDI() {
       toast.error("Erro ao excluir transportadora");
       throw error;
     } finally {
-      setIsDeleting(false);
+      if (isMountedRef.current) {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -174,7 +209,9 @@ export function useCarrierCasesWithDI() {
       toast.error("Erro ao desativar transportadora");
       throw error;
     } finally {
-      setIsUpdating(false);
+      if (isMountedRef.current) {
+        setIsUpdating(false);
+      }
     }
   };
 

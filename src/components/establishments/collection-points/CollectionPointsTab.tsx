@@ -21,6 +21,8 @@ export function CollectionPointsTab({
   establishmentId,
   carrierContext
 }: CollectionPointsTabProps) {
+  console.log("CollectionPointsTab rendered with:", { establishmentId, carrierContext });
+  
   const {
     collectionPoints,
     loading,
@@ -52,6 +54,20 @@ export function CollectionPointsTab({
       setShowError(true);
     }
   }, [loading, error]);
+  
+  useEffect(() => {
+    // Log dos pontos de coleta carregados para depuração
+    console.log("CollectionPointsTab data:", {
+      carrierContextId: carrierContext?.carrierId,
+      establishmentId,
+      collectionPoints: collectionPoints.length,
+      loading,
+      error
+    });
+    
+    // Forçar uma atualização quando o componente é montado
+    refetch(true);
+  }, [carrierContext, establishmentId]);
   
   const handleOpenCreate = () => {
     setSelectedPoint(undefined);
@@ -149,7 +165,7 @@ export function CollectionPointsTab({
         isLoading={loading}
         onEdit={handleOpenEdit}
         onDelete={handleConfirmDelete}
-        key={`points-table-${establishmentId || carrierContext?.carrierId || 'all'}`}
+        key={`points-table-${establishmentId || carrierContext?.carrierId || 'all'}-${Date.now()}`}
       />
 
       <CollectionPointFormDialog
