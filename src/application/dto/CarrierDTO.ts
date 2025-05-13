@@ -14,3 +14,13 @@ export interface CarrierDTO {
   updatedAt: string;
   collectionPointsCount?: number;
 }
+
+// Define the input type for CreateCarrierUseCase
+export interface CreateCarrierInput {
+  name: string;
+  city: string;
+  manager: string;
+  phone?: string | null;
+  email?: string | null;
+  isActive?: boolean;
+}

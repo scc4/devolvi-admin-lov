@@ -74,9 +74,35 @@ export function useCarrierCases() {
   const handleCreate = async (carrier: Partial<CarrierDTO>) => {
     if (!isMounted.current) return;
     
+    // Validate required fields from CreateCarrierInput
+    if (!carrier.name) {
+      toast.error("Nome da transportadora é obrigatório");
+      return;
+    }
+    
+    if (!carrier.city) {
+      toast.error("Cidade é obrigatória");
+      return;
+    }
+    
+    if (!carrier.manager) {
+      toast.error("Gerente é obrigatório");
+      return;
+    }
+    
     setIsCreating(true);
     try {
-      const result = await useCasesRef.current.createCarrierUseCase.execute(carrier);
+      // Convert partial DTO to CreateCarrierInput
+      const createInput = {
+        name: carrier.name,
+        city: carrier.city,
+        manager: carrier.manager,
+        phone: carrier.phone || null,
+        email: carrier.email || null,
+        isActive: carrier.isActive !== undefined ? carrier.isActive : true
+      };
+      
+      const result = await useCasesRef.current.createCarrierUseCase.execute(createInput);
       if (result.success && result.carrier) {
         await loadCarriers(); // Reload carriers
         toast.success("Transportadora criada com sucesso");

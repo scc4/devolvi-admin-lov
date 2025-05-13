@@ -193,6 +193,7 @@ export function useCollectionPointCases(props?: UseCollectionPointCasesProps) {
     
     setIsAssigningCarrier(true);
     try {
+      // Fix: Pass collectionPointId and carrierId as an object with the correct structure
       const result = await useCasesRef.current.assignCarrierToCollectionPointUseCase.execute({
         collectionPointId,
         carrierId

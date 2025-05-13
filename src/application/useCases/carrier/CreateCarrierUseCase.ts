@@ -1,16 +1,7 @@
 
 import { Carrier } from '../../../domain/entities/Carrier';
 import { ICarrierRepository } from '../../../domain/repositories/ICarrierRepository';
-import { CarrierDTO } from '../../dto/CarrierDTO';
-
-interface CreateCarrierInput {
-  name: string;
-  city: string;
-  manager: string;
-  phone?: string | null;
-  email?: string | null;
-  isActive?: boolean;
-}
+import { CarrierDTO, CreateCarrierInput } from '../../dto/CarrierDTO';
 
 /**
  * Use case for creating a new carrier

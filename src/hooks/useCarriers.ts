@@ -1,6 +1,7 @@
 
 import { useCarrierCases } from "@/presentation/hooks/useCarrierCases";
-import { Carrier } from "@/types/carrier";
+import type { Carrier } from "@/types/carrier";
+import { CarrierDTO } from "@/application/dto/CarrierDTO";
 
 export function useCarriers() {
   const {
