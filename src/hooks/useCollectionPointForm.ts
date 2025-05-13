@@ -18,7 +18,7 @@ export function useCollectionPointForm(
     carrierId?: string;
   }
 ) {
-  const [form, setForm] = useState<Partial<CollectionPoint> & { address_obj?: Partial<Address> }>({
+  const [form, setForm] = useState<Partial<CollectionPoint>>({
     name: "",
     address: "",
     phone: "",
@@ -73,7 +73,7 @@ export function useCollectionPointForm(
       
       return {
         ...prev,
-        address_obj: updatedAddressObj
+        address_obj: updatedAddressObj as Partial<Address>
       };
     });
   };
