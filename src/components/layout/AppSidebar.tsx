@@ -1,4 +1,3 @@
-
 import { useLocation, Link } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar, SidebarGroupContent } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -55,7 +54,7 @@ export function AppSidebar() {
   
   const handleLogout = async () => {
     await logout();
-    window.location.href = '/auth';
+    window.location.href = '/login'; // Changed from '/auth' to '/login'
   };
   
   const closeSidebar = () => {
