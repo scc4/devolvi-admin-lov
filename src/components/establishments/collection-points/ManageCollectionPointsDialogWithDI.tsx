@@ -6,6 +6,7 @@ import { CollectionPointAssociationTabWithDI } from "./CollectionPointAssociatio
 import type { EstablishmentWithDetails } from "@/types/establishment";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
+import { useState, useEffect } from "react";
 
 interface ManageCollectionPointsDialogWithDIProps {
   open: boolean;
@@ -23,9 +24,17 @@ export function ManageCollectionPointsDialogWithDI({
   carrierContext
 }: ManageCollectionPointsDialogWithDIProps) {
   const { isMobile } = useIsMobile();
+  const [dialogKey, setDialogKey] = useState<number>(0);
   
   // Use our custom cleanup hook
   useDialogCleanup({ open });
+
+  // Reset the component key when dialog opens to force a clean remount
+  useEffect(() => {
+    if (open) {
+      setDialogKey(prevKey => prevKey + 1);
+    }
+  }, [open]);
 
   // Determine title based on context
   const dialogTitle = establishment 
@@ -34,10 +43,11 @@ export function ManageCollectionPointsDialogWithDI({
 
   const Content = () => {
     if (carrierContext?.carrierId) {
-      return <CollectionPointAssociationTabWithDI carrierId={carrierContext.carrierId} />;
+      return <CollectionPointAssociationTabWithDI key={`carrier-${dialogKey}`} carrierId={carrierContext.carrierId} />;
     }
     return (
       <CollectionPointsTabWithDI
+        key={`establishment-${dialogKey}`}
         establishmentId={establishment?.id}
         carrierContext={carrierContext}
       />

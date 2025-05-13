@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 import { CollectionPointDTO } from '../../application/dto/CollectionPointDTO';
 import { container } from '../../infrastructure/di/container';
@@ -22,6 +22,7 @@ export function useCollectionPointCasesWithDI(filters?: {
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isAssigningCarrier, setIsAssigningCarrier] = useState<boolean>(false);
+  const isFirstLoad = useRef(true);
   
   // Get use cases from container
   const getCollectionPointsUseCase = container.getCollectionPointsUseCase();
@@ -61,7 +62,11 @@ export function useCollectionPointCasesWithDI(filters?: {
   // Load collection points on first render and when filters change
   useEffect(() => {
     console.log("useEffect triggered, loading collection points");
-    loadCollectionPoints();
+    // Ensure we only load on first mount or when filters change
+    if (isFirstLoad.current || JSON.stringify(filters) !== JSON.stringify({})) {
+      isFirstLoad.current = false;
+      loadCollectionPoints();
+    }
   }, [loadCollectionPoints]);
 
   const handleCreate = async (collectionPoint: Partial<CollectionPointUI>) => {
