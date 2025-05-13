@@ -1,6 +1,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
@@ -45,22 +46,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refreshProfile = async () => {
     if (!user?.id) return;
     setLoading(true);
-    // Profile
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle();
-    setProfile(profileData || null);
-
-    // Roles
-    const { data: rolesData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
-
-    setRoles(rolesData ? rolesData.map((r) => r.role) : []);
-    setLoading(false);
+    try {
+      // Profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+      }
+      
+      setProfile(profileData || null);
+  
+      // Roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+        
+      if (rolesError) {
+        console.error("Error fetching roles:", rolesError);
+      }
+  
+      setRoles(rolesData ? rolesData.map((r) => r.role) : []);
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+      toast({
+        title: "Erro",
+        description: "Falha ao buscar dados do perfil",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Auth state listener (supabase best practice)
@@ -95,41 +115,81 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Login
   const login = async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setLoading(false);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast({
+          title: "Erro de login",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Signup
   const signup = async (email: string, password: string, name: string, avatar_url?: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email, password,
-      options: {
-        data: {
-          name,
-          avatar_url: avatar_url || null,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          data: {
+            name,
+            avatar_url: avatar_url || null,
+          },
         },
-      },
-    });
-    if (error) {
-      setLoading(false);
+      });
+      if (error) {
+        toast({
+          title: "Erro ao criar conta",
+          description: error.message,
+          variant: "destructive"
+        });
+        throw error;
+      }
+      
+      toast({
+        title: "Conta criada",
+        description: "Verifique seu email para confirmar o registro.",
+      });
+    } catch (error: any) {
+      console.error("Signup error:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Logout
   const logout = async () => {
     setLoading(true);
-    await supabase.auth.signOut();
-    setLoading(false);
-    setUser(null);
-    setProfile(null);
-    setRoles([]);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setRoles([]);
+      
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso."
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Erro ao sair",
+        description: "Ocorreu um erro ao tentar desconectar.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = {

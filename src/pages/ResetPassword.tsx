@@ -55,7 +55,7 @@ const ResetPassword = () => {
       const { error } = await supabase.auth.updateUser({ 
         password: password 
       }, {
-        emailRedirectTo: window.location.origin + '/auth'
+        emailRedirectTo: window.location.origin + '/login'  // Changed from '/auth' to '/login'
       });
 
       if (error) throw error;
@@ -66,7 +66,7 @@ const ResetPassword = () => {
       });
 
       // Redirect to login page
-      navigate('/auth');
+      navigate('/login'); // Changed from '/auth' to '/login'
     } catch (error: any) {
       console.error('Error setting password:', error);
       toast({
@@ -87,7 +87,7 @@ const ResetPassword = () => {
           <p className="text-gray-600">
             O link de redefinição de senha é inválido ou expirou.
           </p>
-          <Button onClick={() => navigate('/auth')}>
+          <Button onClick={() => navigate('/login')}> {/* Changed from '/auth' to '/login' */}
             Voltar para login
           </Button>
         </div>

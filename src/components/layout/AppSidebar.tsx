@@ -1,4 +1,5 @@
-import { useLocation, Link } from "react-router-dom";
+
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar, SidebarGroupContent } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LayoutDashboard, Users, Truck, LogOut, Building, X } from "lucide-react";
@@ -22,6 +23,7 @@ MobileOverlay.displayName = "MobileOverlay";
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const {
     profile,
     logout
@@ -54,7 +56,7 @@ export function AppSidebar() {
   
   const handleLogout = async () => {
     await logout();
-    window.location.href = '/login'; // Changed from '/auth' to '/login'
+    navigate('/login'); // Using React Router navigation instead of direct window.location change
   };
   
   const closeSidebar = () => {

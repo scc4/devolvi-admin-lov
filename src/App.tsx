@@ -9,7 +9,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ConfirmRegistration from "./pages/ConfirmRegistration";
 import Carriers from "./pages/Carriers";
 import NotFound from "./pages/NotFound";
-import Layout from "./components/Layout";
+import DashboardLayout from "./components/layout/DashboardLayout";
 import EstablishmentsWithDI from "./pages/EstablishmentsWithDI";
 import UsersDDD from "./pages/UsersDDD";
 
@@ -32,9 +32,9 @@ function App() {
 
   const ProtectedRoute = ({ redirectTo }: { redirectTo: string }) => {
     return user ? (
-      <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+      <DashboardLayout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
         <Outlet />
-      </Layout>
+      </DashboardLayout>
     ) : (
       <Navigate to={redirectTo} />
     );
