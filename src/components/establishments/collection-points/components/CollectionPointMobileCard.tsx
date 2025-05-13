@@ -1,110 +1,115 @@
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Check, X, MapPin, Phone, Pencil, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Phone, ListCollapse, MapPin, Building } from "lucide-react";
-import { CollectionPointActionsDropdown } from "../CollectionPointActionsDropdown";
-import type { CollectionPoint } from "@/types/collection-point";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { formatOperatingHours } from "../utils/formatters";
-import { maskPhoneBR } from "@/lib/format";
+import type { CollectionPoint, Address } from "@/types/collection-point";
+import { formatAddress } from "../utils/formatters";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
+import { daysOfWeek, daysOfWeekPtBr, DayOfWeek } from "@/types/collection-point";
+import { getSimpleAddress } from "../utils/addressHelpers";
 
 interface CollectionPointMobileCardProps {
-  point: CollectionPoint;
-  onEdit: (point: CollectionPoint) => void;
+  point: CollectionPoint & { address_obj?: Address | null };
+  onEdit: (point: CollectionPoint & { address_obj?: Address | null }) => void;
   onDelete: (pointId: string) => void;
-  onAssignCarrier: (pointId: string, carrierId: string | null) => Promise<void>;
-  carrierName?: string;
 }
 
-export function CollectionPointMobileCard({
-  point,
-  onEdit,
-  onDelete,
-  onAssignCarrier,
-  carrierName,
-}: CollectionPointMobileCardProps) {
-  const getSimpleAddress = (point: CollectionPoint) => {
-    const parts = [];
-    if (point.street) parts.push(point.street);
-    if (point.number) parts.push(point.number);
-    return parts.length > 0 ? parts.join(', ') : 'Não informado';
-  };
+export function CollectionPointMobileCard({ point, onEdit, onDelete }: CollectionPointMobileCardProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
-  const getLocation = (point: CollectionPoint) => {
-    const parts = [];
-    if (point.city) parts.push(point.city);
-    if (point.state) parts.push(point.state);
-    return parts.length > 0 ? parts.join('/') : 'Não informado';
+  const formatOperatingHoursSimple = () => {
+    if (!point.operating_hours) return "Horários não informados";
+    
+    // Find if the point is currently open
+    const now = new Date();
+    const today = daysOfWeek[now.getDay()];
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const todayHours = point.operating_hours[today];
+    const isOpen = todayHours?.some(period => period.open <= currentTime && period.close >= currentTime);
+    
+    if (isOpen) {
+      const closingTime = todayHours.find(period => period.close >= currentTime)?.close;
+      return `Aberto • Fecha às ${closingTime}`;
+    }
+    return "Fechado";
   };
 
   return (
-    <Card key={point.id} className="p-4 shadow-sm">
-      <div className="flex flex-col space-y-3">
-        <div className="flex justify-between">
-          <h3 className="font-medium text-base">{point.name}</h3>
-          <Badge variant={point.is_active ? "success" : "destructive"}>
-            {point.is_active ? "Ativo" : "Inativo"}
-          </Badge>
-        </div>
-        
-        {point.phone && (
-          <div className="flex items-center gap-2 text-sm">
-            <Phone className="h-4 w-4 text-muted-foreground" />
-            <span>{maskPhoneBR(point.phone)}</span>
-          </div>
-        )}
-
-        <div className="flex items-center gap-2 text-sm">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <span>{getSimpleAddress(point)}</span>
-        </div>
-
-        <div className="flex items-center gap-2 text-sm">
-          <Building className="h-4 w-4 text-muted-foreground" />
-          <span>{getLocation(point)}</span>
-        </div>
-        
-        {point.carrier_id ? (
-          <div className="flex items-center gap-2 text-sm">
-            <Building className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{carrierName || "Carregando..."}</span>
-          </div>
+    <div className="border rounded-md p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-medium">{point.name}</h3>
+        {point.is_active ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <Check className="h-3 w-3 mr-1" />
+            Ativo
+          </span>
         ) : (
-          <div className="flex items-center gap-2 text-sm">
-            <Building className="h-4 w-4 text-destructive" />
-            <span className="text-destructive font-medium">Sem transportadora</span>
-          </div>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <X className="h-3 w-3 mr-1" />
+            Inativo
+          </span>
         )}
-        
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="text-xs h-8 px-2 gap-1">
-            <ListCollapse className="h-3.5 w-3.5" />
-            Horários
-            <Popover>
-              <PopoverTrigger className="sr-only">Ver horários</PopoverTrigger>
-              <PopoverContent className="w-72">
-                <div className="flex flex-col space-y-1">
-                  {formatOperatingHours(point.operating_hours).split('\n').map((line, index) => (
-                    <div key={index} className="text-sm">
-                      <span>{line}</span>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </Button>
-          
-          <div className="flex-1" />
-          
-          <CollectionPointActionsDropdown 
-            point={point}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onAssignCarrier={onAssignCarrier}
-          />
-        </div>
       </div>
-    </Card>
+      
+      {point.phone && (
+        <div className="flex items-center text-sm">
+          <Phone className="h-4 w-4 text-muted-foreground mr-1" />
+          <span>{point.phone}</span>
+        </div>
+      )}
+      
+      <div className="flex items-start text-sm">
+        <MapPin className="h-4 w-4 text-muted-foreground mr-1 mt-0.5" />
+        <span className="flex-1">{getSimpleAddress(point)}</span>
+      </div>
+
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <div className="flex items-center justify-between pt-2 border-t">
+          <span className="text-sm">{formatOperatingHoursSimple()}</span>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+
+        <CollapsibleContent className="pt-2">
+          <div className="space-y-1">
+            {daysOfWeek.map((day) => {
+              const hours = point.operating_hours?.[day];
+              return (
+                <div key={day} className="flex justify-between text-sm">
+                  <span className="font-medium">{daysOfWeekPtBr[day as DayOfWeek]}</span>
+                  <span>
+                    {hours && hours.length > 0
+                      ? hours.map(period => `${period.open} - ${period.close}`).join(', ')
+                      : 'Fechado'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+      
+      <div className="flex justify-end space-x-2 pt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onEdit(point)}
+        >
+          <Pencil className="h-3 w-3 mr-1" /> Editar
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-destructive border-destructive hover:bg-destructive/10"
+          onClick={() => onDelete(point.id)}
+        >
+          <Trash2 className="h-3 w-3 mr-1" /> Excluir
+        </Button>
+      </div>
+    </div>
   );
 }

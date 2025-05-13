@@ -46,10 +46,11 @@ export function useCollectionPoints(
       // Convert the operating_hours from Json to the expected type structure
       return data.map(point => ({
         ...point,
-        operating_hours: transformOperatingHours(point.operating_hours as Json)
+        operating_hours: transformOperatingHours(point.operating_hours as Json),
+        address_obj: point.address // Map address to address_obj to match our updated interface
       })) as (CollectionPoint & { 
         establishment: { name: string } | null,
-        address: Address | null
+        address_obj: Address | null
       })[];
     },
     enabled: true
@@ -84,9 +85,9 @@ export function useCollectionPoints(
   };
 
   const createMutation = useMutation({
-    mutationFn: async (newPoint: Partial<CollectionPoint> & { address?: Partial<Address> }) => {
+    mutationFn: async (newPoint: Partial<CollectionPoint> & { address_obj?: Partial<Address> }) => {
       // First create or find an address
-      const address = newPoint.address;
+      const address = newPoint.address_obj;
       let addressId = newPoint.address_id;
       
       if (address && !addressId) {
@@ -116,13 +117,16 @@ export function useCollectionPoints(
       }
       
       // Then create the collection point with the address ID
-      const { address: _, ...pointData } = newPoint;
+      const { address_obj: _, ...pointData } = newPoint;
+      
+      // Format address string for display from address_obj data
+      const formattedAddress = address ? generateAddressString(address) : "Sem endereço";
       
       const pointToInsert = {
         ...pointData,
         address_id: addressId,
-        address: "address", // Placeholder to satisfy the required field
-        name: newPoint.name || "Novo Ponto de Coleta", // Ensure name is provided
+        address: formattedAddress,
+        name: newPoint.name || "Novo Ponto de Coleta", 
         establishment_id: newPoint.establishment_id || null,
         carrier_id: newPoint.carrier_id || null,
         is_active: newPoint.is_active ?? true
@@ -152,11 +156,11 @@ export function useCollectionPoints(
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (point: Partial<CollectionPoint> & { address?: Partial<Address> }) => {
+    mutationFn: async (point: Partial<CollectionPoint> & { address_obj?: Partial<Address> }) => {
       if (!point.id) throw new Error('ID do ponto de coleta não fornecido');
       
       // Handle address update
-      const address = point.address;
+      const address = point.address_obj;
       let addressId = point.address_id;
       
       if (address) {
@@ -209,7 +213,7 @@ export function useCollectionPoints(
       }
       
       // Update the collection point
-      const { establishment, address: _, ...pointData } = point;
+      const { establishment, address_obj: _, ...pointData } = point;
       const updateData = {
         ...pointData,
         address_id: addressId,

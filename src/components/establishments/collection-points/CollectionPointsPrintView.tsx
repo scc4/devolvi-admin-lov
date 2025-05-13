@@ -106,7 +106,7 @@ export function CollectionPointsPrintView({ collectionPoints }: CollectionPoints
 
                   <div>
                     <span className="text-muted-foreground">Cidade/UF: </span>
-                    <span>{point.address?.city || "N/I"}/{point.address?.state || "N/I"}</span>
+                    <span>{point.address_obj?.city || "N/I"}/{point.address_obj?.state || "N/I"}</span>
                     <span className="ml-2 text-muted-foreground">Tel: </span>
                     <span>{point.phone || "N/I"}</span>
                   </div>

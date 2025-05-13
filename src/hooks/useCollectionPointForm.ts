@@ -13,19 +13,19 @@ const defaultOperatingHours = {
 };
 
 export function useCollectionPointForm(
-  initialData?: CollectionPoint & { address?: Address },
+  initialData?: CollectionPoint & { address_obj?: Address },
   carrierContext?: {
     carrierId?: string;
   }
 ) {
-  const [form, setForm] = useState<Partial<CollectionPoint> & { address?: Partial<Address> }>({
+  const [form, setForm] = useState<Partial<CollectionPoint> & { address_obj?: Partial<Address> }>({
     name: "",
     address: "",
     phone: "",
     is_active: true,
     operating_hours: defaultOperatingHours,
     address_id: null,
-    address: {
+    address_obj: {
       street: "",
       number: "",
       complement: "",
@@ -45,7 +45,7 @@ export function useCollectionPointForm(
       setForm({
         ...initialData,
         operating_hours: initialData.operating_hours || defaultOperatingHours,
-        address: initialData.address || {
+        address_obj: initialData.address_obj || {
           street: "",
           number: "",
           complement: "",
@@ -67,8 +67,8 @@ export function useCollectionPointForm(
   const handleAddressInputChange = (field: keyof Address, value: any) => {
     setForm(prev => ({
       ...prev,
-      address: {
-        ...(prev.address || {}),
+      address_obj: {
+        ...(prev.address_obj || {}),
         [field]: value
       }
     }));

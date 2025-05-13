@@ -1,10 +1,10 @@
 
 import type { CollectionPoint, Address } from "@/types/collection-point";
 
-export const getSimpleAddress = (point: CollectionPoint & { address?: Address | null }): string => {
-  if (!point.address) return "Endereço não disponível";
+export const getSimpleAddress = (point: CollectionPoint & { address_obj?: Address | null }): string => {
+  if (!point.address_obj) return "Endereço não disponível";
 
-  const { street, number, district } = point.address;
+  const { street, number, district } = point.address_obj;
   const parts = [];
 
   if (street) parts.push(street);
@@ -14,10 +14,10 @@ export const getSimpleAddress = (point: CollectionPoint & { address?: Address | 
   return parts.length > 0 ? parts.join(', ') : "Endereço não disponível";
 };
 
-export const getLocation = (point: CollectionPoint & { address?: Address | null }): string => {
-  if (!point.address) return "Localização desconhecida";
+export const getLocation = (point: CollectionPoint & { address_obj?: Address | null }): string => {
+  if (!point.address_obj) return "Localização desconhecida";
 
-  const { city, state } = point.address;
+  const { city, state } = point.address_obj;
   const parts = [];
 
   if (city) parts.push(city);
@@ -26,10 +26,10 @@ export const getLocation = (point: CollectionPoint & { address?: Address | null 
   return parts.length > 0 ? parts.join(' - ') : "Localização desconhecida";
 };
 
-export const getFullAddress = (point: CollectionPoint & { address?: Address | null }): string => {
-  if (!point.address) return "Endereço completo não disponível";
+export const getFullAddress = (point: CollectionPoint & { address_obj?: Address | null }): string => {
+  if (!point.address_obj) return "Endereço completo não disponível";
 
-  const { street, number, complement, district, city, state, zip_code } = point.address;
+  const { street, number, complement, district, city, state, zip_code } = point.address_obj;
   const parts = [];
 
   if (street) parts.push(street);
