@@ -1,3 +1,4 @@
+
 export interface CollectionPoint {
   id: string;
   name: string;

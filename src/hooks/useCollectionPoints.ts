@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
+import { Json } from "@/integrations/supabase/types";
 
 export function useCollectionPoints(
   establishmentId?: string | null, 
@@ -41,10 +41,42 @@ export function useCollectionPoints(
         throw error;
       }
 
-      return data as (CollectionPoint & { establishment: { name: string } | null })[];
+      // Convert the operating_hours from Json to the expected type structure
+      return data.map(point => ({
+        ...point,
+        operating_hours: transformOperatingHours(point.operating_hours as Json)
+      })) as (CollectionPoint & { establishment: { name: string } | null })[];
     },
     enabled: true
   });
+
+  // Helper function to transform operating hours from Json to expected type
+  const transformOperatingHours = (hours: Json | null): CollectionPoint['operating_hours'] => {
+    if (!hours) return null;
+    
+    // Convert from Json to our expected type format
+    const result: { [day: string]: { open: string; close: string }[] } = {};
+    
+    if (typeof hours === 'object' && hours !== null && !Array.isArray(hours)) {
+      Object.entries(hours).forEach(([day, periods]) => {
+        if (Array.isArray(periods)) {
+          result[day] = periods.map(period => {
+            // Ensure each period has open and close properties
+            if (typeof period === 'object' && period !== null && 'open' in period && 'close' in period) {
+              return {
+                open: String(period.open),
+                close: String(period.close)
+              };
+            }
+            // Default values if structure is unexpected
+            return { open: "09:00", close: "17:00" };
+          });
+        }
+      });
+    }
+    
+    return Object.keys(result).length > 0 ? result : null;
+  };
 
   const createMutation = useMutation({
     mutationFn: async (newPoint: Partial<CollectionPoint>) => {
