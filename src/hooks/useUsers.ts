@@ -1,8 +1,8 @@
 
-import { useState } from "react";
 import { useUserCases } from "@/presentation/hooks/useUserCases";
 import { UserRow } from "@/types/user";
 import { userAdapter } from "@/adapters/users/userAdapter";
+import { UserDTO } from "@/application/dto/UserDTO";
 
 export function useUsers() {
   const {
@@ -38,18 +38,23 @@ export function useUsers() {
     return await handleDeactivateDTO(userDTO);
   };
 
+  const resetPassword = async (userId: string, password: string) => {
+    // No need for type conversion here since we're just passing the ID and password
+    return await handleResetPassword(userId, password);
+  };
+
   return {
     users,
     loading,
     error,
-    loadUsers,  // Alias for refresh
+    loadUsers,
     refresh: loadUsers,
     handleEdit,
-    editUser: handleEdit,  // Alias
+    editUser: handleEdit,
     handleDelete,
-    deleteUser: handleDelete,  // Alias
+    deleteUser: handleDelete,
     handleDeactivate,
-    deactivateUser: handleDeactivate,  // Alias
-    resetPassword: handleResetPassword
+    deactivateUser: handleDeactivate,
+    resetPassword
   };
 }

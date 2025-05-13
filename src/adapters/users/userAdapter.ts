@@ -49,7 +49,7 @@ export const userAdapter = {
       phone: model.phone,
       role: model.role,
       status: model.status,
-      createdAt: model.created_at // Este é o ponto crítico de conversão
+      createdAt: model.created_at
     };
   },
 
@@ -63,7 +63,7 @@ export const userAdapter = {
       name: dto.name,
       email: dto.email,
       phone: dto.phone,
-      created_at: dto.createdAt, // Este é o ponto crítico de conversão
+      created_at: dto.createdAt,
       role: dto.role,
       status: dto.status
     };

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/hooks/use-toast"
 import { UserRow } from "@/types/user"
-import { useUserCases } from "@/presentation/hooks/useUserCases"
+import { useUsers } from "@/hooks/useUsers"
 
 interface ResetPasswordDialogProps {
   user: UserRow | null
@@ -30,8 +30,8 @@ export function ResetPasswordDialog({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // Use the DDD implementation with the reset password use case
-  const { handleResetPassword } = useUserCases();
+  // Use the hook with simplified resetPassword function
+  const { resetPassword } = useUsers();
 
   const validatePassword = () => {
     if (password.length < 6) {
@@ -54,8 +54,8 @@ export function ResetPasswordDialog({
 
     setIsLoading(true)
     try {
-      // Use the DDD useCase directly
-      const result = await handleResetPassword(user.id, password);
+      // Use the simplified resetPassword function
+      const result = await resetPassword(user.id, password);
 
       if (!result.success) {
         throw new Error(result.error?.message || "Erro ao alterar a senha");
