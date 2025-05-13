@@ -207,7 +207,11 @@ export function useCollectionPointCasesWithDI(filters?: {
     setIsAssigningCarrier(true);
     try {
       console.log("Assigning carrier to collection point:", { collectionPointId, carrierId });
-      const result = await assignCarrierToCollectionPointUseCase.execute(collectionPointId, carrierId);
+      // Fix: Pass parameters as a single object
+      const result = await assignCarrierToCollectionPointUseCase.execute({
+        collectionPointId,
+        carrierId
+      });
       
       if (result.success) {
         await loadCollectionPoints(); // Reload collection points to get updated list
