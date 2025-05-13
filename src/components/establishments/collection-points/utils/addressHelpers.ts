@@ -1,5 +1,5 @@
 
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint } from "@/types/collection-point";
 
 export const getSimpleAddress = (point: CollectionPoint): string => {
   if (!point.address_obj) return point.address || "Endereço não disponível";

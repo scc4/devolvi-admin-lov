@@ -2,7 +2,7 @@
 import { useCarriers } from "@/hooks/useCarriers";
 import { useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint } from "@/types/collection-point";
 import { CollectionPointMobileView } from "./components/CollectionPointMobileView";
 import { CollectionPointDesktopView } from "./components/CollectionPointDesktopView";
 

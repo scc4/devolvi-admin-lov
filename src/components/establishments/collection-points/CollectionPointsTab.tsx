@@ -5,7 +5,7 @@ import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointFormDialog } from "./CollectionPointFormDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCcw } from "lucide-react";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint } from "@/types/collection-point";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CollectionPointsTabProps {
@@ -53,7 +53,7 @@ export function CollectionPointsTab({
     }
   };
   
-  const handleFormSubmit = async (point: Partial<CollectionPoint> & { address_obj?: Partial<Address> }) => {
+  const handleFormSubmit = async (point: Partial<CollectionPoint>) => {
     try {
       if (selectedPoint) {
         await updateCollectionPoint(point);
