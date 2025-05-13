@@ -1,16 +1,16 @@
+
 import { Label } from "@/components/ui/label";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { LocationMapPicker } from './LocationMapPicker';
 import { useAddressForm } from "@/hooks/useAddressForm";
 import { BasicAddressFields } from "./address/BasicAddressFields";
 import { LocationFields } from "./address/LocationFields";
-import { CoordinatesFields } from "./address/CoordinatesFields";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AddressTabProps {
-  form: Partial<CollectionPoint>;
-  onInputChange: (field: keyof CollectionPoint, value: any) => void;
+  form: Partial<CollectionPoint> & { address?: Partial<Address> };
+  onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
 }
 
@@ -53,8 +53,6 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
             isLoading={isLoading}
             handleCEPChange={handleCEPChange}
           />
-
-          {/* Removido CoordinatesFields da aba endereço */}
         </div>
       </TabsContent>
 

@@ -3,14 +3,14 @@ import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Clock, Edit, Trash2 } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { checkOpenStatus } from "../../utils/checkOpenStatus";
 import { formatOperatingHours } from "../../utils/formatters";
 import { getSimpleAddress, getLocation } from "../../utils/addressHelpers";
 
 interface CollectionPointTableRowProps {
-  point: CollectionPoint;
-  onEdit?: (point: CollectionPoint) => void;
+  point: CollectionPoint & { address?: Address | null };
+  onEdit?: (point: CollectionPoint & { address?: Address | null }) => void;
   onDelete?: (pointId: string) => void;
   onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
   carrierMap: Map<string, { name: string }>;

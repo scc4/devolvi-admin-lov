@@ -2,11 +2,11 @@
 import { useState, useEffect } from "react";
 import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
 import { maskCEP } from "@/lib/format";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 
 export function useAddressForm(
-  form: Partial<CollectionPoint>,
-  onInputChange: (field: keyof CollectionPoint, value: any) => void
+  form: Partial<CollectionPoint> & { address?: Partial<Address> },
+  onInputChange: (field: keyof Address, value: any) => void
 ) {
   const [states, setStates] = useState<{ value: string; label: string; }[]>([]);
   const [availableCities, setAvailableCities] = useState<string[]>([]);
@@ -25,13 +25,13 @@ export function useAddressForm(
 
   useEffect(() => {
     const loadCities = async () => {
-      if (form.state) {
+      if (form.address?.state) {
         setIsLoadingCities(true);
-        const cities = await fetchCitiesByState(form.state);
+        const cities = await fetchCitiesByState(form.address.state);
         setAvailableCities(cities.map(city => city.nome));
         setIsLoadingCities(false);
         
-        if (form.city && !cities.find(city => city.nome === form.city)) {
+        if (form.address?.city && !cities.find(city => city.nome === form.address?.city)) {
           onInputChange('city', '');
         }
       } else {
@@ -39,7 +39,7 @@ export function useAddressForm(
       }
     };
     loadCities();
-  }, [form.state]);
+  }, [form.address?.state]);
 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskCEP(e.target.value);

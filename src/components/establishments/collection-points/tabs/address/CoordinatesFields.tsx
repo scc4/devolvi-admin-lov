@@ -1,11 +1,11 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 
 interface CoordinatesFieldsProps {
-  form: Partial<CollectionPoint>;
-  onInputChange: (field: keyof CollectionPoint, value: any) => void;
+  form: Partial<CollectionPoint> & { address?: Partial<Address> };
+  onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
 }
 
@@ -18,7 +18,7 @@ export function CoordinatesFields({ form, onInputChange, isLoading }: Coordinate
           id="latitude"
           type="number"
           placeholder="Latitude"
-          value={form.latitude?.toString() || ''}
+          value={form.address?.latitude?.toString() || ''}
           onChange={(e) => onInputChange('latitude', e.target.value ? parseFloat(e.target.value) : null)}
           disabled={isLoading}
         />
@@ -30,7 +30,7 @@ export function CoordinatesFields({ form, onInputChange, isLoading }: Coordinate
           id="longitude"
           type="number"
           placeholder="Longitude"
-          value={form.longitude?.toString() || ''}
+          value={form.address?.longitude?.toString() || ''}
           onChange={(e) => onInputChange('longitude', e.target.value ? parseFloat(e.target.value) : null)}
           disabled={isLoading}
         />

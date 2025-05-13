@@ -1,5 +1,6 @@
+
 import { lazy, Suspense } from 'react';
-import type { CollectionPoint } from '@/types/collection-point';
+import type { CollectionPoint, Address } from '@/types/collection-point';
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load the heavy MapComponent
@@ -9,7 +10,7 @@ const MapComponent = lazy(() =>
 import { CoordinatesFields } from './address/CoordinatesFields';
 
 interface LocationMapPickerProps {
-  form: Partial<CollectionPoint>;
+  form: Partial<CollectionPoint> & { address?: Partial<Address> };
   onLocationChange: (lat: number, lng: number) => void;
   isLoading?: boolean;
 }
@@ -19,8 +20,8 @@ export function LocationMapPicker({ form, onLocationChange, isLoading }: Locatio
     <Suspense fallback={<Skeleton className="h-[500px] w-full rounded-lg" />}>
       <div className="flex flex-col gap-4">
         <MapComponent
-          initialLatitude={form.latitude}
-          initialLongitude={form.longitude}
+          initialLatitude={form.address?.latitude}
+          initialLongitude={form.address?.longitude}
           onLocationChange={onLocationChange}
         />
         {/* Inputs de latitude e longitude agora abaixo do mapa */}
@@ -36,7 +37,7 @@ export function LocationMapPicker({ form, onLocationChange, isLoading }: Locatio
 
 // Função utilitária para adaptar o onLocationChange aos campos de latitude/longitude do input
 function onLocationChangeFields(onLocationChange: (lat: number, lng: number) => void) {
-  return (field: "latitude" | "longitude", value: number | null) => {
+  return (field: keyof Address, value: number | null) => {
     if (field === "latitude") {
       onLocationChange(value ?? 0, null as any);
     } else if (field === "longitude") {

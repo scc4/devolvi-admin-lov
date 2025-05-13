@@ -9,15 +9,7 @@ export interface CollectionPoint {
   } | null;
   carrier_id: string;
   phone: string | null;
-  street: string | null;
-  number: string | null;
-  complement: string | null;
-  district: string | null;
-  zip_code: string | null;
-  city: string | null;
-  state: string | null;
-  latitude: number | null;
-  longitude: number | null;
+  address_id: string | null;
   is_active: boolean | null;
   operating_hours: {
     [day: string]: {
@@ -27,6 +19,21 @@ export interface CollectionPoint {
   } | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface Address {
+  id: string;
+  street: string | null;
+  number: string | null;
+  complement: string | null;
+  district: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  created_at: string;
+  updated_at: string | null;
 }
 
 export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';

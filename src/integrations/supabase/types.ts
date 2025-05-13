@@ -128,71 +128,54 @@ export type Database = {
       collection_points: {
         Row: {
           address: string
+          address_id: string | null
           carrier_id: string | null
-          city: string | null
-          complement: string | null
           created_at: string
           deleted_at: string | null
-          district: string | null
           establishment_id: string | null
           id: string
           is_active: boolean | null
-          latitude: number | null
-          longitude: number | null
           name: string
-          number: string | null
           operating_hours: Json | null
           phone: string | null
-          state: string | null
-          street: string | null
           updated_at: string
-          zip_code: string | null
         }
         Insert: {
           address: string
+          address_id?: string | null
           carrier_id?: string | null
-          city?: string | null
-          complement?: string | null
           created_at?: string
           deleted_at?: string | null
-          district?: string | null
           establishment_id?: string | null
           id?: string
           is_active?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
           name: string
-          number?: string | null
           operating_hours?: Json | null
           phone?: string | null
-          state?: string | null
-          street?: string | null
           updated_at?: string
-          zip_code?: string | null
         }
         Update: {
           address?: string
+          address_id?: string | null
           carrier_id?: string | null
-          city?: string | null
-          complement?: string | null
           created_at?: string
           deleted_at?: string | null
-          district?: string | null
           establishment_id?: string | null
           id?: string
           is_active?: boolean | null
-          latitude?: number | null
-          longitude?: number | null
           name?: string
-          number?: string | null
           operating_hours?: Json | null
           phone?: string | null
-          state?: string | null
-          street?: string | null
           updated_at?: string
-          zip_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "collection_points_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "address"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "collection_points_carrier_id_fkey"
             columns: ["carrier_id"]

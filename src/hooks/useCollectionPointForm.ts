@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import type { CollectionPoint, DayOfWeek } from "@/types/collection-point";
+import type { CollectionPoint, DayOfWeek, Address } from "@/types/collection-point";
 
 const defaultOperatingHours = {
   monday: [{ open: '08:00', close: '18:00' }],
@@ -13,26 +13,28 @@ const defaultOperatingHours = {
 };
 
 export function useCollectionPointForm(
-  initialData?: CollectionPoint,
+  initialData?: CollectionPoint & { address?: Address },
   carrierContext?: {
     carrierId?: string;
   }
 ) {
-  const [form, setForm] = useState<Partial<CollectionPoint>>({
+  const [form, setForm] = useState<Partial<CollectionPoint> & { address?: Partial<Address> }>({
     name: "",
     address: "",
     phone: "",
-    street: "",
-    number: "",
-    complement: "",
-    district: "",
-    zip_code: "",
-    city: "",
-    state: "",
-    latitude: null,
-    longitude: null,
     is_active: true,
     operating_hours: defaultOperatingHours,
+    address: {
+      street: "",
+      number: "",
+      complement: "",
+      district: "",
+      zip_code: "",
+      city: "",
+      state: "",
+      latitude: null,
+      longitude: null
+    },
     ...(carrierContext?.carrierId ? { carrier_id: carrierContext.carrierId } : {}),
   });
 
@@ -42,12 +44,33 @@ export function useCollectionPointForm(
       setForm({
         ...initialData,
         operating_hours: initialData.operating_hours || defaultOperatingHours,
+        address: initialData.address || {
+          street: "",
+          number: "",
+          complement: "",
+          district: "",
+          zip_code: "",
+          city: "",
+          state: "",
+          latitude: null,
+          longitude: null
+        }
       });
     }
   }, [initialData]);
 
   const handleInputChange = (field: keyof CollectionPoint, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddressInputChange = (field: keyof Address, value: any) => {
+    setForm(prev => ({
+      ...prev,
+      address: {
+        ...(prev.address || {}),
+        [field]: value
+      }
+    }));
   };
 
   const handleTimeChange = (day: DayOfWeek, index: number, field: 'open' | 'close', value: string) => {
@@ -98,6 +121,7 @@ export function useCollectionPointForm(
   return {
     form,
     handleInputChange,
+    handleAddressInputChange,
     handleTimeChange,
     addTimePeriod,
     removeTimePeriod,

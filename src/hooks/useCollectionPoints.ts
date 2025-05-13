@@ -1,7 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { Json } from "@/integrations/supabase/types";
 
 export function useCollectionPoints(
@@ -19,14 +20,15 @@ export function useCollectionPoints(
         .from('collection_points')
         .select(`
           *,
-          establishment:establishments(name)
+          establishment:establishments(name),
+          address:address(*)
         `);
       
       if (fetchUnassigned) {
         query = query.is('carrier_id', null);
         
         if (cityFilter) {
-          query = query.eq('city', cityFilter);
+          query = query.eq('address.city', cityFilter);
         }
       } else if (establishmentId) {
         query = query.eq('establishment_id', establishmentId);
@@ -45,7 +47,10 @@ export function useCollectionPoints(
       return data.map(point => ({
         ...point,
         operating_hours: transformOperatingHours(point.operating_hours as Json)
-      })) as (CollectionPoint & { establishment: { name: string } | null })[];
+      })) as (CollectionPoint & { 
+        establishment: { name: string } | null,
+        address: Address | null
+      })[];
     },
     enabled: true
   });
@@ -79,34 +84,51 @@ export function useCollectionPoints(
   };
 
   const createMutation = useMutation({
-    mutationFn: async (newPoint: Partial<CollectionPoint>) => {
-      // Validação mínima necessária
-      if (!newPoint.name) throw new Error('Nome do ponto de coleta não fornecido');
+    mutationFn: async (newPoint: Partial<CollectionPoint> & { address?: Partial<Address> }) => {
+      // First create or find an address
+      const address = newPoint.address;
+      let addressId = newPoint.address_id;
       
-      // Prepare data for insertion, ensuring carrier_id is null if empty
-      const pointData = {
+      if (address && !addressId) {
+        // Create a new address
+        const { data: addressData, error: addressError } = await supabase
+          .from('address')
+          .insert({
+            street: address.street || null,
+            number: address.number || null,
+            complement: address.complement || null,
+            district: address.district || null,
+            city: address.city || null,
+            state: address.state || null,
+            zip_code: address.zip_code || null,
+            latitude: address.latitude || null,
+            longitude: address.longitude || null
+          })
+          .select('id')
+          .single();
+          
+        if (addressError) {
+          toast.error('Erro ao criar endereço');
+          throw addressError;
+        }
+        
+        addressId = addressData.id;
+      }
+      
+      // Then create the collection point with the address ID
+      const { address: _, ...pointData } = newPoint;
+      
+      const pointToInsert = {
+        ...pointData,
+        address_id: addressId,
         establishment_id: newPoint.establishment_id || null,
-        name: newPoint.name,
-        // Set address to a string based on available address fields
-        address: generateAddressString(newPoint),
-        carrier_id: newPoint.carrier_id || null, // Set to null if empty
-        phone: newPoint.phone || null,
-        street: newPoint.street || null,
-        number: newPoint.number || null,
-        complement: newPoint.complement || null,
-        district: newPoint.district || null,
-        zip_code: newPoint.zip_code || null,
-        city: newPoint.city || null,
-        state: newPoint.state || null,
-        latitude: newPoint.latitude || null,
-        longitude: newPoint.longitude || null,
-        is_active: newPoint.is_active ?? true,
-        operating_hours: newPoint.operating_hours || null
+        carrier_id: newPoint.carrier_id || null,
+        is_active: newPoint.is_active ?? true
       };
       
       const { data, error } = await supabase
         .from('collection_points')
-        .insert(pointData)
+        .insert(pointToInsert)
         .select()
         .single();
 
@@ -118,9 +140,7 @@ export function useCollectionPoints(
       toast.success('Ponto de coleta cadastrado com sucesso');
     },
     onError: (error: any) => {
-      // Verificar erros específicos
-      if (error.message && error.message.includes('duplicate key') && 
-          error.message.includes('collection_points_phone_unique')) {
+      if (error.message?.includes('duplicate key') && error.message?.includes('collection_points_phone_unique')) {
         toast.error('Número de telefone já cadastrado em outro ponto de coleta');
       } else {
         toast.error('Erro ao cadastrar ponto de coleta');
@@ -130,14 +150,67 @@ export function useCollectionPoints(
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (point: Partial<CollectionPoint>) => {
+    mutationFn: async (point: Partial<CollectionPoint> & { address?: Partial<Address> }) => {
       if (!point.id) throw new Error('ID do ponto de coleta não fornecido');
       
-      const { establishment, ...pointData } = point;
+      // Handle address update
+      const address = point.address;
+      let addressId = point.address_id;
+      
+      if (address) {
+        if (addressId) {
+          // Update existing address
+          const { error: addressUpdateError } = await supabase
+            .from('address')
+            .update({
+              street: address.street || null,
+              number: address.number || null,
+              complement: address.complement || null,
+              district: address.district || null,
+              city: address.city || null,
+              state: address.state || null,
+              zip_code: address.zip_code || null,
+              latitude: address.latitude || null,
+              longitude: address.longitude || null
+            })
+            .eq('id', addressId);
+            
+          if (addressUpdateError) {
+            toast.error('Erro ao atualizar endereço');
+            throw addressUpdateError;
+          }
+        } else {
+          // Create a new address
+          const { data: addressData, error: addressError } = await supabase
+            .from('address')
+            .insert({
+              street: address.street || null,
+              number: address.number || null,
+              complement: address.complement || null,
+              district: address.district || null,
+              city: address.city || null,
+              state: address.state || null,
+              zip_code: address.zip_code || null,
+              latitude: address.latitude || null,
+              longitude: address.longitude || null
+            })
+            .select('id')
+            .single();
+            
+          if (addressError) {
+            toast.error('Erro ao criar endereço');
+            throw addressError;
+          }
+          
+          addressId = addressData.id;
+        }
+      }
+      
+      // Update the collection point
+      const { establishment, address: _, ...pointData } = point;
       const updateData = {
         ...pointData,
-        // Set address to a string based on available address fields
-        address: generateAddressString(point),
+        address_id: addressId,
         carrier_id: pointData.carrier_id || null
       };
 
@@ -156,10 +229,8 @@ export function useCollectionPoints(
       toast.success('Ponto de coleta atualizado com sucesso');
     },
     onError: (error: any) => {
-      // Verificar erros específicos de unicidade
-      if (error.message && error.message.includes('duplicate key') && 
-          error.message.includes('collection_points_phone_unique')) {
-        throw error; // Repassar o erro para ser tratado no componente
+      if (error.message?.includes('duplicate key') && error.message?.includes('collection_points_phone_unique')) {
+        throw error;
       } else {
         toast.error('Erro ao atualizar ponto de coleta');
         console.error('Error updating collection point:', error);
@@ -169,12 +240,37 @@ export function useCollectionPoints(
 
   const deleteMutation = useMutation({
     mutationFn: async (pointId: string) => {
+      // Get the collection point to find its address_id
+      const { data: point } = await supabase
+        .from('collection_points')
+        .select('address_id')
+        .eq('id', pointId)
+        .single();
+        
+      const addressId = point?.address_id;
+      
+      // Delete the collection point first
       const { error } = await supabase
         .from('collection_points')
         .delete()
         .eq('id', pointId);
 
       if (error) throw error;
+      
+      // Optionally delete the address if it's not used by other collection points
+      if (addressId) {
+        const { data: otherPoints } = await supabase
+          .from('collection_points')
+          .select('id')
+          .eq('address_id', addressId);
+          
+        if (!otherPoints?.length) {
+          await supabase
+            .from('address')
+            .delete()
+            .eq('id', addressId);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collection-points'] });
@@ -186,19 +282,21 @@ export function useCollectionPoints(
     }
   });
 
-  // Helper function to generate a complete address string from individual fields
-  const generateAddressString = (point: Partial<CollectionPoint>): string => {
+  // Helper function to generate a complete address string from an Address object
+  const generateAddressString = (address: Partial<Address> | null): string => {
+    if (!address) return 'Sem endereço';
+    
     const parts = [];
     
-    if (point.street) parts.push(point.street);
-    if (point.number) parts.push(point.number);
-    if (point.complement) parts.push(point.complement);
-    if (point.district) parts.push(`${point.district}`);
-    if (point.city) parts.push(point.city);
-    if (point.state) parts.push(point.state);
-    if (point.zip_code) parts.push(`CEP: ${point.zip_code}`);
+    if (address.street) parts.push(address.street);
+    if (address.number) parts.push(address.number);
+    if (address.complement) parts.push(address.complement);
+    if (address.district) parts.push(`${address.district}`);
+    if (address.city) parts.push(address.city);
+    if (address.state) parts.push(address.state);
+    if (address.zip_code) parts.push(`CEP: ${address.zip_code}`);
     
-    return parts.length > 0 ? parts.join(', ') : point.name || 'Sem endereço';
+    return parts.length > 0 ? parts.join(', ') : 'Sem endereço';
   };
 
   return {
@@ -210,6 +308,7 @@ export function useCollectionPoints(
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    generateAddressString,
     refetch
   };
 }

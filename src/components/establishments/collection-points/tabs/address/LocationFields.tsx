@@ -2,12 +2,12 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { maskCEP } from "@/lib/format";
 
 interface LocationFieldsProps {
-  form: Partial<CollectionPoint>;
-  onInputChange: (field: keyof CollectionPoint, value: any) => void;
+  form: Partial<CollectionPoint> & { address?: Partial<Address> };
+  onInputChange: (field: keyof Address, value: any) => void;
   states: { value: string; label: string; }[];
   availableCities: string[];
   isLoadingCities: boolean;
@@ -32,7 +32,7 @@ export function LocationFields({
           <Input
             id="zip_code"
             placeholder="00000-000"
-            value={form.zip_code || ''}
+            value={form.address?.zip_code || ''}
             onChange={handleCEPChange}
             disabled={isLoading}
             maxLength={9}
@@ -42,7 +42,7 @@ export function LocationFields({
         <div className="space-y-2">
           <Label htmlFor="state">Estado</Label>
           <Select
-            value={form.state || ''}
+            value={form.address?.state || ''}
             onValueChange={(value) => onInputChange('state', value)}
             disabled={isLoading || !states.length}
           >
@@ -64,16 +64,16 @@ export function LocationFields({
         <div className="space-y-2">
           <Label htmlFor="city">Cidade</Label>
           <Select
-            value={form.city || ''}
+            value={form.address?.city || ''}
             onValueChange={(value) => onInputChange('city', value)}
-            disabled={isLoading || !form.state || isLoadingCities}
+            disabled={isLoading || !form.address?.state || isLoadingCities}
           >
             <SelectTrigger id="city">
               <SelectValue 
                 placeholder={
                   isLoadingCities 
                     ? "Carregando cidades..." 
-                    : form.state 
+                    : form.address?.state 
                       ? "Selecione a cidade" 
                       : "Selecione um estado primeiro"
                 } 

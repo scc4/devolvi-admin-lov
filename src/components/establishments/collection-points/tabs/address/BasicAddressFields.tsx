@@ -1,11 +1,11 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 
 interface BasicAddressFieldsProps {
-  form: Partial<CollectionPoint>;
-  onInputChange: (field: keyof CollectionPoint, value: any) => void;
+  form: Partial<CollectionPoint> & { address?: Partial<Address> };
+  onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
 }
 
@@ -18,7 +18,7 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="street"
             placeholder="Rua"
-            value={form.street || ''}
+            value={form.address?.street || ''}
             onChange={(e) => onInputChange('street', e.target.value)}
             disabled={isLoading}
           />
@@ -29,7 +29,7 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="number"
             placeholder="Número"
-            value={form.number || ''}
+            value={form.address?.number || ''}
             onChange={(e) => onInputChange('number', e.target.value)}
             disabled={isLoading}
           />
@@ -42,7 +42,7 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="complement"
             placeholder="Complemento"
-            value={form.complement || ''}
+            value={form.address?.complement || ''}
             onChange={(e) => onInputChange('complement', e.target.value)}
             disabled={isLoading}
           />
@@ -53,14 +53,12 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="district"
             placeholder="Bairro"
-            value={form.district || ''}
+            value={form.address?.district || ''}
             onChange={(e) => onInputChange('district', e.target.value)}
             disabled={isLoading}
           />
         </div>
       </div>
-      {/* O campo de Endereço Completo foi removido conforme solicitado */}
     </>
   );
 }
-

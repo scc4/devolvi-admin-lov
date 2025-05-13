@@ -8,7 +8,7 @@ import { AddressTab } from "./tabs/AddressTab";
 import { OperatingHoursTab } from "./tabs/OperatingHoursTab";
 import { useCollectionPointForm } from "@/hooks/useCollectionPointForm";
 import { toast } from "sonner";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -16,8 +16,8 @@ import { useState } from "react";
 interface CollectionPointFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (point: Partial<CollectionPoint>) => Promise<void>;
-  initialData?: CollectionPoint;
+  onSubmit: (point: Partial<CollectionPoint> & { address?: Partial<Address> }) => Promise<void>;
+  initialData?: CollectionPoint & { address?: Address };
   isLoading?: boolean;
   carrierContext?: {
     carrierId?: string;
@@ -35,6 +35,7 @@ export function CollectionPointFormDialog({
   const {
     form,
     handleInputChange,
+    handleAddressInputChange,
     handleTimeChange,
     addTimePeriod,
     removeTimePeriod,
@@ -119,7 +120,7 @@ export function CollectionPointFormDialog({
               <TabsContent value="address" className="h-full overflow-auto">
                 <AddressTab
                   form={form}
-                  onInputChange={handleInputChange}
+                  onInputChange={handleAddressInputChange}
                   isLoading={isLoading}
                 />
               </TabsContent>
