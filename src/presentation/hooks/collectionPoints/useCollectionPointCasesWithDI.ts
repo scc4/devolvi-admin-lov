@@ -10,15 +10,18 @@ import { useLoadCollectionPoints } from './useLoadCollectionPoints';
 import { useAssignCarrier } from './useAssignCarrier';
 import { collectionPointAdapter } from '@/adapters/collectionPoints/collectionPointAdapter';
 
-/**
- * Hook para gerenciamento de pontos de coleta usando casos de uso com injeção de dependência
- */
-export function useCollectionPointCasesWithDI(filters: {
+// Define filters interface
+export interface CollectionPointFilters {
   establishmentId?: string;
   carrierId?: string;
   unassigned?: boolean;
   cityFilter?: string;
-}) {
+}
+
+/**
+ * Hook para gerenciamento de pontos de coleta usando casos de uso com injeção de dependência
+ */
+export function useCollectionPointCasesWithDI(filters: CollectionPointFilters = {}) {
   console.log("useCollectionPointCasesWithDI called with filters:", filters);
 
   // Get services from container
