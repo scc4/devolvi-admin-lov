@@ -112,8 +112,13 @@ export function useCollectionPointCasesWithDI(filters?: {
   useEffect(() => {
     console.log("useEffect for initial data loading triggered");
     
-    if (isFirstLoad.current) {
+    // Fix: Check isFirstLoad.current instead of trying to access .current on a boolean
+    if (isFirstLoad && typeof isFirstLoad === 'object' && 'current' in isFirstLoad) {
       console.log("First load, fetching collection points");
+      loadCollectionPoints();
+    } else if (isFirstLoad === true) {
+      // Handle case where isFirstLoad is a boolean true
+      console.log("First load (boolean), fetching collection points");
       loadCollectionPoints();
     }
     
@@ -127,7 +132,7 @@ export function useCollectionPointCasesWithDI(filters?: {
         abortControllerRef.current.abort();
       }
     };
-  }, [loadCollectionPoints]);
+  }, [loadCollectionPoints, isFirstLoad]);
 
   // Cache the results when collectionPoints change
   useEffect(() => {

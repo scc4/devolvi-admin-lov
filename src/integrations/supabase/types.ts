@@ -468,6 +468,32 @@ export type Database = {
         }
         Relationships: []
       }
+      user_session: {
+        Row: {
+          expires_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_session_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
