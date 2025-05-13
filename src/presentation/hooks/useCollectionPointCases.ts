@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { container } from '../../infrastructure/di/container';
 import { collectionPointAdapter } from '../../adapters/collectionPoints/collectionPointAdapter';
@@ -193,7 +192,7 @@ export function useCollectionPointCases(props?: UseCollectionPointCasesProps) {
     
     setIsAssigningCarrier(true);
     try {
-      // Fix: Pass collectionPointId and carrierId as an object with the correct structure
+      // Pass parameters correctly as a single object
       const result = await useCasesRef.current.assignCarrierToCollectionPointUseCase.execute({
         collectionPointId,
         carrierId

@@ -9,12 +9,17 @@ import { collectionPointAdapter } from '../../../adapters/collectionPoints/colle
 export class AssignCarrierToCollectionPointUseCase {
   constructor(private collectionPointRepository: ICollectionPointRepository) {}
 
-  async execute(collectionPointId: string, carrierId: string | null): Promise<{ 
+  async execute(params: { 
+    collectionPointId: string; 
+    carrierId: string | null; 
+  }): Promise<{ 
     success: boolean; 
     collectionPoint?: CollectionPointDTO;
     error?: Error;
   }> {
     try {
+      const { collectionPointId, carrierId } = params;
+      
       // Assign carrier to the collection point
       const updatedCollectionPoint = await this.collectionPointRepository.assignCarrier(collectionPointId, carrierId);
       
