@@ -17,11 +17,11 @@ export const collectionPointAdapter = {
       address: entity.address,
       establishmentId: entity.establishmentId,
       establishment: entity.establishmentId ? {
-        name: entity.establishmentName || ''
+        name: entity.establishment?.name || ''
       } : null,
       carrierId: entity.carrierId,
       carrier: entity.carrierId ? {
-        name: entity.carrierName || ''
+        name: entity.carrier?.name || ''
       } : null,
       phone: entity.phone,
       street: entity.street,
@@ -64,9 +64,9 @@ export const collectionPointAdapter = {
       operatingHours: dto.operatingHours !== undefined ? dto.operatingHours : null,
       ...(dto.createdAt && { createdAt: new Date(dto.createdAt) }),
       ...(dto.updatedAt && { updatedAt: new Date(dto.updatedAt) }),
-      // These are derived from relationships and typically not set directly
-      establishmentName: dto.establishment?.name,
-      carrierName: dto.carrier?.name
+      // Add related metadata like establishment and carrier names
+      establishment: dto.establishment ? { name: dto.establishment.name } : undefined,
+      carrier: dto.carrier ? { name: dto.carrier.name } : undefined
     };
   },
 
@@ -110,6 +110,7 @@ export const collectionPointAdapter = {
       establishment_id: dto.establishmentId,
       establishment: dto.establishment || null,
       carrier_id: dto.carrierId || null,
+      carrier: dto.carrier || null,
       phone: dto.phone,
       street: dto.street,
       number: dto.number,

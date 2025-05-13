@@ -15,7 +15,8 @@ export class SupabaseCollectionPointRepository implements ICollectionPointReposi
       .from('collection_points')
       .select(`
         *,
-        establishment:establishments(name)
+        establishment:establishments(name),
+        carrier:carriers(name)
       `)
       .order('name');
 
@@ -35,7 +36,8 @@ export class SupabaseCollectionPointRepository implements ICollectionPointReposi
       .from('collection_points')
       .select(`
         *,
-        establishment:establishments(name)
+        establishment:establishments(name),
+        carrier:carriers(name)
       `)
       .eq('establishment_id', establishmentId)
       .order('name');
@@ -56,7 +58,8 @@ export class SupabaseCollectionPointRepository implements ICollectionPointReposi
       .from('collection_points')
       .select(`
         *,
-        establishment:establishments(name)
+        establishment:establishments(name),
+        carrier:carriers(name)
       `)
       .eq('carrier_id', carrierId)
       .order('name');
@@ -77,7 +80,8 @@ export class SupabaseCollectionPointRepository implements ICollectionPointReposi
       .from('collection_points')
       .select(`
         *,
-        establishment:establishments(name)
+        establishment:establishments(name),
+        carrier:carriers(name)
       `)
       .is('carrier_id', null);
     
@@ -103,7 +107,8 @@ export class SupabaseCollectionPointRepository implements ICollectionPointReposi
       .from('collection_points')
       .select(`
         *,
-        establishment:establishments(name)
+        establishment:establishments(name),
+        carrier:carriers(name)
       `)
       .eq('id', id)
       .single();
@@ -236,7 +241,9 @@ export class SupabaseCollectionPointRepository implements ICollectionPointReposi
       data.is_active,
       data.operating_hours,
       new Date(data.created_at),
-      new Date(data.updated_at)
+      new Date(data.updated_at),
+      data.establishment, // Pass establishment data
+      data.carrier      // Pass carrier data
     );
   }
 

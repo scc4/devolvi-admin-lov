@@ -22,6 +22,9 @@ export class CollectionPoint {
   operatingHours: OperatingHours | null;
   createdAt: Date;
   updatedAt: Date;
+  // Additional properties for related entities
+  establishment?: { name: string } | null;
+  carrier?: { name: string } | null;
 
   constructor(
     id: string,
@@ -42,7 +45,9 @@ export class CollectionPoint {
     isActive: boolean = true,
     operatingHours: OperatingHours | null = null,
     createdAt: Date = new Date(),
-    updatedAt: Date = new Date()
+    updatedAt: Date = new Date(),
+    establishment?: { name: string } | null,
+    carrier?: { name: string } | null
   ) {
     this.id = id;
     this.name = name;
@@ -63,6 +68,8 @@ export class CollectionPoint {
     this.operatingHours = operatingHours;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.establishment = establishment;
+    this.carrier = carrier;
   }
 }
 
