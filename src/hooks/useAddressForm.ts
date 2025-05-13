@@ -5,7 +5,7 @@ import { maskCEP } from "@/lib/format";
 import type { CollectionPoint, Address } from "@/types/collection-point";
 
 export function useAddressForm(
-  form: Partial<CollectionPoint> & { address?: Partial<Address> },
+  form: Partial<CollectionPoint>,
   onInputChange: (field: keyof Address, value: any) => void
 ) {
   const [states, setStates] = useState<{ value: string; label: string; }[]>([]);
@@ -25,13 +25,13 @@ export function useAddressForm(
 
   useEffect(() => {
     const loadCities = async () => {
-      if (form.address?.state) {
+      if (form.address_obj?.state) {
         setIsLoadingCities(true);
-        const cities = await fetchCitiesByState(form.address.state);
+        const cities = await fetchCitiesByState(form.address_obj.state);
         setAvailableCities(cities.map(city => city.nome));
         setIsLoadingCities(false);
         
-        if (form.address?.city && !cities.find(city => city.nome === form.address?.city)) {
+        if (form.address_obj?.city && !cities.find(city => city.nome === form.address_obj?.city)) {
           onInputChange('city', '');
         }
       } else {
@@ -39,7 +39,7 @@ export function useAddressForm(
       }
     };
     loadCities();
-  }, [form.address?.state]);
+  }, [form.address_obj?.state]);
 
   const handleCEPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedValue = maskCEP(e.target.value);

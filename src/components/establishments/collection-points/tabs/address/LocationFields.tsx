@@ -1,53 +1,51 @@
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { CollectionPoint, Address } from "@/types/collection-point";
-import { maskCEP } from "@/lib/format";
 
 interface LocationFieldsProps {
-  form: Partial<CollectionPoint> & { address?: Partial<Address> };
+  form: Partial<CollectionPoint>;
   onInputChange: (field: keyof Address, value: any) => void;
-  states: { value: string; label: string; }[];
-  availableCities: string[];
-  isLoadingCities: boolean;
   isLoading?: boolean;
+  states: { value: string; label: string }[];
+  availableCities: string[];
   handleCEPChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function LocationFields({
   form,
   onInputChange,
+  isLoading,
   states,
   availableCities,
-  isLoadingCities,
-  isLoading,
   handleCEPChange
 }: LocationFieldsProps) {
   return (
     <>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
           <Label htmlFor="zip_code">CEP</Label>
           <Input
             id="zip_code"
-            placeholder="00000-000"
-            value={form.address?.zip_code || ''}
+            placeholder="CEP"
+            value={form.address_obj?.zip_code || ''}
             onChange={handleCEPChange}
             disabled={isLoading}
-            maxLength={9}
           />
         </div>
+      </div>
 
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="state">Estado</Label>
           <Select
-            value={form.address?.state || ''}
+            value={form.address_obj?.state || ''}
             onValueChange={(value) => onInputChange('state', value)}
-            disabled={isLoading || !states.length}
+            disabled={isLoading}
           >
             <SelectTrigger id="state">
-              <SelectValue placeholder={states.length ? "Selecione o estado" : "Carregando estados..."} />
+              <SelectValue placeholder="Selecione o estado" />
             </SelectTrigger>
             <SelectContent>
               {states.map((state) => (
@@ -58,26 +56,16 @@ export function LocationFields({
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="city">Cidade</Label>
           <Select
-            value={form.address?.city || ''}
+            value={form.address_obj?.city || ''}
             onValueChange={(value) => onInputChange('city', value)}
-            disabled={isLoading || !form.address?.state || isLoadingCities}
+            disabled={isLoading || !form.address_obj?.state}
           >
             <SelectTrigger id="city">
-              <SelectValue 
-                placeholder={
-                  isLoadingCities 
-                    ? "Carregando cidades..." 
-                    : form.address?.state 
-                      ? "Selecione a cidade" 
-                      : "Selecione um estado primeiro"
-                } 
-              />
+              <SelectValue placeholder={form.address_obj?.state ? "Selecione a cidade" : "Selecione um estado primeiro"} />
             </SelectTrigger>
             <SelectContent>
               {availableCities.map((city) => (

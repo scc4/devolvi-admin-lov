@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import type { CollectionPoint, DayOfWeek, Address } from "@/types/collection-point";
 
@@ -10,6 +9,19 @@ const defaultOperatingHours = {
   friday: [{ open: '08:00', close: '18:00' }],
   saturday: [],
   sunday: [{ open: '08:00', close: '18:00' }]
+};
+
+// Definindo um endereço padrão incompleto para novos pontos de coleta
+const defaultAddressObj: Partial<Address> = {
+  street: "",
+  number: "",
+  complement: "",
+  district: "",
+  zip_code: "",
+  city: "",
+  state: "",
+  latitude: null,
+  longitude: null
 };
 
 export function useCollectionPointForm(
@@ -25,17 +37,7 @@ export function useCollectionPointForm(
     is_active: true,
     operating_hours: defaultOperatingHours,
     address_id: null,
-    address_obj: {
-      street: "",
-      number: "",
-      complement: "",
-      district: "",
-      zip_code: "",
-      city: "",
-      state: "",
-      latitude: null,
-      longitude: null
-    },
+    address_obj: defaultAddressObj,
     ...(carrierContext?.carrierId ? { carrier_id: carrierContext.carrierId } : {}),
   });
 
@@ -45,17 +47,7 @@ export function useCollectionPointForm(
       setForm({
         ...initialData,
         operating_hours: initialData.operating_hours || defaultOperatingHours,
-        address_obj: initialData.address_obj || {
-          street: "",
-          number: "",
-          complement: "",
-          district: "",
-          zip_code: "",
-          city: "",
-          state: "",
-          latitude: null,
-          longitude: null
-        }
+        address_obj: initialData.address_obj || defaultAddressObj
       });
     }
   }, [initialData]);
@@ -66,14 +58,15 @@ export function useCollectionPointForm(
 
   const handleAddressInputChange = (field: keyof Address, value: any) => {
     setForm(prev => {
-      const updatedAddressObj = {
-        ...(prev.address_obj || {}),
-        [field]: value
-      };
+      // Certifique-se de que address_obj é um objeto
+      const currentAddressObj = prev.address_obj || {};
       
       return {
         ...prev,
-        address_obj: updatedAddressObj
+        address_obj: {
+          ...currentAddressObj,
+          [field]: value
+        }
       };
     });
   };

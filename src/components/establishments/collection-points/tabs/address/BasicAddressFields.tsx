@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import type { CollectionPoint, Address } from "@/types/collection-point";
 
 interface BasicAddressFieldsProps {
-  form: Partial<CollectionPoint> & { address?: Partial<Address> };
+  form: Partial<CollectionPoint>;
   onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
 }
@@ -18,7 +18,7 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="street"
             placeholder="Rua"
-            value={form.address?.street || ''}
+            value={form.address_obj?.street || ''}
             onChange={(e) => onInputChange('street', e.target.value)}
             disabled={isLoading}
           />
@@ -29,7 +29,7 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="number"
             placeholder="Número"
-            value={form.address?.number || ''}
+            value={form.address_obj?.number || ''}
             onChange={(e) => onInputChange('number', e.target.value)}
             disabled={isLoading}
           />
@@ -42,7 +42,7 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="complement"
             placeholder="Complemento"
-            value={form.address?.complement || ''}
+            value={form.address_obj?.complement || ''}
             onChange={(e) => onInputChange('complement', e.target.value)}
             disabled={isLoading}
           />
@@ -53,7 +53,7 @@ export function BasicAddressFields({ form, onInputChange, isLoading }: BasicAddr
           <Input
             id="district"
             placeholder="Bairro"
-            value={form.address?.district || ''}
+            value={form.address_obj?.district || ''}
             onChange={(e) => onInputChange('district', e.target.value)}
             disabled={isLoading}
           />
