@@ -37,6 +37,9 @@ export interface Address {
   updated_at: string | null;
 }
 
+// For form operations, we need a version of Address where all fields can be partial
+export type AddressFormData = Partial<Address>;
+
 export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
 export const daysOfWeek: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];

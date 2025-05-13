@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import type { CollectionPoint, DayOfWeek, Address } from "@/types/collection-point";
+import type { CollectionPoint, DayOfWeek, Address, AddressFormData } from "@/types/collection-point";
 
 const defaultOperatingHours = {
   monday: [{ open: '08:00', close: '18:00' }],
@@ -11,8 +12,8 @@ const defaultOperatingHours = {
   sunday: [{ open: '08:00', close: '18:00' }]
 };
 
-// Definindo um endereço padrão incompleto para novos pontos de coleta
-const defaultAddressObj: Partial<Address> = {
+// Define a default address for new collection points
+const defaultAddressObj: AddressFormData = {
   street: "",
   number: "",
   complement: "",
@@ -30,7 +31,7 @@ export function useCollectionPointForm(
     carrierId?: string;
   }
 ) {
-  const [form, setForm] = useState<Partial<CollectionPoint>>({
+  const [form, setForm] = useState<Partial<CollectionPoint> & { address_obj?: AddressFormData | null }>({
     name: "",
     address: "",
     phone: "",
@@ -58,15 +59,15 @@ export function useCollectionPointForm(
 
   const handleAddressInputChange = (field: keyof Address, value: any) => {
     setForm(prev => {
-      // Certifique-se de que address_obj é um objeto
-      const currentAddressObj = prev.address_obj || {};
+      // Make sure address_obj is an object
+      const currentAddressObj = prev.address_obj || {} as AddressFormData;
       
       return {
         ...prev,
         address_obj: {
           ...currentAddressObj,
           [field]: value
-        }
+        } as AddressFormData
       };
     });
   };

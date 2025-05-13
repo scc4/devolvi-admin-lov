@@ -2,10 +2,10 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint, Address, AddressFormData } from "@/types/collection-point";
 
 interface LocationFieldsProps {
-  form: Partial<CollectionPoint>;
+  form: Partial<CollectionPoint> & { address_obj?: AddressFormData | null };
   onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
   states: { value: string; label: string }[];

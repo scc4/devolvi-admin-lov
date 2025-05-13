@@ -4,16 +4,16 @@ import { BasicAddressFields } from "./address/BasicAddressFields";
 import { CoordinatesFields } from "./address/CoordinatesFields";
 import { LocationFields } from "./address/LocationFields";
 import { LocationMapPicker } from "./LocationMapPicker";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint, Address, AddressFormData } from "@/types/collection-point";
 
 interface AddressTabProps {
-  form: Partial<CollectionPoint>;
+  form: Partial<CollectionPoint> & { address_obj?: AddressFormData | null };
   onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
 }
 
 export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) {
-  // Agora passamos todo o formulário como está
+  // Pass the entire form
   const { states, availableCities, isLoadingCities, handleCEPChange } = useAddressForm(form, onInputChange);
 
   return (
