@@ -1,3 +1,4 @@
+
 export interface CollectionPoint {
   id: string;
   name: string;
@@ -6,7 +7,10 @@ export interface CollectionPoint {
   establishment?: {
     name: string;
   } | null;
-  carrier_id: string;
+  carrier_id: string | null;
+  carrier?: {
+    name: string;
+  } | null;
   phone: string | null;
   street: string | null;
   number: string | null;
