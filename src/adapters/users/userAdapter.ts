@@ -48,7 +48,7 @@ export const userAdapter = {
       phone: model.phone,
       role: model.role,
       status: model.status,
-      createdAt: model.created_at // Now correctly mapping created_at to createdAt
+      createdAt: model.created_at // Converting created_at from UserRow to createdAt for UserDTO
     };
   },
 
@@ -61,7 +61,7 @@ export const userAdapter = {
       name: dto.name,
       email: dto.email,
       phone: dto.phone,
-      created_at: dto.createdAt, // Correctly mapping createdAt to created_at
+      created_at: dto.createdAt, // Converting createdAt from UserDTO to created_at for UserRow
       role: dto.role,
       status: dto.status
     };
