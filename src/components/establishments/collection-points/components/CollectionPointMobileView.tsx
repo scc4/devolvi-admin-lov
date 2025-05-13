@@ -3,15 +3,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, MapPin, Building, Edit, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint } from "@/types/collection-point";
 import { checkOpenStatus } from "../utils/checkOpenStatus";
 import { formatOperatingHours } from "../utils/formatters";
 import { getSimpleAddress, getLocation } from "../utils/addressHelpers";
 
 interface CollectionPointMobileViewProps {
-  collectionPoints: (CollectionPoint & { address?: Address | null })[];
+  collectionPoints: CollectionPoint[];
   isLoading: boolean;
-  onEdit?: (point: CollectionPoint & { address?: Address | null }) => void;
+  onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
   carrierMap: Map<string, { name: string }>;
 }
@@ -54,7 +54,7 @@ export function CollectionPointMobileView({
                     <Button variant="ghost" size="sm" className="h-8 px-2 -mr-2">
                       <Clock className="h-4 w-4 mr-1" />
                       <span className={status.isOpen ? "text-green-600" : "text-red-600"}>
-                        {status.isOpen ? "Open" : "Closed"}
+                        {status.isOpen ? "Aberto" : "Fechado"}
                       </span>
                     </Button>
                   </PopoverTrigger>

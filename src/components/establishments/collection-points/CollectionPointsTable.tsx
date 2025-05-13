@@ -7,13 +7,13 @@ import { CollectionPointMobileView } from "./components/CollectionPointMobileVie
 import { CollectionPointDesktopView } from "./components/CollectionPointDesktopView";
 
 interface CollectionPointsTableProps {
-  collectionPoints: (CollectionPoint & { address?: Address | null })[];
+  collectionPoints: CollectionPoint[];
   isLoading?: boolean;
-  onEdit?: (point: CollectionPoint & { address?: Address | null }) => void;
+  onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
   onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
-  onAssociate?: (point: CollectionPoint & { address?: Address | null }) => void;
-  onDisassociate?: (point: CollectionPoint & { address?: Address | null }) => void;
+  onAssociate?: (point: CollectionPoint) => void;
+  onDisassociate?: (point: CollectionPoint) => void;
   showAssociateButton?: boolean;
   showDisassociateButton?: boolean;
 }
@@ -51,9 +51,11 @@ export function CollectionPointsTable({
               <div className="space-y-1">
                 <h3 className="font-semibold">{point.name}</h3>
                 <p className="text-sm text-gray-600">{point.address}</p>
-                <p className="text-xs text-gray-500">{point.address?.city} - {point.address?.state}</p>
+                <p className="text-xs text-gray-500">
+                  {point.address_obj?.city} - {point.address_obj?.state}
+                </p>
                 <div className="text-xs text-gray-500 space-y-0.5">
-                  {point.address?.district && <p><strong>Bairro:</strong> {point.address.district}</p>}
+                  {point.address_obj?.district && <p><strong>Bairro:</strong> {point.address_obj.district}</p>}
                   {point.establishment_id && (
                     <p>
                       <strong>Estabelecimento:</strong> {point.establishment?.name || 'Não definido'}

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCollectionPoints } from "./useCollectionPoints";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint } from "@/types/collection-point";
 
 export function useCollectionPointAssociation(carrierId: string) {
   const [carrierName, setCarrierName] = useState<string>("");
@@ -68,7 +68,10 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   // Filter points based on served cities
   const filteredUnassignedPoints = filterByServedCities
-    ? unassignedPoints.filter(point => point.address && servedCities.includes(point.address.city || ''))
+    ? unassignedPoints.filter(point => {
+        if (!point.address_obj || !point.address_obj.city) return false;
+        return servedCities.includes(point.address_obj.city);
+      })
     : unassignedPoints;
 
   const handleAssociate = async (point: CollectionPoint) => {

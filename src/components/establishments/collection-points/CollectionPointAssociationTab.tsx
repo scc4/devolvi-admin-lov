@@ -1,3 +1,4 @@
+
 import { useCollectionPointAssociation } from "@/hooks/useCollectionPointAssociation";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";

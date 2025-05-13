@@ -13,7 +13,7 @@ const defaultOperatingHours = {
 };
 
 export function useCollectionPointForm(
-  initialData?: CollectionPoint & { address_obj?: Address },
+  initialData?: CollectionPoint,
   carrierContext?: {
     carrierId?: string;
   }
@@ -65,13 +65,17 @@ export function useCollectionPointForm(
   };
 
   const handleAddressInputChange = (field: keyof Address, value: any) => {
-    setForm(prev => ({
-      ...prev,
-      address_obj: {
+    setForm(prev => {
+      const updatedAddressObj = {
         ...(prev.address_obj || {}),
         [field]: value
-      }
-    }));
+      };
+      
+      return {
+        ...prev,
+        address_obj: updatedAddressObj
+      };
+    });
   };
 
   const handleTimeChange = (day: DayOfWeek, index: number, field: 'open' | 'close', value: string) => {

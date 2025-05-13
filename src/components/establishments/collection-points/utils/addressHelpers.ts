@@ -1,8 +1,8 @@
 
 import type { CollectionPoint, Address } from "@/types/collection-point";
 
-export const getSimpleAddress = (point: CollectionPoint & { address_obj?: Address | null }): string => {
-  if (!point.address_obj) return "Endereço não disponível";
+export const getSimpleAddress = (point: CollectionPoint): string => {
+  if (!point.address_obj) return point.address || "Endereço não disponível";
 
   const { street, number, district } = point.address_obj;
   const parts = [];
@@ -11,10 +11,10 @@ export const getSimpleAddress = (point: CollectionPoint & { address_obj?: Addres
   if (number) parts.push(number);
   if (district) parts.push(district);
 
-  return parts.length > 0 ? parts.join(', ') : "Endereço não disponível";
+  return parts.length > 0 ? parts.join(', ') : point.address || "Endereço não disponível";
 };
 
-export const getLocation = (point: CollectionPoint & { address_obj?: Address | null }): string => {
+export const getLocation = (point: CollectionPoint): string => {
   if (!point.address_obj) return "Localização desconhecida";
 
   const { city, state } = point.address_obj;
@@ -26,8 +26,8 @@ export const getLocation = (point: CollectionPoint & { address_obj?: Address | n
   return parts.length > 0 ? parts.join(' - ') : "Localização desconhecida";
 };
 
-export const getFullAddress = (point: CollectionPoint & { address_obj?: Address | null }): string => {
-  if (!point.address_obj) return "Endereço completo não disponível";
+export const getFullAddress = (point: CollectionPoint): string => {
+  if (!point.address_obj) return point.address || "Endereço completo não disponível";
 
   const { street, number, complement, district, city, state, zip_code } = point.address_obj;
   const parts = [];
@@ -40,5 +40,5 @@ export const getFullAddress = (point: CollectionPoint & { address_obj?: Address 
   if (state) parts.push(state);
   if (zip_code) parts.push(`CEP: ${zip_code}`);
 
-  return parts.length > 0 ? parts.join(', ') : "Endereço completo não disponível";
+  return parts.length > 0 ? parts.join(', ') : point.address || "Endereço completo não disponível";
 };

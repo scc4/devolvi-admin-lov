@@ -34,7 +34,7 @@ export function CollectionPointsTab({
   );
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [selectedPoint, setSelectedPoint] = useState<(CollectionPoint & { address?: Address | null }) | undefined>(undefined);
+  const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
   const { isMobile } = useIsMobile();
   
   const handleOpenCreate = () => {
@@ -42,7 +42,7 @@ export function CollectionPointsTab({
     setFormDialogOpen(true);
   };
   
-  const handleOpenEdit = (point: CollectionPoint & { address?: Address | null }) => {
+  const handleOpenEdit = (point: CollectionPoint) => {
     setSelectedPoint(point);
     setFormDialogOpen(true);
   };
@@ -53,7 +53,7 @@ export function CollectionPointsTab({
     }
   };
   
-  const handleFormSubmit = async (point: Partial<CollectionPoint> & { address?: Partial<Address> }) => {
+  const handleFormSubmit = async (point: Partial<CollectionPoint> & { address_obj?: Partial<Address> }) => {
     try {
       if (selectedPoint) {
         await updateCollectionPoint(point);

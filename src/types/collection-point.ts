@@ -19,7 +19,7 @@ export interface CollectionPoint {
   } | null;
   created_at: string;
   updated_at: string;
-  address_obj?: Address | null; // Renamed to avoid duplicate declaration
+  address_obj?: Address | null;
 }
 
 export interface Address {
