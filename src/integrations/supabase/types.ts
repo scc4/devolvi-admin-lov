@@ -216,6 +216,66 @@ export type Database = {
           },
         ]
       }
+      devolution: {
+        Row: {
+          authorization_code: string | null
+          collection_point_id: string | null
+          content: string | null
+          created_at: string | null
+          date_status: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          status: string | null
+          tracker: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          authorization_code?: string | null
+          collection_point_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          date_status?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          authorization_code?: string | null
+          collection_point_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          date_status?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devolution_collection_point_id_fkey"
+            columns: ["collection_point_id"]
+            isOneToOne: false
+            referencedRelation: "collection_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devolution_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       establishment_managers: {
         Row: {
           created_at: string

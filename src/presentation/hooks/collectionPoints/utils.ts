@@ -1,6 +1,5 @@
 
 import { toast } from "sonner";
-import { AbortController } from "node-fetch";
 
 /**
  * Funções auxiliares para manipulação de pontos de coleta
