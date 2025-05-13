@@ -1,14 +1,16 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { UserDTO } from '../../application/dto/UserDTO';
-import { container } from '../../infrastructure/di/container';
-import { userAdapter } from '../../adapters/users/userAdapter';
+import { UserDTO } from '@/application/dto/UserDTO';
+import { container } from '@/infrastructure/di/container';
+import { userAdapter } from '@/adapters/users/userAdapter';
+import { UserRow } from "@/types/user";
 
 /**
  * Hook to expose user-related use cases to the presentation layer using DI
  */
 export function useUserCases() {
-  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -26,7 +28,7 @@ export function useUserCases() {
       console.log("Fetching users with DI approach");
       const userDTOs = await getAllUsersUseCase.execute();
       console.log("Users fetched:", userDTOs);
-      setUsers(userDTOs);
+      setUsers(userDTOs as unknown as UserRow[]);
     } catch (err) {
       console.error("Error loading users:", err);
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar usuários';
@@ -57,6 +59,7 @@ export function useUserCases() {
           title: "Usuário excluído",
           description: "O usuário foi excluído com sucesso."
         });
+        await loadUsers(); // Reload users after deletion
         return { success: true };
       } else {
         toast({
@@ -88,6 +91,7 @@ export function useUserCases() {
           title: "Usuário inativado",
           description: "O usuário foi inativado com sucesso."
         });
+        await loadUsers(); // Reload users after deactivation
         return { success: true };
       } else {
         toast({
