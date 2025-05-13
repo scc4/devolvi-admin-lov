@@ -44,7 +44,7 @@ export function CollectionPointAssociationTab({
   const [isPrinting, setIsPrinting] = useState(false);
   const { isMobile } = useIsMobile();
 
-  // Efeito para atualizar a aba ativa se o initialTab mudar
+  // Effect to update the active tab if initialTab changes
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);

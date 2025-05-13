@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CollectionPoint } from '@/types/collection-point';
@@ -69,6 +68,7 @@ export function useCollectionPointsQuery(filters: CollectionPointFilters = {}) {
         throw error;
       }
       
+      console.log(`Retrieved ${data.length} collection points with filters:`, filters);
       return data.map(mapDatabaseToUIModel);
     }
   });

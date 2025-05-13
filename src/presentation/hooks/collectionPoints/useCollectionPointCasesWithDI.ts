@@ -42,6 +42,7 @@ export function useCollectionPointCasesWithDI(filters: CollectionPointFilters = 
   useEffect(() => {
     const fetchCollectionPoints = async () => {
       try {
+        console.log("Loading collection points with filters:", filters);
         await loadCollectionPoints(filters);
       } catch (error) {
         console.error("Error fetching collection points:", error);
@@ -103,6 +104,7 @@ export function useCollectionPointCasesWithDI(filters: CollectionPointFilters = 
   // Recarregar pontos de coleta
   const refetch = useCallback(async () => {
     try {
+      console.log("Refetching collection points with filters:", filters);
       await loadCollectionPoints(filters);
     } catch (error) {
       console.error("Error refetching collection points:", error);

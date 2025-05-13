@@ -17,6 +17,8 @@ export function useCollectionPointAssociation(carrierId: string) {
   const { data: servedCitiesData = [], isLoading: isLoadingServedCities } = useQuery({
     queryKey: ['served-cities', carrierId],
     queryFn: async () => {
+      if (!carrierId) return [];
+      
       const { data, error } = await supabase
         .from('carrier_served_cities')
         .select('city')
@@ -46,6 +48,8 @@ export function useCollectionPointAssociation(carrierId: string) {
       if (data) {
         setCarrierName(data.name);
         setCarrierCity(data.city);
+      } else {
+        console.error('Error fetching carrier details:', error);
       }
     };
     
@@ -54,8 +58,11 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   // Update served cities when data changes
   useEffect(() => {
-    setServedCities(servedCitiesData);
-  }, [servedCitiesData]);
+    if (servedCitiesData) {
+      console.log(`Loaded ${servedCitiesData.length} served cities for carrier ${carrierId}`);
+      setServedCities(servedCitiesData);
+    }
+  }, [servedCitiesData, carrierId]);
 
   // Fetch unassigned points
   const {
@@ -78,18 +85,17 @@ export function useCollectionPointAssociation(carrierId: string) {
   });
 
   // Filter points based on served cities when needed
-  const filteredUnassignedPoints = filterByServedCities
-    ? unassignedPoints
-    : unassignedPoints;
+  const filteredUnassignedPoints = unassignedPoints;
 
   const handleAssociatePoint = async (point: CollectionPoint) => {
     try {
+      console.log(`Associating point ${point.id} with carrier ${carrierId}`);
       // Convert UI model to DTO before passing to the handler
       const pointDTO = collectionPointAdapter.fromUIModel(point);
       await assignCarrier({ collectionPointId: pointDTO.id, carrierId });
       toast.success('Ponto de coleta associado com sucesso');
-      refetchUnassigned();
-      refetchCarrier();
+      await refetchUnassigned();
+      await refetchCarrier();
     } catch (error) {
       console.error('Error associating collection point:', error);
       toast.error('Erro ao associar ponto de coleta');
@@ -98,12 +104,13 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   const handleDisassociatePoint = async (point: CollectionPoint) => {
     try {
+      console.log(`Disassociating point ${point.id} from carrier ${carrierId}`);
       // Convert UI model to DTO before passing to the handler
       const pointDTO = collectionPointAdapter.fromUIModel(point);
       await assignCarrier({ collectionPointId: pointDTO.id, carrierId: null });
       toast.success('Ponto de coleta desassociado com sucesso');
-      refetchUnassigned();
-      refetchCarrier();
+      await refetchUnassigned();
+      await refetchCarrier();
     } catch (error) {
       console.error('Error disassociating collection point:', error);
       toast.error('Erro ao desassociar ponto de coleta');

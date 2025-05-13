@@ -39,6 +39,12 @@ export default function Carriers() {
     }
   };
 
+  const handleManageCollectionPoints = (carrier: Carrier) => {
+    console.log("Opening collection points dialog for carrier:", carrier);
+    setSelectedCarrier(carrier);
+    setCollectionPointsOpen(true);
+  };
+
   return (
     <div className="space-y-6 p-6 bg-soft-purple min-h-screen">
       <Card className="border-none shadow-lg bg-white">
@@ -54,10 +60,7 @@ export default function Carriers() {
             onRetry={refresh}
             onEdit={setEditCarrier}
             onDelete={(carrier) => setConfirmModal({ action: "delete", carrier })}
-            onManageCollectionPoints={(carrier) => {
-              setSelectedCarrier(carrier);
-              setCollectionPointsOpen(true);
-            }}
+            onManageCollectionPoints={handleManageCollectionPoints}
           />
         </CardContent>
       </Card>
@@ -87,7 +90,12 @@ export default function Carriers() {
         <ManageCollectionPointsDialog
           open={collectionPointsOpen}
           carrier={selectedCarrier}
-          onOpenChange={setCollectionPointsOpen}
+          onOpenChange={(open) => {
+            setCollectionPointsOpen(open);
+            if (!open) {
+              setTimeout(() => setSelectedCarrier(null), 300);
+            }
+          }}
         />
       )}
     </div>
