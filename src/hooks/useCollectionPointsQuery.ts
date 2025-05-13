@@ -46,8 +46,15 @@ export function useCollectionPointsQuery(filters: CollectionPointFilters = {}) {
       
       if (filters.unassigned) {
         query = query.is('carrier_id', null);
+        
+        // Handle city filtering for unassigned points
         if (filters.cityFilter) {
-          query = query.eq('city', filters.cityFilter);
+          // Split comma-separated city names and create filter
+          const cities = filters.cityFilter.split(',').filter(city => city.trim());
+          
+          if (cities.length > 0) {
+            query = query.in('city', cities);
+          }
         }
       } else if (filters.establishmentId) {
         query = query.eq('establishment_id', filters.establishmentId);

@@ -56,31 +56,27 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   // Fetch unassigned points
   const {
-    collectionPoints: unassignedPointsData,
+    collectionPoints: unassignedPoints,
     loading: isLoadingUnassigned,
     refetch: refetchUnassigned,
     assignCarrier
   } = useCollectionPointsQuery({
     unassigned: true,
-    cityFilter: filterByServedCities ? servedCities.join(',') : undefined
+    cityFilter: filterByServedCities && servedCities.length > 0 ? servedCities.join(',') : undefined
   });
 
   // Fetch carrier points
   const {
-    collectionPoints: carrierPointsData,
+    collectionPoints: carrierPoints,
     loading: isLoadingCarrier,
     refetch: refetchCarrier
   } = useCollectionPointsQuery({
     carrierId
   });
 
-  // We're already getting UI models from the React Query implementation
-  const unassignedPoints = unassignedPointsData;
-  const carrierPoints = carrierPointsData;
-
-  // Filter points based on served cities
+  // Filter points based on served cities when needed
   const filteredUnassignedPoints = filterByServedCities
-    ? unassignedPoints.filter(point => servedCities.includes(point.city || ''))
+    ? unassignedPoints
     : unassignedPoints;
 
   const handleAssociatePoint = async (point: CollectionPoint) => {
