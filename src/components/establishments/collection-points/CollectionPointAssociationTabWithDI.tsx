@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { createRoot } from 'react-dom/client';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
 
 interface CollectionPointAssociationTabWithDIProps {
   carrierId: string;
@@ -19,10 +20,11 @@ interface CollectionPointAssociationTabWithDIProps {
 export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPointAssociationTabWithDIProps) {
   const [filterByServedCities, setFilterByServedCities] = useState(true);
   const [carrierName, setCarrierName] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("unassigned");
   const { isMobile } = useIsMobile();
 
   // Fetch carrier details
-  useQuery({
+  const { isLoading: isLoadingCarrierDetails } = useQuery({
     queryKey: ['carrier-details', carrierId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -75,6 +77,15 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
     carrierId
   });
 
+  // Ensure we refetch the appropriate data when changing tabs
+  useEffect(() => {
+    if (activeTab === "unassigned") {
+      refetchUnassigned();
+    } else {
+      refetchCarrier();
+    }
+  }, [activeTab, refetchUnassigned, refetchCarrier]);
+
   // Filter points based on served cities
   const filteredUnassignedPoints = filterByServedCities
     ? unassignedPoints.filter(point => servedCities.includes(point.city || ''))
@@ -101,8 +112,11 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
   };
 
   const handleRefresh = () => {
-    refetchUnassigned();
-    refetchCarrier();
+    if (activeTab === "unassigned") {
+      refetchUnassigned();
+    } else {
+      refetchCarrier();
+    }
   };
 
   const handlePrint = () => {
@@ -149,6 +163,9 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
     }
   };
 
+  const isLoading = isLoadingCarrierDetails || isLoadingServedCities || 
+                   (activeTab === "unassigned" ? isLoadingUnassigned : isLoadingCarrier);
+
   return (
     <div className="space-y-6">
       {carrierName && (
@@ -159,7 +176,11 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
         </div>
       )}
       
-      <Tabs defaultValue="unassigned" className="space-y-6">
+      <Tabs 
+        defaultValue="unassigned" 
+        className="space-y-6"
+        onValueChange={setActiveTab}
+      >
         <div className="flex flex-col gap-4">
           <TabsList className="w-full">
             <TabsTrigger value="unassigned" className="flex-1">Pontos Disponíveis</TabsTrigger>
@@ -168,8 +189,16 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
           <CollectionPointAssociationHeader 
             onRefresh={handleRefresh}
             onPrint={handlePrint}
+            isLoading={isLoading}
           />
         </div>
+
+        {isLoading && (
+          <div className="py-4">
+            <Progress value={75} className="w-full h-1" />
+            <p className="text-center text-sm text-muted-foreground mt-2">Carregando dados...</p>
+          </div>
+        )}
 
         <TabsContent value="unassigned" className="space-y-4">
           <div className="flex items-center space-x-2 mb-4">

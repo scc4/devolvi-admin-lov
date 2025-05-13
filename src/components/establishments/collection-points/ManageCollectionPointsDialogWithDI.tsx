@@ -43,11 +43,11 @@ export function ManageCollectionPointsDialogWithDI({
 
   const Content = () => {
     if (carrierContext?.carrierId) {
-      return <CollectionPointAssociationTabWithDI key={`carrier-${dialogKey}`} carrierId={carrierContext.carrierId} />;
+      return <CollectionPointAssociationTabWithDI key={`carrier-cp-${dialogKey}`} carrierId={carrierContext.carrierId} />;
     }
     return (
       <CollectionPointsTabWithDI
-        key={`establishment-${dialogKey}`}
+        key={`establishment-cp-${dialogKey}`}
         establishmentId={establishment?.id}
         carrierContext={carrierContext}
       />

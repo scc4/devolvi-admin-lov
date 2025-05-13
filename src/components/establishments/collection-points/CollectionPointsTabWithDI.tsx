@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, RefreshCcw } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Progress } from "@/components/ui/progress";
 
 interface CollectionPointsTabWithDIProps {
   establishmentId?: string;
@@ -81,8 +82,8 @@ export function CollectionPointsTabWithDI({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Pontos de Coleta</h2>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCcw className="h-4 w-4" />
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+            <RefreshCcw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             {!isMobile && <span className="ml-2">Atualizar</span>}
           </Button>
           <Button size="sm" onClick={handleOpenCreate} aria-label="Novo Ponto de Coleta">
@@ -91,6 +92,13 @@ export function CollectionPointsTabWithDI({
           </Button>
         </div>
       </div>
+
+      {isLoading && (
+        <div className="py-4">
+          <Progress value={75} className="w-full h-1" />
+          <p className="text-center text-sm text-muted-foreground mt-2">Carregando pontos de coleta...</p>
+        </div>
+      )}
 
       {error ? (
         <div className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-center">

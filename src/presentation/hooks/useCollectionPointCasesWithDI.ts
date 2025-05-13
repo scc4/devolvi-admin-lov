@@ -23,6 +23,7 @@ export function useCollectionPointCasesWithDI(filters?: {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isAssigningCarrier, setIsAssigningCarrier] = useState<boolean>(false);
   const isFirstLoad = useRef(true);
+  const filtersRef = useRef(filters);
   
   // Get use cases from container
   const getCollectionPointsUseCase = container.getCollectionPointsUseCase();
@@ -31,12 +32,19 @@ export function useCollectionPointCasesWithDI(filters?: {
   const deleteCollectionPointUseCase = container.deleteCollectionPointUseCase();
   const assignCarrierToCollectionPointUseCase = container.assignCarrierToCollectionPointUseCase();
 
+  // Only update the filtersRef when filters actually change
+  useEffect(() => {
+    if (JSON.stringify(filtersRef.current) !== JSON.stringify(filters)) {
+      filtersRef.current = filters;
+    }
+  }, [filters]);
+
   const loadCollectionPoints = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      console.log("Loading collection points with filters:", filters);
-      const collectionPointDTOs = await getCollectionPointsUseCase.execute(filters);
+      console.log("Loading collection points with filters:", filtersRef.current);
+      const collectionPointDTOs = await getCollectionPointsUseCase.execute(filtersRef.current);
       console.log("Collection points loaded:", collectionPointDTOs);
       
       if (!collectionPointDTOs || collectionPointDTOs.length === 0) {
@@ -57,13 +65,13 @@ export function useCollectionPointCasesWithDI(filters?: {
     } finally {
       setLoading(false);
     }
-  }, [getCollectionPointsUseCase, filters]);
+  }, [getCollectionPointsUseCase]); // Remove filters dependency to avoid infinite loop
 
-  // Load collection points on first render and when filters change
+  // Load collection points only on first mount or when explicitly called
   useEffect(() => {
-    console.log("useEffect triggered, loading collection points");
-    // Ensure we only load on first mount or when filters change
-    if (isFirstLoad.current || JSON.stringify(filters) !== JSON.stringify({})) {
+    console.log("useEffect triggered, checking if we should load collection points");
+    if (isFirstLoad.current) {
+      console.log("First load, fetching collection points");
       isFirstLoad.current = false;
       loadCollectionPoints();
     }
