@@ -1,15 +1,16 @@
 
 import { Check, X, MapPin, Phone, Pencil, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { formatAddress } from "./utils/formatters";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { daysOfWeek, daysOfWeekPtBr, DayOfWeek } from "@/types/collection-point";
+import { getSimpleAddress } from "./utils/addressHelpers";
 
 interface CollectionPointMobileCardProps {
-  point: CollectionPoint;
-  onEdit: (point: CollectionPoint) => void;
+  point: CollectionPoint & { address?: Address | null };
+  onEdit: (point: CollectionPoint & { address?: Address | null }) => void;
   onDelete: (pointId: string) => void;
 }
 
@@ -60,7 +61,7 @@ export function CollectionPointMobileCard({ point, onEdit, onDelete }: Collectio
       
       <div className="flex items-start text-sm">
         <MapPin className="h-4 w-4 text-muted-foreground mr-1 mt-0.5" />
-        <span className="flex-1">{formatAddress(point)}</span>
+        <span className="flex-1">{getSimpleAddress(point)}</span>
       </div>
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>

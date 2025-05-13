@@ -2,18 +2,18 @@
 import { useCarriers } from "@/hooks/useCarriers";
 import { useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { CollectionPointMobileView } from "./components/CollectionPointMobileView";
 import { CollectionPointDesktopView } from "./components/CollectionPointDesktopView";
 
 interface CollectionPointsTableProps {
-  collectionPoints: CollectionPoint[];
+  collectionPoints: (CollectionPoint & { address?: Address | null })[];
   isLoading?: boolean;
-  onEdit?: (point: CollectionPoint) => void;
+  onEdit?: (point: CollectionPoint & { address?: Address | null }) => void;
   onDelete?: (pointId: string) => void;
   onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
-  onAssociate?: (point: CollectionPoint) => void;
-  onDisassociate?: (point: CollectionPoint) => void;
+  onAssociate?: (point: CollectionPoint & { address?: Address | null }) => void;
+  onDisassociate?: (point: CollectionPoint & { address?: Address | null }) => void;
   showAssociateButton?: boolean;
   showDisassociateButton?: boolean;
 }
@@ -35,20 +35,6 @@ export function CollectionPointsTable({
   const carrierMap = useMemo(() => {
     return new Map(carriers.map(carrier => [carrier.id, carrier]));
   }, [carriers]);
-  
-  const getSimpleAddress = (point: CollectionPoint) => {
-    const parts = [];
-    if (point.street) parts.push(point.street);
-    if (point.number) parts.push(point.number);
-    return parts.length > 0 ? parts.join(', ') : 'Não informado';
-  };
-
-  const getLocation = (point: CollectionPoint) => {
-    const parts = [];
-    if (point.city) parts.push(point.city);
-    if (point.state) parts.push(point.state);
-    return parts.length > 0 ? parts.join('/') : 'Não informado';
-  };
 
   // If we're showing association buttons, use the existing card layout
   if (showAssociateButton || showDisassociateButton) {
@@ -64,10 +50,10 @@ export function CollectionPointsTable({
             <div className="flex justify-between items-start">
               <div className="space-y-1">
                 <h3 className="font-semibold">{point.name}</h3>
-                <p className="text-sm text-gray-600">{getSimpleAddress(point)}</p>
-                <p className="text-xs text-gray-500">{getLocation(point)}</p>
+                <p className="text-sm text-gray-600">{point.address}</p>
+                <p className="text-xs text-gray-500">{point.address?.city} - {point.address?.state}</p>
                 <div className="text-xs text-gray-500 space-y-0.5">
-                  {point.district && <p><strong>Bairro:</strong> {point.district}</p>}
+                  {point.address?.district && <p><strong>Bairro:</strong> {point.address.district}</p>}
                   {point.establishment_id && (
                     <p>
                       <strong>Estabelecimento:</strong> {point.establishment?.name || 'Não definido'}

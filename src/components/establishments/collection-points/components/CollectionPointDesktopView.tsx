@@ -7,14 +7,14 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { CollectionPointTableHeader } from "./table/CollectionPointTableHeader";
 import { CollectionPointTableRow } from "./table/CollectionPointTableRow";
 
 interface CollectionPointDesktopViewProps {
-  collectionPoints: CollectionPoint[];
+  collectionPoints: (CollectionPoint & { address?: Address | null })[];
   isLoading?: boolean;
-  onEdit?: (point: CollectionPoint) => void;
+  onEdit?: (point: CollectionPoint & { address?: Address | null }) => void;
   onDelete?: (pointId: string) => void;
   onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
   carrierMap: Map<string, { name: string }>;

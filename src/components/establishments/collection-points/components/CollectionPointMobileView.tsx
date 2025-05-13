@@ -3,15 +3,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, MapPin, Building, Edit, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { CollectionPoint } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 import { checkOpenStatus } from "../utils/checkOpenStatus";
 import { formatOperatingHours } from "../utils/formatters";
 import { getSimpleAddress, getLocation } from "../utils/addressHelpers";
 
 interface CollectionPointMobileViewProps {
-  collectionPoints: CollectionPoint[];
+  collectionPoints: (CollectionPoint & { address?: Address | null })[];
   isLoading: boolean;
-  onEdit?: (point: CollectionPoint) => void;
+  onEdit?: (point: CollectionPoint & { address?: Address | null }) => void;
   onDelete?: (pointId: string) => void;
   carrierMap: Map<string, { name: string }>;
 }
