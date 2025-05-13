@@ -11,117 +11,155 @@ export class SupabaseCollectionPointRepository implements ICollectionPointReposi
    * Get all collection points
    */
   async getAll(): Promise<CollectionPoint[]> {
-    const { data, error } = await supabase
-      .from('collection_points')
-      .select(`
-        *,
-        establishment:establishments(name),
-        carrier:carriers(name)
-      `)
-      .order('name');
+    try {
+      const { data, error } = await supabase
+        .from('collection_points')
+        .select(`
+          *,
+          establishment:establishments(name),
+          carrier:carriers!collection_points_carrier_id_fkey(name)
+        `)
+        .order('name');
 
-    if (error) {
-      console.error('Error fetching collection points:', error);
-      throw error;
+      if (error) {
+        console.error('Error fetching collection points:', error);
+        throw error;
+      }
+
+      return this.mapToDomainEntities(data);
+    } catch (error) {
+      console.error('Detailed error in getAll():', error);
+      throw error instanceof Error ? error : new Error(`Failed to get collection points: ${error}`);
     }
-
-    return this.mapToDomainEntities(data);
   }
 
   /**
    * Get collection points by establishment
    */
   async getByEstablishment(establishmentId: string): Promise<CollectionPoint[]> {
-    const { data, error } = await supabase
-      .from('collection_points')
-      .select(`
-        *,
-        establishment:establishments(name),
-        carrier:carriers(name)
-      `)
-      .eq('establishment_id', establishmentId)
-      .order('name');
+    try {
+      console.log(`Fetching collection points for establishment: ${establishmentId}`);
+      
+      const { data, error } = await supabase
+        .from('collection_points')
+        .select(`
+          *,
+          establishment:establishments(name),
+          carrier:carriers!collection_points_carrier_id_fkey(name)
+        `)
+        .eq('establishment_id', establishmentId)
+        .order('name');
 
-    if (error) {
-      console.error('Error fetching collection points by establishment:', error);
-      throw error;
+      if (error) {
+        console.error('Error fetching collection points by establishment:', error);
+        throw error;
+      }
+
+      console.log(`Retrieved ${data.length} collection points for establishment ${establishmentId}`);
+      return this.mapToDomainEntities(data);
+    } catch (error) {
+      console.error(`Detailed error in getByEstablishment(${establishmentId}):`, error);
+      throw error instanceof Error ? error : new Error(`Failed to get collection points for establishment: ${error}`);
     }
-
-    return this.mapToDomainEntities(data);
   }
 
   /**
    * Get collection points by carrier
    */
   async getByCarrier(carrierId: string): Promise<CollectionPoint[]> {
-    const { data, error } = await supabase
-      .from('collection_points')
-      .select(`
-        *,
-        establishment:establishments(name),
-        carrier:carriers(name)
-      `)
-      .eq('carrier_id', carrierId)
-      .order('name');
+    try {
+      console.log(`Fetching collection points for carrier: ${carrierId}`);
+      
+      const { data, error } = await supabase
+        .from('collection_points')
+        .select(`
+          *,
+          establishment:establishments(name),
+          carrier:carriers!collection_points_carrier_id_fkey(name)
+        `)
+        .eq('carrier_id', carrierId)
+        .order('name');
 
-    if (error) {
-      console.error('Error fetching collection points by carrier:', error);
-      throw error;
+      if (error) {
+        console.error('Error fetching collection points by carrier:', error);
+        throw error;
+      }
+
+      console.log(`Retrieved ${data.length} collection points for carrier ${carrierId}`);
+      return this.mapToDomainEntities(data);
+    } catch (error) {
+      console.error(`Detailed error in getByCarrier(${carrierId}):`, error);
+      throw error instanceof Error ? error : new Error(`Failed to get collection points for carrier: ${error}`);
     }
-
-    return this.mapToDomainEntities(data);
   }
 
   /**
    * Get unassigned collection points
    */
   async getUnassigned(cityFilter?: string): Promise<CollectionPoint[]> {
-    let query = supabase
-      .from('collection_points')
-      .select(`
-        *,
-        establishment:establishments(name),
-        carrier:carriers(name)
-      `)
-      .is('carrier_id', null);
-    
-    if (cityFilter) {
-      query = query.eq('city', cityFilter);
-    }
-    
-    const { data, error } = await query.order('name');
+    try {
+      console.log(`Fetching unassigned collection points${cityFilter ? ` in city: ${cityFilter}` : ''}`);
+      
+      let query = supabase
+        .from('collection_points')
+        .select(`
+          *,
+          establishment:establishments(name),
+          carrier:carriers!collection_points_carrier_id_fkey(name)
+        `)
+        .is('carrier_id', null);
+      
+      if (cityFilter) {
+        query = query.eq('city', cityFilter);
+      }
+      
+      const { data, error } = await query.order('name');
 
-    if (error) {
-      console.error('Error fetching unassigned collection points:', error);
-      throw error;
-    }
+      if (error) {
+        console.error('Error fetching unassigned collection points:', error);
+        throw error;
+      }
 
-    return this.mapToDomainEntities(data);
+      console.log(`Retrieved ${data.length} unassigned collection points${cityFilter ? ` in city ${cityFilter}` : ''}`);
+      return this.mapToDomainEntities(data);
+    } catch (error) {
+      console.error(`Detailed error in getUnassigned(${cityFilter}):`, error);
+      throw error instanceof Error ? error : new Error(`Failed to get unassigned collection points: ${error}`);
+    }
   }
 
   /**
    * Get a collection point by ID
    */
   async getById(id: string): Promise<CollectionPoint | null> {
-    const { data, error } = await supabase
-      .from('collection_points')
-      .select(`
-        *,
-        establishment:establishments(name),
-        carrier:carriers(name)
-      `)
-      .eq('id', id)
-      .single();
+    try {
+      console.log(`Fetching collection point with ID: ${id}`);
+      
+      const { data, error } = await supabase
+        .from('collection_points')
+        .select(`
+          *,
+          establishment:establishments(name),
+          carrier:carriers!collection_points_carrier_id_fkey(name)
+        `)
+        .eq('id', id)
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') { // Not found
-        return null;
+      if (error) {
+        if (error.code === 'PGRST116') { // Not found
+          console.log(`No collection point found with ID: ${id}`);
+          return null;
+        }
+        console.error('Error fetching collection point by ID:', error);
+        throw error;
       }
-      console.error('Error fetching collection point by ID:', error);
-      throw error;
-    }
 
-    return this.mapToDomainEntity(data);
+      console.log(`Successfully retrieved collection point with ID: ${id}`);
+      return this.mapToDomainEntity(data);
+    } catch (error) {
+      console.error(`Detailed error in getById(${id}):`, error);
+      throw error instanceof Error ? error : new Error(`Failed to get collection point by ID: ${error}`);
+    }
   }
 
   /**
