@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/hooks/use-toast"
-import { supabase } from "@/integrations/supabase/client"
 import { UserRow } from "@/types/user"
+import { useUserCases } from "@/presentation/hooks/useUserCases"
 
 interface ResetPasswordDialogProps {
   user: UserRow | null
@@ -29,6 +29,9 @@ export function ResetPasswordDialog({
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Use the DDD implementation with the reset password use case
+  const { handleResetPassword } = useUserCases();
 
   const validatePassword = () => {
     if (password.length < 6) {
@@ -51,11 +54,12 @@ export function ResetPasswordDialog({
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.functions.invoke('admin-reset-password', {
-        body: { userId: user.id, password }
-      })
+      // Use the DDD useCase directly
+      const result = await handleResetPassword(user.id, password);
 
-      if (error) throw error
+      if (!result.success) {
+        throw new Error(result.error?.message || "Erro ao alterar a senha");
+      }
 
       toast({
         title: "Senha alterada com sucesso",

@@ -1,5 +1,6 @@
+
 import { useState, useEffect, useRef } from "react";
-import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
+import { useCollectionPointCases } from "@/presentation/hooks/useCollectionPointCases";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +12,7 @@ import { createRoot } from 'react-dom/client';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
+import { collectionPointAdapter } from "@/adapters/collectionPoints/collectionPointAdapter";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
@@ -67,7 +69,7 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     loading: isLoadingUnassigned,
     loadCollectionPoints: refetchUnassigned,
     handleAssignCarrier,
-  } = useCollectionPointCasesWithDI({
+  } = useCollectionPointCases({
     unassigned: true
   });
 
@@ -76,7 +78,7 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     collectionPoints: carrierPoints,
     loading: isLoadingCarrier,
     loadCollectionPoints: refetchCarrier,
-  } = useCollectionPointCasesWithDI({
+  } = useCollectionPointCases({
     carrierId
   });
 
@@ -102,7 +104,9 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
 
   const handleAssociate = async (point: any) => {
     try {
-      await handleAssignCarrier(point.id, carrierId);
+      // Convert UI model to DTO before passing to the handler
+      const pointDTO = collectionPointAdapter.fromUIModel(point);
+      await handleAssignCarrier(pointDTO.id, carrierId);
       refetchUnassigned();
       refetchCarrier();
     } catch (error) {
@@ -112,7 +116,9 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
 
   const handleDisassociate = async (point: any) => {
     try {
-      await handleAssignCarrier(point.id, null);
+      // Convert UI model to DTO before passing to the handler
+      const pointDTO = collectionPointAdapter.fromUIModel(point);
+      await handleAssignCarrier(pointDTO.id, null);
       refetchUnassigned();
       refetchCarrier();
     } catch (error) {

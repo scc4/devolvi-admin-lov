@@ -1,9 +1,6 @@
 
-import { useState, useCallback, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { CollectionPoint } from "@/types/collection-point";
-import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
+import { useCollectionPointCases } from "@/presentation/hooks/useCollectionPointCases";
 
 export function useCollectionPoints(
   establishmentId?: string, 
@@ -24,7 +21,7 @@ export function useCollectionPoints(
     isUpdating,
     isDeleting,
     isAssigningCarrier
-  } = useCollectionPointCasesWithDI({
+  } = useCollectionPointCases({
     establishmentId,
     carrierId,
     unassigned

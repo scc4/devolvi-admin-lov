@@ -1,36 +1,33 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { UserDTO } from '../../application/dto/UserDTO';
-import { GetAllUsersUseCase } from '../../application/useCases/user/GetAllUsersUseCase';
-import { DeleteUserUseCase } from '../../application/useCases/user/DeleteUserUseCase';
-import { DeactivateUserUseCase } from '../../application/useCases/user/DeactivateUserUseCase';
-import { ResetPasswordUseCase } from '../../application/useCases/user/ResetPasswordUseCase';
-import { SupabaseUserRepository } from '../../infrastructure/repositories/SupabaseUserRepository';
+import { container } from '../../infrastructure/di/container';
+import { userAdapter } from '../../adapters/users/userAdapter';
+import { UserRow } from "@/types/user";
 
 /**
- * Hook to expose user-related use cases to the presentation layer
+ * Hook to expose user-related use cases to the presentation layer using DI
  */
 export function useUserCases() {
-  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  // Create repository instance
-  const userRepository = new SupabaseUserRepository();
   
-  // Create use case instances
-  const getAllUsersUseCase = new GetAllUsersUseCase(userRepository);
-  const deleteUserUseCase = new DeleteUserUseCase(userRepository);
-  const deactivateUserUseCase = new DeactivateUserUseCase(userRepository);
-  const resetPasswordUseCase = new ResetPasswordUseCase(userRepository);
+  // Get use cases from container
+  const getAllUsersUseCase = container.getAllUsersUseCase();
+  const deleteUserUseCase = container.deleteUserUseCase();
+  const deactivateUserUseCase = container.deactivateUserUseCase();
+  const resetPasswordUseCase = container.resetPasswordUseCase();
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      console.log("Fetching users with DI approach");
       const userDTOs = await getAllUsersUseCase.execute();
-      setUsers(userDTOs);
+      console.log("Users fetched:", userDTOs);
+      setUsers(userDTOs as unknown as UserRow[]);
     } catch (err) {
       console.error("Error loading users:", err);
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar usuários';
@@ -45,14 +42,23 @@ export function useUserCases() {
     }
   }, [getAllUsersUseCase, toast]);
 
-  const handleDelete = async (user: UserDTO): Promise<{ success: boolean }> => {
+  // Load users on mount
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
+  const handleDelete = async (user: any): Promise<{ success: boolean }> => {
     try {
-      const result = await deleteUserUseCase.execute(user.id);
+      // We convert from UI model to DTO if needed
+      const userDTO = 'id' in user ? userAdapter.fromUIModel(user) : user;
+      
+      const result = await deleteUserUseCase.execute(userDTO.id);
       if (result.success) {
         toast({
           title: "Usuário excluído",
           description: "O usuário foi excluído com sucesso."
         });
+        await loadUsers(); // Reload users after deletion
         return { success: true };
       } else {
         toast({
@@ -73,14 +79,18 @@ export function useUserCases() {
     }
   };
 
-  const handleDeactivate = async (user: UserDTO): Promise<{ success: boolean }> => {
+  const handleDeactivate = async (user: any): Promise<{ success: boolean }> => {
     try {
-      const result = await deactivateUserUseCase.execute(user.id);
+      // We convert from UI model to DTO if needed
+      const userDTO = 'id' in user ? userAdapter.fromUIModel(user) : user;
+      
+      const result = await deactivateUserUseCase.execute(userDTO.id);
       if (result.success) {
         toast({
           title: "Usuário inativado",
           description: "O usuário foi inativado com sucesso."
         });
+        await loadUsers(); // Reload users after deactivation
         return { success: true };
       } else {
         toast({
@@ -101,7 +111,9 @@ export function useUserCases() {
     }
   };
 
-  // Additional methods would be implemented here for other use cases
+  const handleResetPassword = async (userId: string, password: string): Promise<{ success: boolean; error?: Error }> => {
+    return await resetPasswordUseCase.execute(userId, password);
+  };
 
   return {
     users,
@@ -110,6 +122,6 @@ export function useUserCases() {
     loadUsers,
     handleDelete,
     handleDeactivate,
-    // Other methods would be exposed here
+    handleResetPassword
   };
 }

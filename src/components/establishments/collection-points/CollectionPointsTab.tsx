@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
+import { useCollectionPointCases } from "@/presentation/hooks/useCollectionPointCases";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointFormDialog } from "./CollectionPointFormDialog";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ export function CollectionPointsTab({
     handleDelete: deleteCollectionPoint,
     isCreating,
     isUpdating
-  } = useCollectionPointCasesWithDI({
+  } = useCollectionPointCases({
     establishmentId,
     carrierId: carrierContext?.carrierId
   });

@@ -44,9 +44,9 @@ function App() {
       
       <Route path="/dashboard" element={<ProtectedRoute redirectTo="/login" />}>
         <Route path="" element={<Dashboard />} />
-        <Route path="users" element={<Users />} /> {/* Using standardized DDD version */}
+        <Route path="users" element={<Users />} />
         <Route path="carriers" element={<Carriers />} />
-        <Route path="establishments" element={<Establishments />} /> {/* Using standardized DDD version */}
+        <Route path="establishments" element={<Establishments />} />
       </Route>
       
       <Route path="*" element={<NotFound />} />
