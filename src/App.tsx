@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Index from "./pages/Index";
@@ -14,12 +14,21 @@ import EstablishmentsWithDI from "./pages/EstablishmentsWithDI";
 import UsersDDD from "./pages/UsersDDD";
 
 function App() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  // If still loading auth state, show a loading spinner
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const ProtectedRoute = ({ redirectTo }: { redirectTo: string }) => {
     return user ? (
