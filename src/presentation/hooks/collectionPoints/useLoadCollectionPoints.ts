@@ -5,15 +5,8 @@ import { collectionPointAdapter } from '../../../adapters/collectionPoints/colle
 import { CollectionPoint as CollectionPointUI } from '../../../types/collection-point';
 import { handleCollectionPointError, isRequestAborted } from './utils';
 
-interface LoadingState {
-  isLoading: boolean;
-  isFirstLoad: boolean;
-  hasError: boolean;
-  errorMessage: string | null;
-}
-
 /**
- * Hook para carregamento de pontos de coleta
+ * Hook simplificado para carregamento de pontos de coleta
  */
 export function useLoadCollectionPoints(
   getCollectionPointsUseCase: any,
@@ -24,28 +17,29 @@ export function useLoadCollectionPoints(
     cityFilter?: string;
   }
 ) {
-  const [collectionPoints, setCollectionPoints] = useState<CollectionPointUI[]>([]);
-  const [loadingState, setLoadingState] = useState<LoadingState>({
-    isLoading: true,
-    isFirstLoad: true,
-    hasError: false,
-    errorMessage: null
+  // Estados unificados para melhor gerenciamento
+  const [state, setState] = useState({
+    collectionPoints: [] as CollectionPointUI[],
+    loading: true,
+    error: null as string | null,
+    isFirstLoad: true
   });
   
-  // Use refs para evitar loops infinitos
-  const filtersRef = useRef(filters);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const requestIdRef = useRef<number>(0);
+  // Refs necessários para controle do ciclo de vida
   const isMountedRef = useRef<boolean>(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const filtersRef = useRef(filters);
   
-  // Effect to update filters ref when filters change
+  // Atualiza a ref de filtros quando os filtros mudam
   useEffect(() => {
     filtersRef.current = filters;
+    console.log("Filtros atualizados:", filters);
   }, [filters]);
   
-  // Effect to handle component unmount
+  // Limpa recursos ao desmontar o componente
   useEffect(() => {
     return () => {
+      console.log("Hook useLoadCollectionPoints desmontando");
       isMountedRef.current = false;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -54,88 +48,77 @@ export function useLoadCollectionPoints(
   }, []);
 
   const loadCollectionPoints = useCallback(async (forceRefresh = false) => {
-    // Prevent loading if not mounted
-    if (!isMountedRef.current) return;
+    // Skip if component is unmounted
+    if (!isMountedRef.current) {
+      console.log("loadCollectionPoints skipped - component não está montado");
+      return;
+    }
     
-    // Generate a unique request ID to track current request
-    const currentRequestId = ++requestIdRef.current;
-    
-    // Cancel previous request if exists
+    // Cancel any ongoing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
     
-    // Create new abort controller
+    // Create a new abort controller for this request
     abortControllerRef.current = new AbortController();
     
-    // Mark as loading
-    setLoadingState(prev => ({
+    console.log(`Loading collection points with filters:`, filtersRef.current, 
+      forceRefresh ? "(forçando atualização)" : "");
+    
+    // Set loading state
+    setState(prev => ({
       ...prev,
-      isLoading: true,
-      hasError: false,
-      errorMessage: null
+      loading: true,
+      error: null
     }));
     
     try {
-      console.log(`[${currentRequestId}] Loading collection points with filters:`, filtersRef.current);
-      
       // Execute use case to load data
       const collectionPointDTOs = await getCollectionPointsUseCase.execute(filtersRef.current);
       
-      // Ignore response if not the current request or component unmounted
-      if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
-        console.log(`[${currentRequestId}] Request outdated or component unmounted, ignoring response`);
+      // Skip updating state if component unmounted or request was aborted
+      if (!isMountedRef.current || isRequestAborted(abortControllerRef.current)) {
+        console.log("Request outdated or component unmounted, ignorando resposta");
         return;
       }
       
-      // Verify if request was aborted
-      if (isRequestAborted(abortControllerRef.current)) {
-        console.log(`[${currentRequestId}] Request was aborted, skipping state update`);
-        return;
-      }
-      
-      console.log(`[${currentRequestId}] Collection points loaded:`, collectionPointDTOs?.length || 0);
+      console.log("Collection points carregados:", collectionPointDTOs?.length || 0);
       
       // Convert to UI models
       const uiModels = collectionPointDTOs ? collectionPointAdapter.toUIModelList(collectionPointDTOs) : [];
-      console.log(`[${currentRequestId}] Collection points UI models:`, uiModels.length);
+      console.log("Collection points UI models:", uiModels.length);
       
-      // Update state only if component is still mounted
+      // Update state if component is still mounted
       if (isMountedRef.current) {
-        setCollectionPoints(uiModels);
-        setLoadingState(prev => ({
-          ...prev,
-          isLoading: false,
+        setState({
+          collectionPoints: uiModels,
+          loading: false,
+          error: null,
           isFirstLoad: false
-        }));
+        });
       }
     } catch (err) {
       // Skip error handling if request was aborted or component unmounted
       if (isRequestAborted(abortControllerRef.current) || !isMountedRef.current) {
-        console.log(`[${currentRequestId}] Request was aborted or component unmounted, skipping error handling`);
+        console.log("Request aborted or component unmounted, pulando tratamento de erro");
         return;
       }
       
       const errorMessage = handleCollectionPointError(err, "Erro ao carregar pontos de coleta");
       
       if (isMountedRef.current) {
-        setLoadingState(prev => ({
+        setState(prev => ({
           ...prev,
-          isLoading: false,
+          loading: false,
           isFirstLoad: false,
-          hasError: true,
-          errorMessage
+          error: errorMessage
         }));
       }
     }
   }, [getCollectionPointsUseCase]);
 
   return {
-    collectionPoints,
-    loading: loadingState.isLoading,
-    isFirstLoad: loadingState.isFirstLoad, // Now always a boolean value
-    hasError: loadingState.hasError,
-    errorMessage: loadingState.errorMessage,
+    ...state,
     loadCollectionPoints,
     filtersRef,
     abortControllerRef

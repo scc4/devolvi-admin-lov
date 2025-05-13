@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 /**
  * Hook principal que expõe casos de uso relacionados a pontos de coleta
- * usando injeção de dependência
+ * usando injeção de dependência - Versão refatorada com gerenciamento de estado simplificado
  */
 export function useCollectionPointCasesWithDI(filters?: {
   establishmentId?: string;
@@ -19,26 +19,13 @@ export function useCollectionPointCasesWithDI(filters?: {
 }) {
   // Keep track of component mount status
   const isMountedRef = useRef(true);
-  const initStartedRef = useRef(false);
-  const [isCacheFresh, setIsCacheFresh] = useState(false);
   
-  // Track operation states independently
+  // Track operation states
   const [operationStates, setOperationStates] = useState({
     isCreating: false,
     isUpdating: false,
     isDeleting: false,
     isAssigningCarrier: false
-  });
-  
-  // Cache for storing results
-  const cacheRef = useRef<{
-    filters: typeof filters | null;
-    collectionPoints: any[] | null;
-    timestamp: number | null;
-  }>({
-    filters: null,
-    collectionPoints: null,
-    timestamp: null
   });
   
   // Obter casos de uso do container
@@ -48,16 +35,14 @@ export function useCollectionPointCasesWithDI(filters?: {
   const deleteCollectionPointUseCase = container.deleteCollectionPointUseCase();
   const assignCarrierToCollectionPointUseCase = container.assignCarrierToCollectionPointUseCase();
 
-  // Usar os hooks individuais
+  // Usar os hooks individuais com o sistema de DI
   const {
     collectionPoints,
     loading,
-    hasError,
-    errorMessage,
+    error,
     loadCollectionPoints,
     isFirstLoad,
-    filtersRef,
-    abortControllerRef
+    filtersRef
   } = useLoadCollectionPoints(getCollectionPointsUseCase, filters);
 
   const { handleCreate, isCreating: isCreatingInternal } = useCreateCollectionPoint(createCollectionPointUseCase);
@@ -75,78 +60,27 @@ export function useCollectionPointCasesWithDI(filters?: {
     });
   }, [isCreatingInternal, isUpdatingInternal, isDeletingInternal, isAssigningCarrierInternal]);
 
-  // Check if filters have changed
+  // Carregar dados iniciais ao montar
   useEffect(() => {
-    if (!initStartedRef.current) {
-      initStartedRef.current = true;
-      return;
-    }
-    
-    const filtersChanged = JSON.stringify(filtersRef.current) !== JSON.stringify(filters);
-    
-    if (filtersChanged) {
-      console.log("Filters changed, updating filtersRef", {
-        old: filtersRef.current,
-        new: filters
-      });
-      filtersRef.current = filters;
-      
-      // Check cache for these filters
-      const cacheMatches = 
-        cacheRef.current.filters && 
-        JSON.stringify(cacheRef.current.filters) === JSON.stringify(filters) &&
-        cacheRef.current.timestamp && 
-        Date.now() - cacheRef.current.timestamp < 30000; // 30 second cache
-      
-      if (cacheMatches && cacheRef.current.collectionPoints) {
-        console.log("Using cached collection points data");
-        setIsCacheFresh(true);
-      } else {
-        setIsCacheFresh(false);
-        loadCollectionPoints();
-      }
-    }
-  }, [filters, loadCollectionPoints]);
-
-  // Initial data loading - once only
-  useEffect(() => {
-    console.log("useEffect for initial data loading triggered");
-    
-    // Always load data on initial mount
+    console.log("useEffect para carregamento inicial disparado", { filters });
     loadCollectionPoints();
     
-    // Cleanup on unmount
     return () => {
-      console.log("Collection points component unmounting, cleaning up");
+      console.log("Hook useCollectionPointCasesWithDI desmontando");
       isMountedRef.current = false;
-      
-      if (abortControllerRef.current) {
-        console.log("Aborting pending collection points requests");
-        abortControllerRef.current.abort();
-      }
     };
   }, [loadCollectionPoints]);
 
-  // Cache the results when collectionPoints change
+  // Recarregar quando os filtros mudarem
   useEffect(() => {
-    if (collectionPoints.length > 0 && !loading) {
-      cacheRef.current = {
-        filters,
-        collectionPoints,
-        timestamp: Date.now()
-      };
+    // Evitar carregamento duplo na montagem inicial
+    if (!isFirstLoad) {
+      console.log("Filtros alterados, recarregando dados", { filters });
+      loadCollectionPoints();
     }
-  }, [collectionPoints, loading, filters]);
+  }, [filters, loadCollectionPoints, isFirstLoad]);
 
-  // Refresh function with cache control
-  const refreshCollectionPoints = useCallback(async (ignoreCache = false) => {
-    if (ignoreCache) {
-      setIsCacheFresh(false);
-    }
-    await loadCollectionPoints(ignoreCache);
-  }, [loadCollectionPoints]);
-
-  // Safely perform operations with automatic refresh
+  // Operação segura com feedback para o usuário
   const safeOperation = useCallback(async <T,>(
     operation: () => Promise<T>,
     successMessage: string,
@@ -159,14 +93,14 @@ export function useCollectionPointCasesWithDI(filters?: {
         toast.success(successMessage);
         
         if (refreshAfter) {
-          console.log("Operation successful, refreshing collection points data");
-          await refreshCollectionPoints(true);
+          console.log("Operação bem-sucedida, recarregando pontos de coleta");
+          await loadCollectionPoints(true);
         }
       }
       
       return result;
     } catch (error) {
-      console.error("Operation failed:", error);
+      console.error("Operação falhou:", error);
       
       if (isMountedRef.current) {
         toast.error("Ocorreu um erro", {
@@ -174,9 +108,9 @@ export function useCollectionPointCasesWithDI(filters?: {
         });
       }
     }
-  }, [refreshCollectionPoints]);
+  }, [loadCollectionPoints]);
 
-  // Wrap operations with safe execution
+  // Operações com feedback e atualização automática
   const handleCreateWithRefresh = useCallback(async (collectionPoint: any) => {
     return safeOperation(
       () => handleCreate(collectionPoint),
@@ -208,8 +142,8 @@ export function useCollectionPointCasesWithDI(filters?: {
   return {
     collectionPoints,
     loading,
-    error: hasError ? errorMessage : null,
-    loadCollectionPoints: refreshCollectionPoints,
+    error,
+    loadCollectionPoints: useCallback((forceRefresh = false) => loadCollectionPoints(forceRefresh), [loadCollectionPoints]),
     handleCreate: handleCreateWithRefresh,
     handleUpdate: handleUpdateWithRefresh,
     handleDelete: handleDeleteWithRefresh,
@@ -217,7 +151,6 @@ export function useCollectionPointCasesWithDI(filters?: {
     isCreating: operationStates.isCreating,
     isUpdating: operationStates.isUpdating,
     isDeleting: operationStates.isDeleting,
-    isAssigningCarrier: operationStates.isAssigningCarrier,
-    isCacheFresh
+    isAssigningCarrier: operationStates.isAssigningCarrier
   };
 }

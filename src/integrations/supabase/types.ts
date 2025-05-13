@@ -384,6 +384,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          read: boolean
+          text: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          read?: boolean
+          text: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          read?: boolean
+          text?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       phone_temporary_codes: {
         Row: {
           code: number
@@ -432,6 +473,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_collection_points: {
+        Row: {
+          collection_point_id: string
+          default: boolean
+          deleted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          collection_point_id: string
+          default?: boolean
+          deleted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          collection_point_id?: string
+          default?: boolean
+          deleted_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_collection_points_collection_point_id_fkey"
+            columns: ["collection_point_id"]
+            isOneToOne: false
+            referencedRelation: "collection_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_collection_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_email_confirmations: {
         Row: {
           confirmed: boolean
@@ -446,6 +523,35 @@ export type Database = {
           email?: string
         }
         Relationships: []
+      }
+      user_permissions: {
+        Row: {
+          notices: boolean
+          reminders: boolean
+          updates: boolean
+          user_id: string
+        }
+        Insert: {
+          notices?: boolean
+          reminders?: boolean
+          updates?: boolean
+          user_id?: string
+        }
+        Update: {
+          notices?: boolean
+          reminders?: boolean
+          updates?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

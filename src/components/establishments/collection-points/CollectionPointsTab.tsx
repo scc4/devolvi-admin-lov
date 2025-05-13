@@ -21,10 +21,9 @@ export function CollectionPointsTab({
   establishmentId,
   carrierContext
 }: CollectionPointsTabProps) {
-  console.log("CollectionPointsTab rendered with:", { 
+  console.log("CollectionPointsTab renderizado com:", { 
     establishmentId, 
-    carrierId: carrierContext?.carrierId,
-    timestamp: new Date().toISOString()
+    carrierId: carrierContext?.carrierId
   });
   
   const {
@@ -47,28 +46,17 @@ export function CollectionPointsTab({
   const { isMobile } = useIsMobile();
   const [showError, setShowError] = useState(false);
   
-  // Reset error state when filters change
+  // Resetar o estado de erro quando os filtros mudam
   useEffect(() => {
     setShowError(false);
   }, [establishmentId, carrierContext]);
   
-  // Show error after loading finishes if there is an error
+  // Mostrar erro após o carregamento terminar, se houver erro
   useEffect(() => {
     if (!loading && error) {
       setShowError(true);
     }
   }, [loading, error]);
-  
-  // Force data load on component mount and when context changes
-  useEffect(() => {
-    console.log("CollectionPointsTab context changed - forcing refresh", {
-      carrierId: carrierContext?.carrierId,
-      establishmentId
-    });
-    
-    // Force a refresh when the component is mounted or context changes
-    refetch(true);
-  }, [carrierContext?.carrierId, establishmentId, refetch]);
   
   const handleOpenCreate = () => {
     setSelectedPoint(undefined);
@@ -89,34 +77,37 @@ export function CollectionPointsTab({
   const handleFormSubmit = async (point: Partial<CollectionPoint>) => {
     try {
       if (selectedPoint) {
-        // For updates, convert from UI model to DTO before passing to handler
+        // Para atualizações, converter do modelo UI para DTO antes de passar ao manipulador
         const pointDTO = collectionPointAdapter.fromUIModel({
           ...selectedPoint,
           ...point
         });
         await updateCollectionPoint(pointDTO);
       } else {
-        // Create new point with appropriate context
+        // Criar novo ponto com o contexto apropriado
         const pointData = {
           ...point,
           establishment_id: establishmentId || null,
           carrier_id: carrierContext?.carrierId || null,
         };
-        // Convert from UI model to DTO before passing to handler
+        // Converter do modelo UI para DTO antes de passar ao manipulador
         const pointDTO = collectionPointAdapter.fromUIModel(pointData);
         await createCollectionPoint(pointDTO);
       }
       setFormDialogOpen(false);
     } catch (error) {
-      console.error("Error submitting collection point:", error);
+      console.error("Erro ao enviar ponto de coleta:", error);
     }
   };
 
-  // Handle retry when error occurs
+  // Lidar com nova tentativa quando ocorre erro
   const handleRetry = () => {
     setShowError(false);
-    refetch(true); // Force refresh
+    refetch(true); // Forçar atualização
   };
+
+  // Gerar uma chave estável baseada nos IDs, não no timestamp
+  const tableKey = `points-table-${establishmentId || ''}-${carrierContext?.carrierId || ''}`;
 
   return (
     <div className="space-y-4">
@@ -166,7 +157,7 @@ export function CollectionPointsTab({
         isLoading={loading}
         onEdit={handleOpenEdit}
         onDelete={handleConfirmDelete}
-        key={`points-table-${establishmentId || carrierContext?.carrierId || 'all'}-${Date.now()}`}
+        key={tableKey}
       />
 
       <CollectionPointFormDialog
