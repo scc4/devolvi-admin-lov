@@ -69,7 +69,10 @@ export function ManageCollectionPointsDialog({
               </TabsTrigger>
             </TabsList>
             <TabsContent value="manage" className="pt-4 pb-2">
-              <CollectionPointAssociationTab carrierId={carrier.id} />
+              <CollectionPointAssociationTab 
+                carrierId={carrier.id} 
+                skipCarrierHeader={true} // Flag para evitar exibir o cabeçalho duplicado
+              />
             </TabsContent>
             <TabsContent value="carrier" className="pt-4 pb-2">
               <CollectionPointsTab 

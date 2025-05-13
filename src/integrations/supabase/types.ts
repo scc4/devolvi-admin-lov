@@ -276,6 +276,50 @@ export type Database = {
           },
         ]
       }
+      devolution_life_cycle: {
+        Row: {
+          created_at: string | null
+          date_hour: string | null
+          deleted_at: string | null
+          devolution_id: string | null
+          id: string
+          phase: string | null
+          stage: string | null
+          tracker: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_hour?: string | null
+          deleted_at?: string | null
+          devolution_id?: string | null
+          id?: string
+          phase?: string | null
+          stage?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_hour?: string | null
+          deleted_at?: string | null
+          devolution_id?: string | null
+          id?: string
+          phase?: string | null
+          stage?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devolution_life_cycle_devolution_id_fkey"
+            columns: ["devolution_id"]
+            isOneToOne: false
+            referencedRelation: "devolution"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       establishment_managers: {
         Row: {
           created_at: string
