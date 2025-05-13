@@ -73,18 +73,9 @@ export function useCollectionPointAssociation(carrierId: string) {
     carrierId
   });
 
-  // Convert DDD entities to UI models
-  const unassignedPoints = unassignedPointsData.map(
-    point => collectionPointAdapter.toUIModel ? 
-      collectionPointAdapter.toUIModel(point) : 
-      point as unknown as CollectionPoint
-  );
-
-  const carrierPoints = carrierPointsData.map(
-    point => collectionPointAdapter.toUIModel ? 
-      collectionPointAdapter.toUIModel(point) : 
-      point as unknown as CollectionPoint
-  );
+  // We're already getting UI models from the DI implementation
+  const unassignedPoints = unassignedPointsData;
+  const carrierPoints = carrierPointsData;
 
   // Filter points based on served cities
   const filteredUnassignedPoints = filterByServedCities
@@ -93,8 +84,6 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   const handleAssociatePoint = async (point: CollectionPoint) => {
     try {
-      // Convert from UI model to DTO before passing to handler
-      const pointDTO = collectionPointAdapter.fromUIModel(point);
       await handleAssignCarrier(point.id, carrierId);
       toast.success('Ponto de coleta associado com sucesso');
       refetchUnassigned();
@@ -107,8 +96,6 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   const handleDisassociatePoint = async (point: CollectionPoint) => {
     try {
-      // Convert from UI model to DTO before passing to handler
-      const pointDTO = collectionPointAdapter.fromUIModel(point);
       await handleAssignCarrier(point.id, null);
       toast.success('Ponto de coleta desassociado com sucesso');
       refetchUnassigned();

@@ -79,11 +79,7 @@ export function CollectionPointsTab({
   };
 
   // Convert DDD collection points to UI format if needed
-  const formattedCollectionPoints = collectionPoints.map(
-    point => collectionPointAdapter.toUIModel ? 
-      collectionPointAdapter.toUIModel(point) : 
-      point as unknown as CollectionPoint
-  );
+  const formattedCollectionPoints = collectionPoints;
 
   return (
     <div className="space-y-4">
