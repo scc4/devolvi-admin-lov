@@ -133,7 +133,7 @@ export function useLoadCollectionPoints(
   return {
     collectionPoints,
     loading: loadingState.isLoading,
-    isFirstLoad: loadingState.isFirstLoad,
+    isFirstLoad: loadingState.isFirstLoad, // Now always a boolean value
     hasError: loadingState.hasError,
     errorMessage: loadingState.errorMessage,
     loadCollectionPoints,

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useCollectionPointCases } from "@/presentation/hooks/useCollectionPointCases";
+import { useCollectionPointCasesWithDI } from "@/presentation/hooks/collectionPoints/useCollectionPointCasesWithDI";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointFormDialog } from "./CollectionPointFormDialog";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,11 @@ export function CollectionPointsTab({
   establishmentId,
   carrierContext
 }: CollectionPointsTabProps) {
-  console.log("CollectionPointsTab rendered with:", { establishmentId, carrierContext });
+  console.log("CollectionPointsTab rendered with:", { 
+    establishmentId, 
+    carrierId: carrierContext?.carrierId,
+    timestamp: new Date().toISOString()
+  });
   
   const {
     collectionPoints,
@@ -33,7 +37,7 @@ export function CollectionPointsTab({
     handleDelete: deleteCollectionPoint,
     isCreating,
     isUpdating
-  } = useCollectionPointCases({
+  } = useCollectionPointCasesWithDI({
     establishmentId,
     carrierId: carrierContext?.carrierId
   });
@@ -55,19 +59,16 @@ export function CollectionPointsTab({
     }
   }, [loading, error]);
   
+  // Force data load on component mount and when context changes
   useEffect(() => {
-    // Log dos pontos de coleta carregados para depuração
-    console.log("CollectionPointsTab data:", {
-      carrierContextId: carrierContext?.carrierId,
-      establishmentId,
-      collectionPoints: collectionPoints.length,
-      loading,
-      error
+    console.log("CollectionPointsTab context changed - forcing refresh", {
+      carrierId: carrierContext?.carrierId,
+      establishmentId
     });
     
-    // Forçar uma atualização quando o componente é montado
+    // Force a refresh when the component is mounted or context changes
     refetch(true);
-  }, [carrierContext, establishmentId]);
+  }, [carrierContext?.carrierId, establishmentId, refetch]);
   
   const handleOpenCreate = () => {
     setSelectedPoint(undefined);

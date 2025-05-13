@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { container } from '../../../infrastructure/di/container';
 import { useLoadCollectionPoints } from './useLoadCollectionPoints';
@@ -113,24 +112,8 @@ export function useCollectionPointCasesWithDI(filters?: {
   useEffect(() => {
     console.log("useEffect for initial data loading triggered");
     
-    // Fix: Implementação robusta para verificar o tipo de isFirstLoad
-    if (isFirstLoad !== null && isFirstLoad !== undefined) {
-      // Caso 1: isFirstLoad é um objeto com propriedade current (useRef)
-      if (typeof isFirstLoad === 'object' && 'current' in isFirstLoad) {
-        console.log("First load (ref object), fetching collection points");
-        loadCollectionPoints();
-      } 
-      // Caso 2: isFirstLoad é um booleano true
-      else if (isFirstLoad === true) {
-        console.log("First load (boolean), fetching collection points");
-        loadCollectionPoints();
-      }
-      // Qualquer outro caso, não faz nada
-    } else {
-      // Se isFirstLoad for null ou undefined, carregamos os dados por segurança
-      console.log("isFirstLoad is null or undefined, fetching collection points anyway");
-      loadCollectionPoints();
-    }
+    // Always load data on initial mount
+    loadCollectionPoints();
     
     // Cleanup on unmount
     return () => {
@@ -142,7 +125,7 @@ export function useCollectionPointCasesWithDI(filters?: {
         abortControllerRef.current.abort();
       }
     };
-  }, [loadCollectionPoints, isFirstLoad]);
+  }, [loadCollectionPoints]);
 
   // Cache the results when collectionPoints change
   useEffect(() => {

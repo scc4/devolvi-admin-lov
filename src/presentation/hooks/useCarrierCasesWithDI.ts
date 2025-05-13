@@ -19,6 +19,7 @@ export function useCarrierCasesWithDI() {
   // Flag para controlar carregamento inicial
   const isMountedRef = useRef(true);
   const hasInitialLoadRef = useRef(false);
+  const loadingRef = useRef(false);
   
   // Get use cases from container
   const getAllCarriersUseCase = container.getAllCarriersUseCase();
@@ -29,25 +30,36 @@ export function useCarrierCasesWithDI() {
 
   // Limpar a flag quando o componente for desmontado
   useEffect(() => {
+    console.log("useCarrierCasesWithDI mounted");
+    
     return () => {
+      console.log("useCarrierCasesWithDI unmounted");
       isMountedRef.current = false;
     };
   }, []);
 
-  const loadCarriers = useCallback(async () => {
-    if (!isMountedRef.current) return;
-    
-    // Evitar carregamentos duplicados
-    if (hasInitialLoadRef.current && !loading) {
-      console.log("Skipping repeated carriers load");
+  const loadCarriers = useCallback(async (forceRefresh = false) => {
+    // Prevent loading if not mounted or already loading
+    if (!isMountedRef.current || (loadingRef.current && !forceRefresh)) {
+      console.log("Skipping carriers load - not mounted or already loading");
       return;
     }
     
+    // Prevent duplicate loads unless forceRefresh is true
+    if (hasInitialLoadRef.current && !forceRefresh) {
+      console.log("Skipping repeated carriers load (already loaded)");
+      return;
+    }
+    
+    console.log("Loading carriers data...");
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
+    
     try {
       // 1. Get all carriers from the use case
       const carrierDTOs = await getAllCarriersUseCase.execute();
+      console.log(`Retrieved ${carrierDTOs.length} carriers`);
       
       // 2. Load collection points count for each carrier
       const carriersWithCounts = await Promise.all(
@@ -88,14 +100,16 @@ export function useCarrierCasesWithDI() {
     } finally {
       if (isMountedRef.current) {
         setLoading(false);
+        loadingRef.current = false;
       }
     }
-  }, [getAllCarriersUseCase, loading]);
+  }, [getAllCarriersUseCase]);
 
-  // Load carriers on first render using useEffect
+  // Load carriers on first render using useEffect - only once
   useEffect(() => {
     if (!hasInitialLoadRef.current) {
-      loadCarriers();
+      console.log("Initial carriers load triggered");
+      loadCarriers(true);
     }
   }, [loadCarriers]);
 

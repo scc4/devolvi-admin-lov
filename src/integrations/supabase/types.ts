@@ -216,7 +216,51 @@ export type Database = {
           },
         ]
       }
-      devolution: {
+      devolution_life_cycle: {
+        Row: {
+          created_at: string | null
+          date_hour: string | null
+          deleted_at: string | null
+          devolution_id: string | null
+          id: string
+          phase: string | null
+          stage: string | null
+          tracker: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_hour?: string | null
+          deleted_at?: string | null
+          devolution_id?: string | null
+          id?: string
+          phase?: string | null
+          stage?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_hour?: string | null
+          deleted_at?: string | null
+          devolution_id?: string | null
+          id?: string
+          phase?: string | null
+          stage?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devolution_life_cycle_devolution_id_fkey"
+            columns: ["devolution_id"]
+            isOneToOne: false
+            referencedRelation: "devolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      devolutions: {
         Row: {
           authorization_code: string | null
           collection_point_id: string | null
@@ -272,50 +316,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      devolution_life_cycle: {
-        Row: {
-          created_at: string | null
-          date_hour: string | null
-          deleted_at: string | null
-          devolution_id: string | null
-          id: string
-          phase: string | null
-          stage: string | null
-          tracker: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          date_hour?: string | null
-          deleted_at?: string | null
-          devolution_id?: string | null
-          id?: string
-          phase?: string | null
-          stage?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          date_hour?: string | null
-          deleted_at?: string | null
-          devolution_id?: string | null
-          id?: string
-          phase?: string | null
-          stage?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "devolution_life_cycle_devolution_id_fkey"
-            columns: ["devolution_id"]
-            isOneToOne: false
-            referencedRelation: "devolution"
             referencedColumns: ["id"]
           },
         ]
@@ -474,6 +474,21 @@ export type Database = {
         }
         Relationships: []
       }
+      user_email_confirmation: {
+        Row: {
+          confirmed: boolean
+          email: string
+        }
+        Insert: {
+          confirmed?: boolean
+          email: string
+        }
+        Update: {
+          confirmed?: boolean
+          email?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -511,6 +526,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_session_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_temporary_code: {
+        Row: {
+          code: number
+          expires_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: number
+          expires_at: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: number
+          expires_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_temporary_code_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user"
