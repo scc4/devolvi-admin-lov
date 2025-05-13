@@ -9,6 +9,7 @@ import { ConfirmActionDialog } from "@/components/carriers/ConfirmActionDialog";
 import { useCarriers } from "@/hooks/useCarriers";
 import { Carrier } from "@/types/carrier";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
+import { carrierAdapter } from "@/adapters/carriers/carrierAdapter";
 
 export default function Carriers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,7 +22,7 @@ export default function Carriers() {
     carriers,
     loading,
     error,
-    loadCarriers,
+    refresh, // Using refresh instead of loadCarriers
     handleEdit,
     handleDelete
   } = useCarriers();
@@ -33,7 +34,11 @@ export default function Carriers() {
 
   const handleConfirmAction = () => {
     if (!confirmModal) return;
-    if (confirmModal.action === "delete") handleDelete(confirmModal.carrier);
+    if (confirmModal.action === "delete") {
+      // Convert UI model to DTO when passing to handleDelete
+      const carrierDTO = carrierAdapter.toDomainDTO(confirmModal.carrier);
+      handleDelete(carrierDTO);
+    }
   };
 
   return (
@@ -48,7 +53,7 @@ export default function Carriers() {
             error={error}
             loading={loading}
             carriers={filteredCarriers}
-            onRetry={loadCarriers}
+            onRetry={refresh} // Using refresh instead of loadCarriers
             onEdit={setEditCarrier}
             onDelete={(carrier) => setConfirmModal({ action: "delete", carrier })}
             onManageCollectionPoints={(carrier) => {
@@ -63,7 +68,11 @@ export default function Carriers() {
         <EditCarrierDialog
           carrier={editCarrier}
           onClose={() => setEditCarrier(null)}
-          onEdit={handleEdit}
+          onEdit={async (carrier) => {
+            // Convert UI model to DTO when passing to handleEdit
+            const carrierDTO = carrierAdapter.toDomainDTO(carrier);
+            await handleEdit(carrierDTO);
+          }}
         />
       )}
 
