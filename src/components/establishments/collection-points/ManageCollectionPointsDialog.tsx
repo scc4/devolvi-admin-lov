@@ -105,27 +105,13 @@ export function ManageCollectionPointsDialog({
             onError={handleDialogError}
           >
             {isCarrierDialog && carrier?.id && (
-              <Tabs defaultValue="manage" className="mt-4">
-                <TabsList className={isMobile ? 'flex flex-col space-y-1 h-auto' : ''}>
-                  <TabsTrigger value="manage" className="flex-1">
-                    Gerenciar Associações
-                  </TabsTrigger>
-                  <TabsTrigger value="carrier" className="flex-1">
-                    Pontos da Transportadora
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="manage" className="pt-4 pb-2">
-                  <CollectionPointAssociationTab 
-                    carrierId={carrier?.id} 
-                    skipCarrierHeader={true} 
-                  />
-                </TabsContent>
-                <TabsContent value="carrier" className="pt-4 pb-2">
-                  <CollectionPointsTab 
-                    carrierContext={{ carrierId: carrier?.id }} 
-                  />
-                </TabsContent>
-              </Tabs>
+              // For carrier context, only show association management
+              <div className="pt-4 pb-2">
+                <CollectionPointAssociationTab 
+                  carrierId={carrier?.id} 
+                  skipCarrierHeader={false}
+                />
+              </div>
             )}
 
             {establishmentId && (
