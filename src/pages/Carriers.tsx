@@ -29,6 +29,10 @@ export default function Carriers() {
   // Convert DTOs to UI models
   const carriers = carrierAdapter.toUIModelList(carrierDTOs);
   
+  // Log para depuração
+  console.log("Carrier DTOs:", carrierDTOs);
+  console.log("Carriers UI models:", carriers);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [editCarrierData, setEditCarrierData] = useState<Carrier | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate", carrier: Carrier }>(null);

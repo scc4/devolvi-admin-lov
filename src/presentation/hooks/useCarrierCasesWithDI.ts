@@ -1,7 +1,9 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from "sonner";
 import { CarrierDTO } from '../../application/dto/CarrierDTO';
 import { container } from '../../infrastructure/di/container';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Hook to expose carrier-related use cases to the presentation layer using DI
@@ -25,8 +27,32 @@ export function useCarrierCasesWithDI() {
     setLoading(true);
     setError(null);
     try {
+      // 1. Get all carriers from the use case
       const carrierDTOs = await getAllCarriersUseCase.execute();
-      setCarriers(carrierDTOs);
+      
+      // 2. Load collection points count for each carrier
+      const carriersWithCounts = await Promise.all(
+        carrierDTOs.map(async (carrier) => {
+          // Query to count collection points for this carrier
+          const { count, error: countError } = await supabase
+            .from('collection_points')
+            .select('*', { count: 'exact', head: true })
+            .eq('carrier_id', carrier.id);
+          
+          if (countError) {
+            console.error(`Error counting collection points for carrier ${carrier.id}:`, countError);
+          }
+          
+          // Return carrier with count information
+          return {
+            ...carrier,
+            collectionPointsCount: count || 0
+          };
+        })
+      );
+      
+      console.log("Carriers with collection points count:", carriersWithCounts);
+      setCarriers(carriersWithCounts);
     } catch (err) {
       console.error("Error loading carriers:", err);
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar transportadoras';

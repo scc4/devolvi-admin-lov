@@ -32,6 +32,9 @@ export function CarriersTable({
 }: CarriersTableProps) {
   const { isMobile } = useIsMobile();
 
+  // Função de log para depuração
+  console.log("Carriers na tabela:", carriers);
+
   // Mobile view
   if (isMobile) {
     return (
@@ -70,7 +73,7 @@ export function CarriersTable({
                 
                 <div className="flex justify-between items-center pt-2 border-t">
                   <div className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                    {carrier.collection_points_count || 0} pontos
+                    {carrier.collection_points_count} pontos
                   </div>
                   <CarrierActionsDropdown
                     carrier={carrier}
@@ -88,7 +91,7 @@ export function CarriersTable({
     );
   }
 
-  // Desktop view - mantém a implementação original da tabela
+  // Desktop view
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
