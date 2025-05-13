@@ -9,5 +9,6 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, isSidebarOpen, toggleSidebar }: LayoutProps) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  // Pass the props to DashboardLayout if it needs them
+  return <DashboardLayout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>{children}</DashboardLayout>;
 }

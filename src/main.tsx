@@ -1,8 +1,10 @@
+
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './styles/index.css';
 
-// Remove o loader inicial quando a aplicação estiver carregada
+// Remove the initial loader when the application is loaded
 const removeInitialLoader = () => {
   const initialLoader = document.querySelector('.initial-loader');
   if (initialLoader) {
@@ -13,20 +15,24 @@ const removeInitialLoader = () => {
   }
 };
 
-// Inicia a renderização somente quando o DOM estiver pronto
+// Start rendering only when DOM is ready
 const renderApp = () => {
   const root = document.getElementById("root");
   if (!root) return;
-  createRoot(root).render(<App />);
+  createRoot(root).render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
   
-  // Remove o loader após renderização
+  // Remove loader after rendering
   removeInitialLoader();
 };
 
-// Use requestIdleCallback para renderizar durante tempo ocioso
+// Use requestIdleCallback to render during idle time
 if ('requestIdleCallback' in window) {
   requestIdleCallback(renderApp);
 } else {
-  // Fallback para navegadores que não suportam requestIdleCallback
+  // Fallback for browsers that don't support requestIdleCallback
   setTimeout(renderApp, 0);
 }
