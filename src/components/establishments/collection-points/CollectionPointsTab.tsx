@@ -22,12 +22,6 @@ export function CollectionPointsTab({
   carrierId,
   carrierContext
 }: CollectionPointsTabProps) {
-  console.log("CollectionPointsTab renderizado com:", { 
-    establishmentId, 
-    carrierId,
-    carrierContextId: carrierContext?.carrierId
-  });
-  
   const effectiveCarrierId = carrierId || carrierContext?.carrierId;
   
   const {
@@ -95,9 +89,6 @@ export function CollectionPointsTab({
     refetch();
   };
 
-  // Gerar uma chave estável baseada nos IDs
-  const tableKey = `points-table-${establishmentId || ''}-${effectiveCarrierId || ''}`;
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -150,7 +141,6 @@ export function CollectionPointsTab({
         isLoading={loading}
         onEdit={!isCarrierContext ? handleOpenEdit : undefined}
         onDelete={!isCarrierContext ? handleConfirmDelete : undefined}
-        key={tableKey}
       />
 
       {!isCarrierContext && (

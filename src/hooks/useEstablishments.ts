@@ -1,29 +1,28 @@
 
-import { useEstablishmentCases } from "@/presentation/hooks/useEstablishmentCases";
-import type { EstablishmentWithDetails } from "@/types/establishment";
+import { useEstablishmentsQuery } from "./useEstablishmentsQuery";
 
 export function useEstablishments() {
   const {
     establishments,
     loading,
     error,
-    loadEstablishments,
-    handleCreate,
-    handleEdit,
-    handleDelete,
+    refetchEstablishments,
+    createEstablishment,
+    updateEstablishment,
+    deleteEstablishment,
     isCreating,
     isUpdating,
     isDeleting
-  } = useEstablishmentCases();
+  } = useEstablishmentsQuery();
 
   return {
     establishments,
     loading,
     error,
-    loadEstablishments,
-    handleCreate,
-    handleEdit,
-    handleDelete,
+    loadEstablishments: refetchEstablishments,
+    handleCreate: createEstablishment,
+    handleEdit: updateEstablishment,
+    handleDelete: deleteEstablishment,
     isCreating,
     isUpdating,
     isDeleting

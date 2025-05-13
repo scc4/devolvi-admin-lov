@@ -1,205 +1,232 @@
+
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { CollectionPoint } from '@/types/collection-point';
-import { toast } from "sonner";
+import { toast } from 'sonner';
+import type { CollectionPoint } from '@/types/collection-point';
 
-// Keys for React Query cache
-const COLLECTION_POINTS_KEYS = {
-  all: ['collectionPoints'] as const,
-  lists: () => [...COLLECTION_POINTS_KEYS.all, 'list'] as const,
-  list: (filters: CollectionPointFilters) => [...COLLECTION_POINTS_KEYS.lists(), filters] as const,
-  details: () => [...COLLECTION_POINTS_KEYS.all, 'detail'] as const,
-  detail: (id: string) => [...COLLECTION_POINTS_KEYS.details(), id] as const,
-};
-
-// Type definitions
-export interface CollectionPointFilters {
+interface UseCollectionPointsQueryProps {
   establishmentId?: string;
   carrierId?: string;
   unassigned?: boolean;
-  cityFilter?: string;
 }
 
-// Main hook for collection points
-export function useCollectionPointsQuery(filters: CollectionPointFilters = {}) {
+export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = {}) {
+  const { establishmentId, carrierId, unassigned } = props;
   const queryClient = useQueryClient();
   
-  // Query for fetching collection points with filters
-  const {
-    data: collectionPoints = [],
-    isLoading: loading,
-    error,
+  // Generate a stable query key based on parameters
+  const queryKey = useMemo(() => {
+    const key = ['collectionPoints'];
+    if (establishmentId) key.push(`establishment-${establishmentId}`);
+    if (carrierId) key.push(`carrier-${carrierId}`);
+    if (unassigned) key.push('unassigned');
+    return key;
+  }, [establishmentId, carrierId, unassigned]);
+  
+  // Fetch collection points
+  const { 
+    data: collectionPoints = [], 
+    isLoading: loading, 
+    error: queryError,
     refetch
   } = useQuery({
-    queryKey: COLLECTION_POINTS_KEYS.list(filters),
+    queryKey,
     queryFn: async () => {
-      console.log('Fetching collection points with filters:', filters);
-      
       let query = supabase
         .from('collection_points')
         .select(`
           *,
-          establishment:establishments(name),
-          carrier:carriers!collection_points_carrier_id_fkey(name)
-        `);
+          establishment:establishments(id, name),
+          carrier:carriers(id, name)
+        `)
+        .is('deleted_at', null);
       
-      if (filters.unassigned) {
+      // Apply filters
+      if (establishmentId) {
+        query = query.eq('establishment_id', establishmentId);
+      }
+      
+      if (carrierId) {
+        query = query.eq('carrier_id', carrierId);
+      }
+      
+      if (unassigned) {
         query = query.is('carrier_id', null);
-        
-        // Handle city filtering for unassigned points
-        if (filters.cityFilter) {
-          // Split comma-separated city names and create filter
-          const cities = filters.cityFilter.split(',').filter(city => city.trim());
-          
-          if (cities.length > 0) {
-            query = query.in('city', cities);
-          }
-        }
-      } else if (filters.establishmentId) {
-        query = query.eq('establishment_id', filters.establishmentId);
-      } else if (filters.carrierId) {
-        query = query.eq('carrier_id', filters.carrierId);
       }
       
       const { data, error } = await query.order('name');
       
-      if (error) {
-        console.error('Error fetching collection points:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log(`Retrieved ${data.length} collection points with filters:`, filters);
-      return data.map(mapDatabaseToUIModel);
-    }
+      // Map to UI model
+      return data.map(cp => ({
+        id: cp.id,
+        name: cp.name,
+        address: cp.address,
+        establishment_id: cp.establishment_id,
+        establishment: cp.establishment ? {
+          id: cp.establishment.id,
+          name: cp.establishment.name
+        } : null,
+        carrier_id: cp.carrier_id,
+        carrier: cp.carrier ? {
+          id: cp.carrier.id,
+          name: cp.carrier.name
+        } : null,
+        phone: cp.phone,
+        street: cp.street,
+        number: cp.number,
+        complement: cp.complement,
+        district: cp.district,
+        zip_code: cp.zip_code,
+        city: cp.city,
+        state: cp.state,
+        latitude: cp.latitude,
+        longitude: cp.longitude,
+        is_active: cp.is_active,
+        operating_hours: cp.operating_hours,
+        created_at: cp.created_at,
+        updated_at: cp.updated_at
+      })) as CollectionPoint[];
+    },
+    enabled: !!(establishmentId || carrierId || unassigned)
   });
   
-  // Mutation for creating a collection point
+  // Error handling
+  const error = queryError ? 
+    (queryError instanceof Error ? queryError.message : 'Error loading collection points') 
+    : null;
+  
+  // Create collection point mutation
   const createMutation = useMutation({
-    mutationFn: async (collectionPoint: Partial<CollectionPoint>) => {
+    mutationFn: async (newPoint: Partial<CollectionPoint>) => {
       const { data, error } = await supabase
         .from('collection_points')
-        .insert(mapUIToDatabase(collectionPoint))
-        .select('*, establishment:establishments(name)')
+        .insert({
+          name: newPoint.name,
+          address: newPoint.address || '',
+          establishment_id: newPoint.establishment_id,
+          carrier_id: newPoint.carrier_id,
+          phone: newPoint.phone,
+          street: newPoint.street,
+          number: newPoint.number,
+          complement: newPoint.complement,
+          district: newPoint.district,
+          zip_code: newPoint.zip_code,
+          city: newPoint.city,
+          state: newPoint.state,
+          latitude: newPoint.latitude,
+          longitude: newPoint.longitude,
+          is_active: newPoint.is_active ?? true,
+          operating_hours: newPoint.operating_hours
+        })
+        .select()
         .single();
-      
-      if (error) {
-        console.error('Error creating collection point:', error);
-        throw error;
-      }
-      
-      return mapDatabaseToUIModel(data);
+        
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: COLLECTION_POINTS_KEYS.lists()
-      });
-      toast.success("Ponto de coleta criado com sucesso");
+      queryClient.invalidateQueries({ queryKey: ['collectionPoints'] });
+      toast.success("Ponto de coleta cadastrado com sucesso");
     },
     onError: (error) => {
-      toast.error("Erro ao criar ponto de coleta", {
-        description: error.message
-      });
+      console.error("Error creating collection point:", error);
+      toast.error("Erro ao cadastrar ponto de coleta");
     }
   });
   
-  // Mutation for updating a collection point
+  // Update collection point mutation
   const updateMutation = useMutation({
-    mutationFn: async (collectionPoint: Partial<CollectionPoint>) => {
-      if (!collectionPoint.id) {
-        throw new Error('ID is required for update');
-      }
+    mutationFn: async (point: Partial<CollectionPoint>) => {
+      if (!point.id) throw new Error('Collection point ID is required for update');
       
       const { data, error } = await supabase
         .from('collection_points')
-        .update(mapUIToDatabase(collectionPoint))
-        .eq('id', collectionPoint.id)
-        .select('*, establishment:establishments(name)')
+        .update({
+          name: point.name,
+          address: point.address,
+          establishment_id: point.establishment_id,
+          carrier_id: point.carrier_id,
+          phone: point.phone,
+          street: point.street,
+          number: point.number,
+          complement: point.complement,
+          district: point.district,
+          zip_code: point.zip_code,
+          city: point.city,
+          state: point.state,
+          latitude: point.latitude,
+          longitude: point.longitude,
+          is_active: point.is_active,
+          operating_hours: point.operating_hours,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', point.id)
+        .select()
         .single();
-      
-      if (error) {
-        console.error('Error updating collection point:', error);
-        throw error;
-      }
-      
-      return mapDatabaseToUIModel(data);
+        
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: COLLECTION_POINTS_KEYS.lists()
-      });
+      queryClient.invalidateQueries({ queryKey: ['collectionPoints'] });
       toast.success("Ponto de coleta atualizado com sucesso");
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar ponto de coleta", {
-        description: error.message
-      });
+      console.error("Error updating collection point:", error);
+      toast.error("Erro ao atualizar ponto de coleta");
     }
   });
   
-  // Mutation for deleting a collection point
+  // Delete collection point mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('collection_points')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', id);
-      
-      if (error) {
-        console.error('Error deleting collection point:', error);
-        throw error;
-      }
-      
+        
+      if (error) throw error;
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: COLLECTION_POINTS_KEYS.lists()
-      });
+      queryClient.invalidateQueries({ queryKey: ['collectionPoints'] });
       toast.success("Ponto de coleta excluído com sucesso");
     },
     onError: (error) => {
-      toast.error("Erro ao excluir ponto de coleta", {
-        description: error.message
-      });
+      console.error("Error deleting collection point:", error);
+      toast.error("Erro ao excluir ponto de coleta");
     }
   });
   
-  // Mutation for assigning a carrier to a collection point
+  // Assign carrier mutation
   const assignCarrierMutation = useMutation({
     mutationFn: async ({ collectionPointId, carrierId }: { collectionPointId: string, carrierId: string | null }) => {
       const { data, error } = await supabase
         .from('collection_points')
         .update({ carrier_id: carrierId })
         .eq('id', collectionPointId)
-        .select('*, establishment:establishments(name)')
-        .single();
-      
-      if (error) {
-        console.error('Error assigning carrier to collection point:', error);
-        throw error;
-      }
-      
-      return mapDatabaseToUIModel(data);
+        .select();
+        
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: COLLECTION_POINTS_KEYS.lists()
-      });
-      toast.success(
-        "Transportadora atualizada com sucesso"
-      );
+      queryClient.invalidateQueries({ queryKey: ['collectionPoints'] });
+      toast.success("Transportadora associada com sucesso");
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar transportadora", {
-        description: error.message
-      });
+      console.error("Error assigning carrier:", error);
+      toast.error("Erro ao associar transportadora");
     }
   });
-  
+
   return {
     collectionPoints,
     loading,
-    error: error ? (error as Error).message : null,
+    error,
     refetch,
     createCollectionPoint: createMutation.mutateAsync,
     updateCollectionPoint: updateMutation.mutateAsync,
@@ -210,75 +237,4 @@ export function useCollectionPointsQuery(filters: CollectionPointFilters = {}) {
     isDeleting: deleteMutation.isPending,
     isAssigningCarrier: assignCarrierMutation.isPending
   };
-}
-
-// Helper for mapping database record to UI model
-function mapDatabaseToUIModel(data: any): CollectionPoint {
-  return {
-    id: data.id,
-    name: data.name,
-    address: data.address,
-    establishment_id: data.establishment_id,
-    establishment: data.establishment,
-    carrier_id: data.carrier_id,
-    carrier: data.carrier,
-    phone: data.phone,
-    street: data.street,
-    number: data.number,
-    complement: data.complement,
-    district: data.district,
-    zip_code: data.zip_code,
-    city: data.city,
-    state: data.state,
-    latitude: data.latitude,
-    longitude: data.longitude,
-    is_active: data.is_active,
-    operating_hours: data.operating_hours,
-    created_at: data.created_at,
-    updated_at: data.updated_at
-  };
-}
-
-// Helper for mapping UI model to database record
-function mapUIToDatabase(data: Partial<CollectionPoint>): any {
-  const result: any = {};
-  
-  // Map only the fields that are defined
-  if (data.id !== undefined) result.id = data.id;
-  if (data.name !== undefined) result.name = data.name;
-  if (data.address !== undefined) result.address = data.address;
-  if (data.establishment_id !== undefined) result.establishment_id = data.establishment_id;
-  if (data.carrier_id !== undefined) result.carrier_id = data.carrier_id;
-  if (data.phone !== undefined) result.phone = data.phone;
-  if (data.street !== undefined) result.street = data.street;
-  if (data.number !== undefined) result.number = data.number;
-  if (data.complement !== undefined) result.complement = data.complement;
-  if (data.district !== undefined) result.district = data.district;
-  if (data.zip_code !== undefined) result.zip_code = data.zip_code;
-  if (data.city !== undefined) result.city = data.city;
-  if (data.state !== undefined) result.state = data.state;
-  if (data.latitude !== undefined) result.latitude = data.latitude;
-  if (data.longitude !== undefined) result.longitude = data.longitude;
-  if (data.is_active !== undefined) result.is_active = data.is_active;
-  if (data.operating_hours !== undefined) result.operating_hours = data.operating_hours;
-  
-  // Generate address string if needed
-  if (
-    (result.street !== undefined || result.number !== undefined || 
-     result.city !== undefined || result.state !== undefined) &&
-    data.address === undefined
-  ) {
-    const parts = [];
-    if (data.street) parts.push(data.street);
-    if (data.number) parts.push(data.number);
-    if (data.complement) parts.push(data.complement);
-    if (data.district) parts.push(data.district);
-    if (data.city) parts.push(data.city);
-    if (data.state) parts.push(data.state);
-    if (data.zip_code) parts.push(`CEP: ${data.zip_code}`);
-    
-    result.address = parts.length > 0 ? parts.join(', ') : (data.name || 'Sem endereço');
-  }
-  
-  return result;
 }

@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
 import { CollectionPointsTab } from "./CollectionPointsTab";
-import { useCollectionPointsDialog } from "@/hooks/useCollectionPointsDialog";
 import type { Carrier } from "@/types/carrier";
 import type { Establishment } from "@/types/establishment";
 
@@ -21,25 +20,24 @@ export function ManageCollectionPointsDialog({
   establishment,
   carrier
 }: ManageCollectionPointsDialogProps) {
-  const [activeTab, setActiveTab] = useState("associated");
-  const {
-    isCarrierDialog,
-    isEstablishmentDialog,
-    title,
-    description,
-    isStable,
-    dialogMountedRef,
-    handleDialogError
-  } = useCollectionPointsDialog({
-    open,
-    onOpenChange,
-    establishmentId: establishment?.id,
-    establishmentName: establishment?.name,
-    carrierId: carrier?.id,
-    carrierName: carrier?.name
-  });
+  const [activeTab, setActiveTab] = useState("collection-points");
+  
+  // Determine dialog type and content
+  const isCarrierDialog = !!carrier?.id;
+  const isEstablishmentDialog = !!establishment?.id;
+  
+  // Generate title based on context
+  const title = isCarrierDialog 
+    ? `Pontos de Coleta - ${carrier.name}`
+    : isEstablishmentDialog 
+      ? `Pontos de Coleta - ${establishment.name}`
+      : "Pontos de Coleta";
+  
+  const description = isCarrierDialog
+    ? "Gerencie os pontos de coleta associados a esta transportadora."
+    : "Gerencie os pontos de coleta.";
 
-  // Reset active tab when dialog opens/closes or dialog type changes
+  // Reset tab when dialog opens/closes or dialog type changes
   useEffect(() => {
     if (isCarrierDialog) {
       setActiveTab("associated");
@@ -67,7 +65,7 @@ export function ManageCollectionPointsDialog({
               </TabsContent>
               
               <TabsContent value="available" className="space-y-4">
-                <CollectionPointAssociationTab carrierId={carrier.id} skipCarrierHeader={true} initialTab="available" />
+                <CollectionPointAssociationTab carrierId={carrier.id} skipCarrierHeader={true} initialTab="unassigned" />
               </TabsContent>
             </Tabs>
           )}

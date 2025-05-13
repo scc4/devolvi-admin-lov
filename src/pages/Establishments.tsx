@@ -6,7 +6,7 @@ import { EstablishmentsSearch } from "@/components/establishments/Establishments
 import { EstablishmentsTable } from "@/components/establishments/EstablishmentsTable";
 import { EstablishmentFormDialog } from "@/components/establishments/EstablishmentFormDialog";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
-import { useEstablishments } from "@/hooks/useEstablishments";
+import { useEstablishmentsQuery } from "@/hooks/useEstablishmentsQuery";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
@@ -16,24 +16,19 @@ export default function Establishments() {
     establishments,
     loading,
     error,
-    loadEstablishments,
-    handleEdit,
-    handleDelete,
-    handleCreate,
+    searchTerm,
+    setSearchTerm,
+    refetchEstablishments,
+    createEstablishment,
+    updateEstablishment,
+    deleteEstablishment,
     isCreating,
     isUpdating
-  } = useEstablishments();
+  } = useEstablishmentsQuery();
   
-  const [searchTerm, setSearchTerm] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [collectionPointsDialogOpen, setCollectionPointsDialogOpen] = useState(false);
   const [selectedEstablishment, setSelectedEstablishment] = useState<EstablishmentWithDetails | undefined>(undefined);
-
-  const filteredEstablishments = establishments.filter((establishment) =>
-    establishment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    establishment.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    establishment.type?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleOpenCreate = () => {
     setSelectedEstablishment(undefined);
@@ -52,14 +47,20 @@ export default function Establishments() {
 
   const handleFormSubmit = async (data: Partial<EstablishmentWithDetails>) => {
     if (selectedEstablishment) {
-      await handleEdit({
+      await updateEstablishment({
         ...selectedEstablishment,
         ...data
       });
     } else {
-      await handleCreate(data);
+      await createEstablishment(data);
     }
     setEditDialogOpen(false);
+  };
+  
+  const handleDelete = async (establishment: EstablishmentWithDetails) => {
+    if (window.confirm('Tem certeza que deseja excluir este estabelecimento?')) {
+      await deleteEstablishment(establishment.id);
+    }
   };
 
   return (
@@ -76,7 +77,7 @@ export default function Establishments() {
               <p className="text-destructive mb-4">Erro ao carregar dados dos estabelecimentos</p>
               <Button 
                 variant="outline" 
-                onClick={loadEstablishments}
+                onClick={refetchEstablishments}
                 className="flex items-center gap-2"
               >
                 <RefreshCcw className="h-4 w-4" />
@@ -85,7 +86,7 @@ export default function Establishments() {
             </div>
           ) : (
             <EstablishmentsTable
-              establishments={filteredEstablishments}
+              establishments={establishments}
               loading={loading}
               onEdit={handleOpenEdit}
               onDelete={handleDelete}
