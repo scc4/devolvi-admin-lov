@@ -18,13 +18,16 @@ export function useLoadCollectionPoints(getCollectionPointsUseCase: GetCollectio
       setLoading(true);
       setError(null);
       
-      // Use the execute method with filters
+      console.log('Loading collection points with filters:', filters);
+      
+      // Use the GetCollectionPointsUseCase's execute method with filters
       const domainCollectionPoints = await getCollectionPointsUseCase.execute(filters);
       
       const uiCollectionPoints = domainCollectionPoints.map(point => 
         collectionPointAdapter.toUIModel(point)
       );
       
+      console.log(`Loaded ${uiCollectionPoints.length} collection points`);
       setCollectionPoints(uiCollectionPoints);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load collection points';

@@ -29,11 +29,14 @@ export function useCollectionPointAssociation(carrierId: string) {
       
       return data.map(row => row.city);
     },
+    enabled: !!carrierId,
   });
 
   // Fetch carrier details
   useEffect(() => {
     const fetchCarrierDetails = async () => {
+      if (!carrierId) return;
+      
       const { data, error } = await supabase
         .from('carriers')
         .select('name, city')

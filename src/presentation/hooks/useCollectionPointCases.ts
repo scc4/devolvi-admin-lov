@@ -1,9 +1,9 @@
 
-import { useCollectionPointsQuery } from '@/hooks/useCollectionPointsQuery';
+import { useCollectionPointCasesWithDI } from './collectionPoints/useCollectionPointCasesWithDI';
 
 /**
  * Hook para casos de uso de pontos de coleta
- * Reexporta a implementação React Query para manter compatibilidade
+ * Reexporta a implementação com injeção de dependências
  */
 export function useCollectionPointCases(filters?: {
   establishmentId?: string;
@@ -11,5 +11,5 @@ export function useCollectionPointCases(filters?: {
   unassigned?: boolean;
   cityFilter?: string;
 }) {
-  return useCollectionPointsQuery(filters);
+  return useCollectionPointCasesWithDI(filters);
 }

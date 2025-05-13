@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
 import { CollectionPointsTab } from "./CollectionPointsTab";
@@ -43,12 +43,10 @@ export function ManageCollectionPointsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex flex-col space-y-1.5 text-center sm:text-left px-2">
-          <h2 className="text-lg font-semibold leading-none tracking-tight">{title}</h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
+        <DialogTitle className="text-lg font-semibold leading-none tracking-tight">{title}</DialogTitle>
+        <p className="text-sm text-muted-foreground">{description}</p>
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto pt-4">
           {isCarrierDialog && carrier?.id && (
             <CollectionPointAssociationTab 
               carrierId={carrier.id} 

@@ -102,7 +102,7 @@ export function CollectionPointAssociationTab({
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Pontos Disponíveis</h2>
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <Button variant="outline" size="sm" onClick={() => refetchUnassigned()}>
               <RefreshCcw className="h-4 w-4 mr-2" />
               {!isMobile && "Atualizar"}
             </Button>
@@ -136,7 +136,7 @@ export function CollectionPointAssociationTab({
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Pontos Associados</h2>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <Button variant="outline" size="sm" onClick={() => refetchCarrier()}>
                 <RefreshCcw className="h-4 w-4 mr-2" />
                 {!isMobile && "Atualizar"}
               </Button>
