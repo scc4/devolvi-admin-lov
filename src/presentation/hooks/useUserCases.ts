@@ -23,16 +23,28 @@ export function useUserCases() {
   
   // Flag para controlar se o componente está montado
   const isMounted = useRef(true);
+  
+  // Flag para controlar se os dados já foram carregados
+  const hasLoadedRef = useRef(false);
 
   // Limpar a flag quando o componente for desmontado
   useEffect(() => {
+    // Reset hasLoaded quando o componente é montado
+    hasLoadedRef.current = false;
+    
     return () => {
       isMounted.current = false;
     };
   }, []);
 
-  const loadUsers = useCallback(async () => {
+  const loadUsers = useCallback(async (forceReload = false) => {
     if (!isMounted.current) return;
+    
+    // Evitar múltiplas chamadas desnecessárias
+    if (hasLoadedRef.current && !forceReload) {
+      console.log("Skipping user load, already loaded");
+      return;
+    }
     
     console.log("Loading users...");
     setLoading(true);
@@ -46,6 +58,7 @@ export function useUserCases() {
       if (isMounted.current) {
         // Armazena diretamente os DTOs sem casting
         setUsers(userDTOs);
+        hasLoadedRef.current = true;
       }
     } catch (err) {
       console.error("Error loading users:", err);
@@ -79,7 +92,7 @@ export function useUserCases() {
           title: "Usuário excluído",
           description: "O usuário foi excluído com sucesso."
         });
-        await loadUsers(); // Reload users after deletion
+        await loadUsers(true); // Forçar recarregamento após exclusão
         return { success: true };
       } else {
         toast({
@@ -108,7 +121,7 @@ export function useUserCases() {
           title: "Usuário inativado",
           description: "O usuário foi inativado com sucesso."
         });
-        await loadUsers(); // Reload users after deactivation
+        await loadUsers(true); // Forçar recarregamento após inativação
         return { success: true };
       } else {
         toast({
