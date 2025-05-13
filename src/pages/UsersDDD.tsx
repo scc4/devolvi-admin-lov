@@ -36,15 +36,15 @@ export default function UsersDDD() {
     user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleInviteUser = async (form: { name: string; email: string; phone?: string; role: "admin" | "owner" }) => {
+  const handleInviteUser = async (form: { name: string; email: string; phone?: string; role: "admin" | "owner" }): Promise<void> => {
     setIsInviteLoading(true);
     try {
       // This would be handled by a useCase
+      const result = { success: true };
       setInviteOpen(false);
       loadUsers();
-      return { success: true };
     } catch (error) {
-      return { success: false, error };
+      console.error("Error inviting user:", error);
     } finally {
       setIsInviteLoading(false);
     }

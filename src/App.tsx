@@ -1,16 +1,16 @@
+
 import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import { Index } from "./pages/Index";
-import { Login } from "./pages/Login";
-import { Dashboard } from "./pages/Dashboard";
-import { ResetPassword } from "./pages/ResetPassword";
-import { ConfirmRegistration } from "./pages/ConfirmRegistration";
-import { Carriers } from "./pages/Carriers";
-import { Establishments } from "./pages/Establishments";
-import { NotFound } from "./pages/NotFound";
-import { Layout } from "./components/Layout";
-import { EstablishmentsWithDI } from "./pages/EstablishmentsWithDI";
+import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import ResetPassword from "./pages/ResetPassword";
+import ConfirmRegistration from "./pages/ConfirmRegistration";
+import Carriers from "./pages/Carriers";
+import NotFound from "./pages/NotFound";
+import Layout from "./components/Layout";
+import EstablishmentsWithDI from "./pages/EstablishmentsWithDI";
 import UsersDDD from "./pages/UsersDDD";
 
 function App() {
