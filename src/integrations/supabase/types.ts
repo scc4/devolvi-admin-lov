@@ -317,6 +317,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          deleted_at: string | null
+          email: string | null
+          facebook_id: string | null
+          google_id: string | null
+          id: string
+          name: string | null
+          password: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          facebook_id?: string | null
+          google_id?: string | null
+          id?: string
+          name?: string | null
+          password?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          facebook_id?: string | null
+          google_id?: string | null
+          id?: string
+          name?: string | null
+          password?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
