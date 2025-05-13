@@ -49,12 +49,11 @@ export function useCarriersQuery() {
         throw carriersError;
       }
       
-      // Get collection points count for each carrier in a single batch query
+      // Get collection points count for each carrier using separate query
+      // Instead of using .group(), we'll count manually
       const { data: countData, error: countError } = await supabase
         .from('collection_points')
-        .select('carrier_id, count')
-        .not('carrier_id', 'is', null)
-        .group('carrier_id');
+        .select('carrier_id');
       
       if (countError) {
         console.error('Error counting collection points:', countError);
@@ -64,7 +63,10 @@ export function useCarriersQuery() {
       // Create a map of carrier ID to count
       const countMap = new Map();
       countData?.forEach(item => {
-        countMap.set(item.carrier_id, parseInt(item.count, 10));
+        const carrierId = item.carrier_id;
+        if (carrierId) {
+          countMap.set(carrierId, (countMap.get(carrierId) || 0) + 1);
+        }
       });
       
       // Merge carrier data with collection point counts

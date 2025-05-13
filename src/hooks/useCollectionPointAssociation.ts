@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useCollectionPointCases } from "@/presentation/hooks/useCollectionPointCases";
+import { useCollectionPointsQuery } from "@/hooks/useCollectionPointsQuery";
 import type { CollectionPoint } from "@/types/collection-point";
 import { collectionPointAdapter } from "@/adapters/collectionPoints/collectionPointAdapter";
 
@@ -54,26 +54,27 @@ export function useCollectionPointAssociation(carrierId: string) {
     setServedCities(servedCitiesData);
   }, [servedCitiesData]);
 
-  // Fetch points
+  // Fetch unassigned points
   const {
     collectionPoints: unassignedPointsData,
     loading: isLoadingUnassigned,
-    loadCollectionPoints: refetchUnassigned
-  } = useCollectionPointCases({
+    refetch: refetchUnassigned,
+    assignCarrier
+  } = useCollectionPointsQuery({
     unassigned: true,
     cityFilter: filterByServedCities ? servedCities.join(',') : undefined
   });
 
+  // Fetch carrier points
   const {
     collectionPoints: carrierPointsData,
     loading: isLoadingCarrier,
-    loadCollectionPoints: refetchCarrier,
-    handleAssignCarrier
-  } = useCollectionPointCases({
+    refetch: refetchCarrier
+  } = useCollectionPointsQuery({
     carrierId
   });
 
-  // We're already getting UI models from the DI implementation
+  // We're already getting UI models from the React Query implementation
   const unassignedPoints = unassignedPointsData;
   const carrierPoints = carrierPointsData;
 
@@ -86,7 +87,7 @@ export function useCollectionPointAssociation(carrierId: string) {
     try {
       // Convert UI model to DTO before passing to the handler
       const pointDTO = collectionPointAdapter.fromUIModel(point);
-      await handleAssignCarrier(pointDTO.id, carrierId);
+      await assignCarrier({ collectionPointId: pointDTO.id, carrierId });
       toast.success('Ponto de coleta associado com sucesso');
       refetchUnassigned();
       refetchCarrier();
@@ -100,7 +101,7 @@ export function useCollectionPointAssociation(carrierId: string) {
     try {
       // Convert UI model to DTO before passing to the handler
       const pointDTO = collectionPointAdapter.fromUIModel(point);
-      await handleAssignCarrier(pointDTO.id, null);
+      await assignCarrier({ collectionPointId: pointDTO.id, carrierId: null });
       toast.success('Ponto de coleta desassociado com sucesso');
       refetchUnassigned();
       refetchCarrier();

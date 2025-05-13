@@ -16,7 +16,7 @@ export function useCollectionPointCasesWithDI(filters?: {
     collectionPoints,
     loading,
     error,
-    refetch: loadCollectionPoints,
+    refetch,
     createCollectionPoint: handleCreate,
     updateCollectionPoint: handleUpdate,
     deleteCollectionPoint: handleDelete,
@@ -31,7 +31,7 @@ export function useCollectionPointCasesWithDI(filters?: {
     collectionPoints,
     loading,
     error,
-    loadCollectionPoints,
+    loadCollectionPoints: refetch, // Manter compatibilidade com nome antigo
     handleCreate,
     handleUpdate,
     handleDelete,
