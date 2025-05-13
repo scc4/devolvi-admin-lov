@@ -40,6 +40,7 @@ export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) 
             onInputChange('latitude', lat);
             onInputChange('longitude', lng);
           }}
+          isLoading={isLoading}
         />
       </div>
     </div>
