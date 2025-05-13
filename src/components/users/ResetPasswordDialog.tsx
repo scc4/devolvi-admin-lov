@@ -30,7 +30,6 @@ export function ResetPasswordDialog({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // Use the hook with simplified resetPassword function
   const { resetPassword } = useUsers();
 
   const validatePassword = () => {
@@ -54,7 +53,6 @@ export function ResetPasswordDialog({
 
     setIsLoading(true)
     try {
-      // Use the simplified resetPassword function
       const result = await resetPassword(user.id, password);
 
       if (!result.success) {

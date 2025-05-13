@@ -18,16 +18,16 @@ export default function Users() {
     loading,
     error,
     refresh: loadUsers,
-    editUser: handleEdit,
-    deleteUser: handleDelete,
-    deactivateUser: handleDeactivate
+    editUser,
+    deleteUser,
+    deactivateUser
   } = useUsers();
   
   const { sendInvite, resendInvite, isLoading: isInviteLoading } = useUserInvite();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editUserState, setEditUserState] = useState<UserRow | null>(null);
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
   const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
 
@@ -52,20 +52,32 @@ export default function Users() {
     }
   };
 
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (!confirmModal) return;
-    if (confirmModal.action === "delete") handleDelete(confirmModal.user);
-    if (confirmModal.action === "deactivate") handleDeactivate(confirmModal.user);
-    if (confirmModal.action === "invite") handleResendInviteUser(confirmModal.user);
+    
+    if (confirmModal.action === "delete") {
+      const result = await deleteUser(confirmModal.user);
+      if (result.success) setConfirmModal(null);
+    }
+    
+    if (confirmModal.action === "deactivate") {
+      const result = await deactivateUser(confirmModal.user);
+      if (result.success) setConfirmModal(null);
+    }
+    
+    if (confirmModal.action === "invite") {
+      await handleResendInviteUser(confirmModal.user);
+    }
   };
 
   const handleUserEdit = async (user: UserRow) => {
     if (user && user.id) {
-      await handleEdit(user.id, { 
+      await editUser(user.id, { 
         name: user.name || "", 
         phone: user.phone || null, 
         role: (user.role === "admin" || user.role === "owner") ? user.role : "admin" 
       });
+      setEditUserState(null);
     }
   };
 
@@ -83,7 +95,7 @@ export default function Users() {
             searchTerm={searchTerm}
             onSearch={setSearchTerm}
             onRetry={loadUsers}
-            onEdit={setEditUser}
+            onEdit={setEditUserState}
             onDelete={(user) => setConfirmModal({ action: "delete", user })}
             onDeactivate={(user) => setConfirmModal({ action: "deactivate", user })}
             onResendInvite={(user) => setConfirmModal({ action: "invite", user })}
@@ -94,12 +106,12 @@ export default function Users() {
 
       <UsersModals
         inviteOpen={inviteOpen}
-        editUser={editUser}
+        editUser={editUserState}
         confirmModal={confirmModal}
         resetPasswordUser={resetPasswordUser}
         isInviteLoading={isInviteLoading}
         onInviteOpenChange={setInviteOpen}
-        onEditClose={() => setEditUser(null)}
+        onEditClose={() => setEditUserState(null)}
         onConfirmCancel={() => setConfirmModal(null)}
         onResetPasswordChange={(open) => !open && setResetPasswordUser(null)}
         onInvite={handleInviteUser}

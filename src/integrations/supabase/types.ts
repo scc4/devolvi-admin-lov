@@ -128,10 +128,8 @@ export type Database = {
       collection_points: {
         Row: {
           address: string
-          address_id: string | null
           carrier_id: string | null
           city: string | null
-          code: string
           complement: string | null
           created_at: string
           deleted_at: string | null
@@ -152,10 +150,8 @@ export type Database = {
         }
         Insert: {
           address: string
-          address_id?: string | null
           carrier_id?: string | null
           city?: string | null
-          code?: string
           complement?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -176,10 +172,8 @@ export type Database = {
         }
         Update: {
           address?: string
-          address_id?: string | null
           carrier_id?: string | null
           city?: string | null
-          code?: string
           complement?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -199,13 +193,6 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "collection_points_address_id_fkey"
-            columns: ["address_id"]
-            isOneToOne: false
-            referencedRelation: "address"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "collection_points_carrier_id_fkey"
             columns: ["carrier_id"]

@@ -18,28 +18,27 @@ export function useUsers() {
   // Convert DTOs to UI models
   const users = usersDTO.map(userDTO => userAdapter.toUIModel(userDTO));
 
-  // Adapting the return type to match what UsersTable expects
-  const handleEdit = async (userId: string, updates: { name: string; phone: string | null; role: "admin" | "owner" }) => {
-    // Since we don't have an editUser in useUserCases, we would need to implement it
-    // For now, this is a placeholder that returns void as expected
+  // Edit user (name, phone, role)
+  const editUser = async (userId: string, updates: { name: string; phone: string | null; role: "admin" | "owner" }) => {
+    // Since we don't have an editUser in useUserCases, this is a placeholder
     console.log("Edit user:", userId, updates);
     return;
   };
   
-  const handleDelete = async (user: UserRow) => {
-    // Convert UI model to DTO before passing to useUserCases
+  // Delete user - converts UI model to DTO for the use case
+  const deleteUser = async (user: UserRow) => {
     const userDTO = userAdapter.fromUIModel(user);
     return await handleDeleteDTO(userDTO);
   };
 
-  const handleDeactivate = async (user: UserRow) => {
-    // Convert UI model to DTO before passing to useUserCases
+  // Deactivate user - converts UI model to DTO for the use case
+  const deactivateUser = async (user: UserRow) => {
     const userDTO = userAdapter.fromUIModel(user);
     return await handleDeactivateDTO(userDTO);
   };
 
+  // Reset user password
   const resetPassword = async (userId: string, password: string) => {
-    // No need for type conversion here since we're just passing the ID and password
     return await handleResetPassword(userId, password);
   };
 
@@ -49,12 +48,9 @@ export function useUsers() {
     error,
     loadUsers,
     refresh: loadUsers,
-    handleEdit,
-    editUser: handleEdit,
-    handleDelete,
-    deleteUser: handleDelete,
-    handleDeactivate,
-    deactivateUser: handleDeactivate,
+    editUser,
+    deleteUser,
+    deactivateUser,
     resetPassword
   };
 }
