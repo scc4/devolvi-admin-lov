@@ -1,13 +1,12 @@
 
-import { useState, useEffect } from "react";
-import { useCollectionPointCasesWithDI } from "@/presentation/hooks/collectionPoints/useCollectionPointCasesWithDI";
+import { useState } from "react";
+import { useCollectionPointsQuery } from "@/hooks/useCollectionPointsQuery";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointFormDialog } from "./CollectionPointFormDialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Plus, RefreshCcw } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { collectionPointAdapter } from "@/adapters/collectionPoints/collectionPointAdapter";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CollectionPointsTabProps {
@@ -30,13 +29,13 @@ export function CollectionPointsTab({
     collectionPoints,
     loading,
     error,
-    loadCollectionPoints: refetch,
-    handleCreate: createCollectionPoint,
-    handleUpdate: updateCollectionPoint,
-    handleDelete: deleteCollectionPoint,
+    refetch,
+    createCollectionPoint,
+    updateCollectionPoint,
+    deleteCollectionPoint,
     isCreating,
     isUpdating
-  } = useCollectionPointCasesWithDI({
+  } = useCollectionPointsQuery({
     establishmentId,
     carrierId: carrierContext?.carrierId
   });
@@ -44,19 +43,7 @@ export function CollectionPointsTab({
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
   const { isMobile } = useIsMobile();
-  const [showError, setShowError] = useState(false);
-  
-  // Resetar o estado de erro quando os filtros mudam
-  useEffect(() => {
-    setShowError(false);
-  }, [establishmentId, carrierContext]);
-  
-  // Mostrar erro após o carregamento terminar, se houver erro
-  useEffect(() => {
-    if (!loading && error) {
-      setShowError(true);
-    }
-  }, [loading, error]);
+  const [showError, setShowError] = useState(Boolean(error));
   
   const handleOpenCreate = () => {
     setSelectedPoint(undefined);
@@ -77,22 +64,16 @@ export function CollectionPointsTab({
   const handleFormSubmit = async (point: Partial<CollectionPoint>) => {
     try {
       if (selectedPoint) {
-        // Para atualizações, converter do modelo UI para DTO antes de passar ao manipulador
-        const pointDTO = collectionPointAdapter.fromUIModel({
+        await updateCollectionPoint({
           ...selectedPoint,
           ...point
         });
-        await updateCollectionPoint(pointDTO);
       } else {
-        // Criar novo ponto com o contexto apropriado
-        const pointData = {
+        await createCollectionPoint({
           ...point,
           establishment_id: establishmentId || null,
           carrier_id: carrierContext?.carrierId || null,
-        };
-        // Converter do modelo UI para DTO antes de passar ao manipulador
-        const pointDTO = collectionPointAdapter.fromUIModel(pointData);
-        await createCollectionPoint(pointDTO);
+        });
       }
       setFormDialogOpen(false);
     } catch (error) {
@@ -103,10 +84,10 @@ export function CollectionPointsTab({
   // Lidar com nova tentativa quando ocorre erro
   const handleRetry = () => {
     setShowError(false);
-    refetch(true); // Forçar atualização
+    refetch();
   };
 
-  // Gerar uma chave estável baseada nos IDs, não no timestamp
+  // Gerar uma chave estável baseada nos IDs
   const tableKey = `points-table-${establishmentId || ''}-${carrierContext?.carrierId || ''}`;
 
   return (
@@ -117,7 +98,7 @@ export function CollectionPointsTab({
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => refetch(true)}
+            onClick={() => refetch()}
             disabled={loading}
           >
             <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />

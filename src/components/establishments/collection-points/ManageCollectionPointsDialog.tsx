@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointsTab } from "./CollectionPointsTab";
 import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
-import { useCollectionPointsDialog } from "@/hooks/useCollectionPointsDialog";
 import type { Carrier } from "@/types/carrier";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { useEffect, useState } from "react";
@@ -27,34 +26,30 @@ export function ManageCollectionPointsDialog({
   const { isMobile } = useBreakpoint("md");
   const [isReady, setIsReady] = useState(false);
   
-  // Usar o hook de diálogo para comportamento de diálogo estável
-  const {
-    isCarrierDialog,
-    title,
-    description,
-    isStable,
-    handleDialogError
-  } = useCollectionPointsDialog({
-    open,
-    onOpenChange,
-    establishmentId,
-    establishmentName,
-    carrierId: carrier?.id,
-    carrierName: carrier?.name
-  });
+  // Contexto simples para controle de diálogo
+  const isCarrierDialog = Boolean(carrier?.id);
+  const title = isCarrierDialog 
+    ? `Pontos de Coleta - ${carrier?.name}`
+    : establishmentId 
+      ? `Pontos de Coleta - ${establishmentName || establishmentId}`
+      : "Pontos de Coleta";
+      
+  const description = isCarrierDialog
+    ? "Gerencie os pontos de coleta associados a esta transportadora."
+    : "Gerencie os pontos de coleta.";
   
-  // Log para diagnóstico das propriedades
+  // Diagnóstico de propriedades
   console.log("ManageCollectionPointsDialog props:", {
     open,
     carrier,
     establishmentId,
-    isCarrierDialog
+    isCarrierDialog,
+    isReady
   });
   
   // Garantir que o conteúdo só seja renderizado após o diálogo estar aberto
   useEffect(() => {
     if (open) {
-      // Pequeno atraso para garantir que o diálogo está pronto
       const timer = setTimeout(() => {
         setIsReady(true);
       }, 50);
@@ -64,31 +59,28 @@ export function ManageCollectionPointsDialog({
     }
   }, [open]);
 
-  // Gerar uma chave estável
-  const dialogContentId = isCarrierDialog 
+  // Gerar uma chave estável baseada na entidade
+  const dialogId = isCarrierDialog 
     ? `carrier-dialog-${carrier?.id}` 
     : `establishment-dialog-${establishmentId}`;
+
+  const handleDialogError = (error: any) => {
+    console.error("Collection points dialog error:", error);
+    onOpenChange(false);
+    setTimeout(() => {
+      alert("Ocorreu um erro ao carregar os pontos de coleta. Tente novamente.");
+    }, 100);
+  };
 
   return (
     <Dialog 
       open={open} 
-      onOpenChange={(newOpenState) => {
-        // Se estamos tentando fechar, permitir imediatamente
-        if (!newOpenState || isStable) {
-          onOpenChange(newOpenState);
-        }
-      }}
+      onOpenChange={onOpenChange}
     >
       <DialogContent 
         className="max-w-4xl max-h-[85vh] overflow-y-auto" 
         onOpenAutoFocus={(e) => e.preventDefault()}
-        onInteractOutside={(e) => {
-          // Prevenir o fechamento do diálogo quando clicar fora durante a animação
-          if (!isStable) {
-            e.preventDefault();
-          }
-        }}
-        id={dialogContentId}
+        id={dialogId}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -114,7 +106,7 @@ export function ManageCollectionPointsDialog({
           >
             {isCarrierDialog && carrier?.id && (
               <Tabs defaultValue="manage" className="mt-4">
-                <TabsList className={`${isMobile ? 'flex flex-col space-y-1 h-auto' : ''}`}>
+                <TabsList className={isMobile ? 'flex flex-col space-y-1 h-auto' : ''}>
                   <TabsTrigger value="manage" className="flex-1">
                     Gerenciar Associações
                   </TabsTrigger>

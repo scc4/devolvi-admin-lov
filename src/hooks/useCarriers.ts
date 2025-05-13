@@ -1,14 +1,12 @@
 
-import { useCarriersWithCollectionPointCounts } from "@/presentation/hooks/carriers/useCarriersWithCollectionPointCounts";
-import type { Carrier } from "@/types/carrier";
-import { carrierAdapter } from "@/adapters/carriers/carrierAdapter";
+import { useCarriersQuery } from "./useCarriersQuery";
 
 export function useCarriers() {
   const {
     carriers,
     loading,
     error,
-    loadCarriers,
+    refetch,
     handleCreate,
     handleEdit,
     handleDelete,
@@ -16,21 +14,13 @@ export function useCarriers() {
     isCreating,
     isUpdating,
     isDeleting
-  } = useCarriersWithCollectionPointCounts();
-
-  // Convert the DTO carriers to UI model carriers with collection point counts
-  const uiCarriers = carriers.map(carrierDTO => {
-    const uiModel = carrierAdapter.toUIModel(carrierDTO);
-    // Make sure to include the collection points count
-    uiModel.collection_points_count = carrierDTO.collectionPointsCount || 0;
-    return uiModel;
-  });
+  } = useCarriersQuery();
 
   return {
-    carriers: uiCarriers,
+    carriers,
     loading,
     error,
-    refresh: loadCarriers,
+    refresh: refetch,
     handleCreate,
     handleEdit,
     handleDelete,

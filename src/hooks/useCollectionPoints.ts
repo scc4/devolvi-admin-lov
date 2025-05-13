@@ -1,6 +1,6 @@
 
 import { CollectionPoint } from "@/types/collection-point";
-import { useCollectionPointCases } from "@/presentation/hooks/useCollectionPointCases";
+import { useCollectionPointsQuery } from "./useCollectionPointsQuery";
 
 export function useCollectionPoints(
   establishmentId?: string, 
@@ -9,21 +9,20 @@ export function useCollectionPoints(
 ) {
   console.log("useCollectionPoints hook called with:", { establishmentId, carrierId, unassigned });
   
-  // Use the DDD implementation with DI
   const {
     collectionPoints,
     loading,
     error,
-    loadCollectionPoints: refreshCollectionPoints,
-    handleCreate: createCollectionPoint,
-    handleUpdate: updateCollectionPoint,
-    handleDelete: deleteCollectionPoint,
-    handleAssignCarrier,
+    refetch: refreshCollectionPoints,
+    createCollectionPoint,
+    updateCollectionPoint,
+    deleteCollectionPoint,
+    assignCarrier: handleAssignCarrier,
     isCreating,
     isUpdating,
     isDeleting,
     isAssigningCarrier
-  } = useCollectionPointCases({
+  } = useCollectionPointsQuery({
     establishmentId,
     carrierId,
     unassigned
