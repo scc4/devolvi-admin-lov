@@ -26,7 +26,7 @@ export function EditCarrierDialog({
 }: EditCarrierDialogProps) {
   const { isMobile } = useIsMobile();
   
-  // Use our custom cleanup hook instead of the old handler
+  // Use nosso hook de limpeza personalizado
   useDialogCleanup({ open }); 
 
   const handleSave = async (carrierData: Carrier) => {
@@ -38,7 +38,12 @@ export function EditCarrierDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => !isSubmitting && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      // Só fecha o diálogo se não estiver enviando dados
+      if (!isOpen && !isSubmitting) {
+        onClose();
+      }
+    }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{carrier.id ? 'Editar' : 'Nova'} Transportadora</DialogTitle>

@@ -2,9 +2,9 @@
 import { useEffect } from "react";
 
 /**
- * Hook to ensure proper cleanup of modals when closed
- * Avoids common issues on mobile devices like overlay persistence,
- * blocked scroll, and touch events
+ * Hook para garantir uma limpeza adequada dos modais quando fechados
+ * Evita problemas comuns em dispositivos móveis como persistência de overlay,
+ * scroll bloqueado e eventos de toque
  */
 export function useDialogCleanup({ 
   open, 
@@ -14,15 +14,15 @@ export function useDialogCleanup({
   onCleanup?: () => void;
 }) {
   useEffect(() => {
-    // No need to do anything when dialog opens
+    // Não precisamos fazer nada quando o diálogo abre
     if (open) return;
 
-    // Cleanup effects when dialog closes
+    // Efeitos de limpeza quando o diálogo fecha
     const timeout = setTimeout(() => {
-      // Remove any lingering pointer-events style on body
+      // Remove qualquer estilo de pointer-events persistente no body
       document.body.style.pointerEvents = '';
       
-      // Find and hide any stray dialog overlays
+      // Encontra e esconde qualquer overlay de diálogo persistente
       const overlays = document.querySelectorAll('[data-radix-portal]');
       overlays.forEach(overlay => {
         if (!overlay.contains(document.activeElement)) {
@@ -30,10 +30,10 @@ export function useDialogCleanup({
         }
       });
       
-      // Guarantee scroll is enabled
+      // Garante que o scroll esteja habilitado
       document.body.style.overflow = '';
       
-      // Call custom cleanup function if provided
+      // Chama a função de limpeza personalizada, se fornecida
       if (onCleanup) {
         onCleanup();
       }

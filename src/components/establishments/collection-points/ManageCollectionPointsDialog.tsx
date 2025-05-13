@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointsTab } from "./CollectionPointsTab";
 import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 import type { Carrier } from "@/types/carrier";
 
 interface ManageCollectionPointsDialogProps {
@@ -22,8 +23,11 @@ export function ManageCollectionPointsDialog({
   establishmentName
 }: ManageCollectionPointsDialogProps) {
   const { isMobile } = useBreakpoint("md");
+  
+  // Adiciona limpeza de diálogo
+  useDialogCleanup({ open });
 
-  // Determine what kind of dialog we're showing based on props
+  // Determina que tipo de diálogo estamos exibindo com base nas props
   const isCarrierDialog = !!carrier;
   const isEstablishmentDialog = !!establishmentId;
   const title = isCarrierDialog 
@@ -37,7 +41,10 @@ export function ManageCollectionPointsDialog({
     : "Gerencie os pontos de coleta.";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={onOpenChange}
+    >
       <DialogContent 
         className="max-w-4xl max-h-[85vh] overflow-y-auto" 
         onOpenAutoFocus={(e) => e.preventDefault()}

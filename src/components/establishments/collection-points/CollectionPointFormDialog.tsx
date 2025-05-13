@@ -45,10 +45,10 @@ export function CollectionPointFormDialog({
 
   const { isMobile } = useIsMobile();
 
-  // Use our custom cleanup hook
+  // Use nosso hook de limpeza
   useDialogCleanup({ open });
   
-  // Reset errors when dialog is closed or opened
+  // Reseta erros quando o diálogo é fechado ou aberto
   useDialogCleanup({ 
     open, 
     onCleanup: () => {
@@ -87,7 +87,15 @@ export function CollectionPointFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        // Só fecha o diálogo se não estiver carregando
+        if (!isOpen && !isLoading) {
+          onOpenChange(false);
+        }
+      }}
+    >
       <DialogContent className="max-w-[95vw] w-[1200px] h-[95vh] max-h-[95vh] p-0 overflow-hidden flex flex-col">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
@@ -138,10 +146,19 @@ export function CollectionPointFormDialog({
         </div>
 
         <DialogFooter className="px-6 py-4 border-t">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading}>
+          <Button 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)} 
+            disabled={isLoading}
+            type="button"
+          >
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isLoading}
+            type="button"
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -6,10 +6,10 @@ import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const Dialog = ({ onOpenChange, ...props }: DialogPrimitive.DialogProps) => {
-  // Add additional cleanup when dialog closes
+  // Adiciona limpeza adicional quando o diálogo fecha
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Ensure pointer events are restored
+      // Garante que os events de ponteiro sejam restaurados
       setTimeout(() => {
         document.body.style.pointerEvents = '';
       }, 100);

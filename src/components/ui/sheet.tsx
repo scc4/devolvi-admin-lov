@@ -7,12 +7,13 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const Sheet = ({ onOpenChange, ...props }: SheetPrimitive.DialogProps) => {
-  // Add additional cleanup when sheet closes
+  // Adiciona limpeza adicional quando sheet fecha
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      // Ensure pointer events are restored
+      // Garante que eventos de ponteiro sejam restaurados
       setTimeout(() => {
         document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
       }, 100);
     }
     
