@@ -1,29 +1,36 @@
 
-import { useUserCases } from "./useUserCases";
+import { useState } from "react";
+import { useUserCases } from "@/presentation/hooks/useUserCases";
+import { UserRow } from "@/types/user";
 
-/**
- * Hook that provides user management functionality.
- * This is a wrapper around useUserCases to maintain backward compatibility
- * with components that expect the useUsers interface.
- */
 export function useUsers() {
   const {
     users,
-    loading,
+    isLoading: loading,
     error,
-    loadUsers,
-    handleDelete,
-    handleDeactivate,
-    handleResetPassword
+    refresh: loadUsers,
+    editUser: handleEditUser,
+    deleteUser: handleDeleteUser,
+    deactivateUser: handleDeactivateUser
   } = useUserCases();
 
-  // Provide an interface that matches what Users.tsx expects
-  const handleEdit = async (userId: string, updates: { name: string; phone: string | null; role: "admin" | "owner" }) => {
-    // In a full implementation, this would call an updateUser method from useUserCases
-    console.log("Edit user functionality not fully implemented in DDD version:", userId, updates);
-    // For now we'll just reload the users to refresh the UI
-    await loadUsers();
-    return { success: true };
+  // Adapting the return type to match what UsersTable expects
+  const handleEdit = async (user: UserRow) => {
+    const result = await handleEditUser(user.id, {
+      name: user.name,
+      phone: user.phone || null,
+      role: user.roles?.[0] as "admin" | "owner"
+    });
+    // Ignore the success return value to match the expected Promise<void>
+    return;
+  };
+  
+  const handleDelete = async (user: UserRow) => {
+    await handleDeleteUser(user.id);
+  };
+
+  const handleDeactivate = async (user: UserRow) => {
+    await handleDeactivateUser(user.id);
   };
 
   return {
@@ -33,7 +40,6 @@ export function useUsers() {
     loadUsers,
     handleEdit,
     handleDelete,
-    handleDeactivate,
-    handleResetPassword
+    handleDeactivate
   };
 }

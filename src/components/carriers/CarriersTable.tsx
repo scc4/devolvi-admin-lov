@@ -16,24 +16,25 @@ import { Card } from "@/components/ui/card";
 interface CarriersTableProps {
   carriers: (Carrier & { collection_points_count?: number })[];
   loading: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   onEdit: (carrier: Carrier) => void;
   onDelete: (carrier: Carrier) => void;
-  onDeactivate: (carrier: Carrier) => void;
+  onDeactivate?: (carrier: Carrier) => void;
   onManageCollectionPoints: (carrier: Carrier) => void;
 }
 
 export function CarriersTable({
   carriers,
   loading,
+  error,
+  onRetry,
   onEdit,
   onDelete,
-  onDeactivate,
+  onDeactivate = () => {},
   onManageCollectionPoints,
 }: CarriersTableProps) {
   const { isMobile } = useIsMobile();
-
-  // Função de log para depuração
-  console.log("Carriers na tabela:", carriers);
 
   // Mobile view
   if (isMobile) {
@@ -112,6 +113,22 @@ export function CarriersTable({
             <TableRow>
               <TableCell colSpan={8} className="text-center py-4">
                 Carregando...
+              </TableCell>
+            </TableRow>
+          ) : error ? (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-4">
+                <div className="space-y-2">
+                  <p className="text-red-500">{error}</p>
+                  {onRetry && (
+                    <button
+                      onClick={onRetry}
+                      className="text-primary hover:underline"
+                    >
+                      Tentar novamente
+                    </button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ) : carriers.length > 0 ? (

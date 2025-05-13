@@ -10,23 +10,35 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface EditCarrierDialogProps {
   carrier: Carrier;
   onClose: () => void;
-  onSave: (carrier: Carrier) => Promise<void>;
+  onSave?: (carrier: Carrier) => Promise<void>;
+  onEdit?: (carrier: Carrier) => Promise<void>;
   isSubmitting?: boolean;
+  open?: boolean;
 }
 
 export function EditCarrierDialog({
   carrier,
   onClose,
   onSave,
-  isSubmitting = false
+  onEdit,
+  isSubmitting = false,
+  open = true
 }: EditCarrierDialogProps) {
   const { isMobile } = useIsMobile();
   
   // Use our custom cleanup hook instead of the old handler
-  useDialogCleanup({ open: true }); // Always open when component is mounted
+  useDialogCleanup({ open }); 
+
+  const handleSave = async (carrierData: Carrier) => {
+    if (onSave) {
+      await onSave(carrierData);
+    } else if (onEdit) {
+      await onEdit(carrierData);
+    }
+  };
 
   return (
-    <Dialog open onOpenChange={() => !isSubmitting && onClose()}>
+    <Dialog open={open} onOpenChange={() => !isSubmitting && onClose()}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{carrier.id ? 'Editar' : 'Nova'} Transportadora</DialogTitle>
@@ -35,7 +47,6 @@ export function EditCarrierDialog({
         <Tabs defaultValue="basic">
           <TabsList className={`grid w-full ${isMobile ? "grid-cols-1 gap-1" : "grid-cols-2"}`}>
             <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
-            {/* Agora habilitamos a aba de cidades mesmo para novas transportadoras */}
             <TabsTrigger value="cities">
               Cidades Atendidas
             </TabsTrigger>
@@ -44,7 +55,7 @@ export function EditCarrierDialog({
           <TabsContent value="basic">
             <BasicInfoTab
               carrier={carrier}
-              onSave={onSave}
+              onSave={handleSave}
               onClose={onClose}
               isSubmitting={isSubmitting}
             />

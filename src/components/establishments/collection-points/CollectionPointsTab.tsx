@@ -1,12 +1,13 @@
 
 import { useState } from "react";
-import { useCollectionPoints } from "@/hooks/useCollectionPoints";
+import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointFormDialog } from "./CollectionPointFormDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCcw } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { collectionPointAdapter } from "@/adapters/collectionPoints/collectionPointAdapter";
 
 interface CollectionPointsTabProps {
   establishmentId?: string;
@@ -15,23 +16,24 @@ interface CollectionPointsTabProps {
   };
 }
 
-export function CollectionPointsTab({ 
+export function CollectionPointsTab({
   establishmentId,
   carrierContext
 }: CollectionPointsTabProps) {
   const {
     collectionPoints,
-    isLoading,
-    createCollectionPoint,
-    updateCollectionPoint,
-    deleteCollectionPoint,
+    loading,
+    error,
+    loadCollectionPoints: refetch,
+    handleCreate: createCollectionPoint,
+    handleUpdate: updateCollectionPoint,
+    handleDelete: deleteCollectionPoint,
     isCreating,
-    isUpdating,
-    refetch
-  } = useCollectionPoints(
-    establishmentId, 
-    carrierContext?.carrierId
-  );
+    isUpdating
+  } = useCollectionPointCasesWithDI({
+    establishmentId,
+    carrierId: carrierContext?.carrierId
+  });
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
@@ -72,6 +74,13 @@ export function CollectionPointsTab({
     }
   };
 
+  // Convert DDD collection points to UI format if needed
+  const formattedCollectionPoints = collectionPoints.map(
+    point => collectionPointAdapter.toUIModel ? 
+      collectionPointAdapter.toUIModel(point) : 
+      point as unknown as CollectionPoint
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -89,8 +98,8 @@ export function CollectionPointsTab({
       </div>
 
       <CollectionPointsTable
-        collectionPoints={collectionPoints}
-        isLoading={isLoading}
+        collectionPoints={formattedCollectionPoints}
+        isLoading={loading}
         onEdit={handleOpenEdit}
         onDelete={handleConfirmDelete}
       />

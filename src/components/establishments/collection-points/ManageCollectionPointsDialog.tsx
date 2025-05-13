@@ -1,84 +1,57 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionPointsTab } from "./CollectionPointsTab";
 import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
-import type { EstablishmentWithDetails } from "@/types/establishment";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useDialogCleanup } from "@/hooks/useDialogCleanup";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { Carrier } from "@/types/carrier";
 
 interface ManageCollectionPointsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  establishment?: EstablishmentWithDetails;
-  carrierContext?: {
-    carrierId: string;
-  };
+  carrier: Carrier;
 }
 
 export function ManageCollectionPointsDialog({
   open,
   onOpenChange,
-  establishment,
-  carrierContext
+  carrier
 }: ManageCollectionPointsDialogProps) {
-  const { isMobile } = useIsMobile();
-  
-  // Use our custom cleanup hook
-  useDialogCleanup({ 
-    open,
-    onCleanup: () => {
-      // Any additional cleanup if needed
-      document.body.style.overflow = '';
-    }
-  });
+  const { isMobile } = useBreakpoint("md");
 
-  // Determine title based on context
-  const dialogTitle = establishment 
-    ? `Pontos de Coleta - ${establishment.name}` 
-    : "Associar Pontos de Coleta";
-
-  // Create a component to render the correct content based on context
-  const renderContent = () => {
-    if (carrierContext?.carrierId) {
-      return <CollectionPointAssociationTab carrierId={carrierContext.carrierId} />;
-    }
-    return (
-      <CollectionPointsTab
-        establishmentId={establishment?.id}
-        carrierContext={carrierContext}
-      />
-    );
-  };
-
-  // Mobile view uses Sheet
-  if (isMobile) {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[90vh] sm:h-[95vh] p-0 pt-6">
-          <div className="h-full flex flex-col">
-            <SheetHeader className="px-4 pb-2">
-              <SheetTitle>{dialogTitle}</SheetTitle>
-            </SheetHeader>
-            <div className="flex-1 overflow-auto px-4 pb-4">
-              {open && renderContent()}
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  // Desktop view uses Dialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[1200px] h-[95vh] max-h-[95vh] p-0 overflow-hidden flex flex-col">
-        <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle>{dialogTitle}</DialogTitle>
+      <DialogContent 
+        className="max-w-4xl max-h-[85vh] overflow-y-auto" 
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <span>Pontos de Coleta - {carrier.name}</span>
+          </DialogTitle>
+          <DialogDescription>
+            Gerencie os pontos de coleta associados a esta transportadora.
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-auto p-6 pt-4">
-          {open && renderContent()}
-        </div>
+
+        <Tabs defaultValue="manage" className="mt-4">
+          <TabsList className={`${isMobile ? 'flex flex-col space-y-1 h-auto' : ''}`}>
+            <TabsTrigger value="manage" className="flex-1">
+              Gerenciar Associações
+            </TabsTrigger>
+            <TabsTrigger value="carrier" className="flex-1">
+              Pontos da Transportadora
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="manage" className="pt-4 pb-2">
+            <CollectionPointAssociationTab carrierId={carrier.id} />
+          </TabsContent>
+          <TabsContent value="carrier" className="pt-4 pb-2">
+            <CollectionPointsTab 
+              carrierContext={{ carrierId: carrier.id }} 
+            />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

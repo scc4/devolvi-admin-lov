@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CarriersSearch } from "@/components/carriers/CarriersSearch";
@@ -6,15 +7,15 @@ import { CarriersTable } from "@/components/carriers/CarriersTable";
 import { EditCarrierDialog } from "@/components/carriers/EditCarrierDialog";
 import { ConfirmActionDialog } from "@/components/carriers/ConfirmActionDialog";
 import { useCarriers } from "@/hooks/useCarriers";
-import { CarrierRow } from "@/types/carrier";
+import { Carrier } from "@/types/carrier";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
 
 export default function Carriers() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [editCarrier, setEditCarrier] = useState<CarrierRow | null>(null);
-  const [confirmModal, setConfirmModal] = useState<null | { action: "delete"; carrier: CarrierRow }>(null);
+  const [editCarrier, setEditCarrier] = useState<Carrier | null>(null);
+  const [confirmModal, setConfirmModal] = useState<null | { action: "delete"; carrier: Carrier }>(null);
   const [collectionPointsOpen, setCollectionPointsOpen] = useState(false);
-  const [selectedCarrier, setSelectedCarrier] = useState<CarrierRow | null>(null);
+  const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null);
 
   const {
     carriers,
@@ -60,7 +61,6 @@ export default function Carriers() {
 
       {editCarrier && (
         <EditCarrierDialog
-          open={!!editCarrier}
           carrier={editCarrier}
           onClose={() => setEditCarrier(null)}
           onEdit={handleEdit}

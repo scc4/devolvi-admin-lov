@@ -11,3 +11,6 @@ export interface Carrier {
   updated_at?: string;
   collection_points_count?: number;
 }
+
+// Alias to maintain compatibility with existing code
+export type CarrierRow = Carrier;

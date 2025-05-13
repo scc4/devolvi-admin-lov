@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useCollectionPoints } from "./useCollectionPoints";
+import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
 import type { CollectionPoint } from "@/types/collection-point";
+import { collectionPointAdapter } from "@/adapters/collectionPoints/collectionPointAdapter";
 
 export function useCollectionPointAssociation(carrierId: string) {
   const [carrierName, setCarrierName] = useState<string>("");
@@ -55,31 +56,44 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   // Fetch points
   const {
-    collectionPoints: unassignedPoints,
-    isLoading: isLoadingUnassigned,
-    refetch: refetchUnassigned
-  } = useCollectionPoints(null, null, true);
+    collectionPoints: unassignedPointsData,
+    loading: isLoadingUnassigned,
+    loadCollectionPoints: refetchUnassigned
+  } = useCollectionPointCasesWithDI({
+    unassigned: true,
+    cityFilter: filterByServedCities ? servedCities.join(',') : undefined
+  });
 
   const {
-    collectionPoints: carrierPoints,
-    isLoading: isLoadingCarrier,
-    refetch: refetchCarrier
-  } = useCollectionPoints(undefined, carrierId);
+    collectionPoints: carrierPointsData,
+    loading: isLoadingCarrier,
+    loadCollectionPoints: refetchCarrier,
+    handleAssignCarrier
+  } = useCollectionPointCasesWithDI({
+    carrierId
+  });
+
+  // Convert DDD entities to UI models
+  const unassignedPoints = unassignedPointsData.map(
+    point => collectionPointAdapter.toUIModel ? 
+      collectionPointAdapter.toUIModel(point) : 
+      point as unknown as CollectionPoint
+  );
+
+  const carrierPoints = carrierPointsData.map(
+    point => collectionPointAdapter.toUIModel ? 
+      collectionPointAdapter.toUIModel(point) : 
+      point as unknown as CollectionPoint
+  );
 
   // Filter points based on served cities
   const filteredUnassignedPoints = filterByServedCities
     ? unassignedPoints.filter(point => servedCities.includes(point.city || ''))
     : unassignedPoints;
 
-  const handleAssociate = async (point: CollectionPoint) => {
+  const handleAssociatePoint = async (point: CollectionPoint) => {
     try {
-      const { error } = await supabase
-        .from('collection_points')
-        .update({ carrier_id: carrierId })
-        .eq('id', point.id);
-
-      if (error) throw error;
-      
+      await handleAssignCarrier(point.id, carrierId);
       toast.success('Ponto de coleta associado com sucesso');
       refetchUnassigned();
       refetchCarrier();
@@ -89,15 +103,9 @@ export function useCollectionPointAssociation(carrierId: string) {
     }
   };
 
-  const handleDisassociate = async (point: CollectionPoint) => {
+  const handleDisassociatePoint = async (point: CollectionPoint) => {
     try {
-      const { error } = await supabase
-        .from('collection_points')
-        .update({ carrier_id: null })
-        .eq('id', point.id);
-
-      if (error) throw error;
-      
+      await handleAssignCarrier(point.id, null);
       toast.success('Ponto de coleta desassociado com sucesso');
       refetchUnassigned();
       refetchCarrier();
@@ -117,10 +125,9 @@ export function useCollectionPointAssociation(carrierId: string) {
     isLoadingServedCities,
     isLoadingUnassigned,
     isLoadingCarrier,
-    handleAssociate,
-    handleDisassociate,
+    handleAssociate: handleAssociatePoint,
+    handleDisassociate: handleDisassociatePoint,
     refetchUnassigned,
     refetchCarrier
   };
 }
-
