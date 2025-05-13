@@ -1,120 +1,53 @@
+import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+import { Index } from "./pages/Index";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { ResetPassword } from "./pages/ResetPassword";
+import { ConfirmRegistration } from "./pages/ConfirmRegistration";
+import { Carriers } from "./pages/Carriers";
+import { Establishments } from "./pages/Establishments";
+import { NotFound } from "./pages/NotFound";
+import { Layout } from "./components/Layout";
+import { EstablishmentsWithDI } from "./pages/EstablishmentsWithDI";
+import UsersDDD from "./pages/UsersDDD";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { Skeleton } from "@/components/ui/skeleton";
+function App() {
+  const { user } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-// Eager load critical components
-import DashboardLayout from "./components/layout/DashboardLayout";
-import Auth from "./pages/Auth";
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
-// Lazy load non-critical pages
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Users = lazy(() => import("./pages/Users"));
-const Carriers = lazy(() => import("./pages/Carriers"));
-const Establishments = lazy(() => import("./pages/Establishments"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const ConfirmRegistration = lazy(() => import("./pages/ConfirmRegistration"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+  const ProtectedRoute = ({ redirectTo }: { redirectTo: string }) => {
+    return user ? (
+      <Layout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+        <Outlet />
+      </Layout>
+    ) : (
+      <Navigate to={redirectTo} />
+    );
+  };
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 60000,
-    },
-  },
-});
-
-const LoadingFallback = () => (
-  <div className="w-full h-[calc(100vh-64px)] flex items-center justify-center p-4">
-    <div className="w-full max-w-md space-y-4">
-      <Skeleton className="h-8 w-3/4 mx-auto" />
-      <Skeleton className="h-64 w-full" />
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-5/6" />
-        <Skeleton className="h-4 w-4/6" />
-      </div>
-    </div>
-  </div>
-);
-
-const RootRedirect = () => {
-  const { isAuthenticated, loading } = useAuth();
-  if (loading) return <LoadingFallback />;
-  return <Navigate to={isAuthenticated ? "/dashboard" : "/auth"} replace />;
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<RootRedirect />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/login" element={<Navigate to="/auth" replace />} />
-            <Route 
-              path="/auth/confirm" 
-              element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <ConfirmRegistration />
-                </Suspense>
-              } 
-            />
-            <Route 
-              path="/auth/reset-password" 
-              element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <ResetPassword />
-                </Suspense>
-              } 
-            />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Dashboard />
-                </Suspense>
-              } />
-              <Route path="/dashboard/users" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Users />
-                </Suspense>
-              } />
-              <Route path="/dashboard/carriers" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Carriers />
-                </Suspense>
-              } />
-              <Route path="/dashboard/establishments" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Establishments />
-                </Suspense>
-              } />
-            </Route>
-            <Route path="/users" element={<Navigate to="/dashboard/users" replace />} />
-            <Route path="*" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <NotFound />
-              </Suspense>
-            } />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/confirm-registration" element={<ConfirmRegistration />} />
+      
+      <Route path="/dashboard" element={<ProtectedRoute redirectTo="/login" />}>
+        <Route path="" element={<Dashboard />} />
+        <Route path="users" element={<UsersDDD />} /> {/* Using DDD version */}
+        <Route path="carriers" element={<Carriers />} />
+        <Route path="establishments" element={<EstablishmentsWithDI />} /> {/* Using DI version */}
+      </Route>
+      
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
 export default App;

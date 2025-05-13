@@ -1,291 +1,108 @@
 
-import { IUserRepository } from '../../domain/repositories/IUserRepository';
-import { SupabaseUserRepository } from '../repositories/SupabaseUserRepository';
-import { GetAllUsersUseCase } from '../../application/useCases/user/GetAllUsersUseCase';
-import { DeleteUserUseCase } from '../../application/useCases/user/DeleteUserUseCase';
-import { DeactivateUserUseCase } from '../../application/useCases/user/DeactivateUserUseCase';
-import { ResetPasswordUseCase } from '../../application/useCases/user/ResetPasswordUseCase';
-
-// Import Carrier related classes
-import { ICarrierRepository } from '../../domain/repositories/ICarrierRepository';
-import { SupabaseCarrierRepository } from '../repositories/SupabaseCarrierRepository';
-import { GetAllCarriersUseCase } from '../../application/useCases/carrier/GetAllCarriersUseCase';
-import { CreateCarrierUseCase } from '../../application/useCases/carrier/CreateCarrierUseCase';
-import { UpdateCarrierUseCase } from '../../application/useCases/carrier/UpdateCarrierUseCase';
-import { DeleteCarrierUseCase } from '../../application/useCases/carrier/DeleteCarrierUseCase';
-import { DeactivateCarrierUseCase } from '../../application/useCases/carrier/DeactivateCarrierUseCase';
-
-// Import Establishment related classes
-import { IEstablishmentRepository } from '../../domain/repositories/IEstablishmentRepository';
-import { SupabaseEstablishmentRepository } from '../repositories/SupabaseEstablishmentRepository';
-import { GetAllEstablishmentsUseCase } from '../../application/useCases/establishment/GetAllEstablishmentsUseCase';
-import { CreateEstablishmentUseCase } from '../../application/useCases/establishment/CreateEstablishmentUseCase';
-import { UpdateEstablishmentUseCase } from '../../application/useCases/establishment/UpdateEstablishmentUseCase';
-import { DeleteEstablishmentUseCase } from '../../application/useCases/establishment/DeleteEstablishmentUseCase';
-
-// Import Collection Point related classes
-import { ICollectionPointRepository } from '../../domain/repositories/ICollectionPointRepository';
-import { SupabaseCollectionPointRepository } from '../repositories/SupabaseCollectionPointRepository';
-import { GetCollectionPointsUseCase } from '../../application/useCases/collectionPoint/GetCollectionPointsUseCase';
-import { GetCollectionPointByIdUseCase } from '../../application/useCases/collectionPoint/GetCollectionPointByIdUseCase';
-import { CreateCollectionPointUseCase } from '../../application/useCases/collectionPoint/CreateCollectionPointUseCase';
-import { UpdateCollectionPointUseCase } from '../../application/useCases/collectionPoint/UpdateCollectionPointUseCase';
-import { DeleteCollectionPointUseCase } from '../../application/useCases/collectionPoint/DeleteCollectionPointUseCase';
-import { AssignCarrierToCollectionPointUseCase } from '../../application/useCases/collectionPoint/AssignCarrierToCollectionPointUseCase';
+import { userContainer } from './userContainer';
+import { carrierContainer } from './carrierContainer';
+import { establishmentContainer } from './establishmentContainer';
+import { collectionPointContainer } from './collectionPointContainer';
 
 /**
- * Simple dependency injection container
+ * Main dependency injection container
+ * Aggregates all module-specific containers
  */
 class Container {
-  private instances: Map<string, any> = new Map();
-
-  // User repository
-  getUserRepository(): IUserRepository {
-    const key = 'userRepository';
-    if (!this.instances.has(key)) {
-      this.instances.set(key, new SupabaseUserRepository());
-    }
-    return this.instances.get(key);
+  // USER MODULE
+  getUserRepository() {
+    return userContainer.getUserRepository();
   }
 
-  // User use cases
-  getAllUsersUseCase(): GetAllUsersUseCase {
-    const key = 'getAllUsersUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new GetAllUsersUseCase(this.getUserRepository())
-      );
-    }
-    return this.instances.get(key);
+  getAllUsersUseCase() {
+    return userContainer.getAllUsersUseCase();
   }
 
-  deleteUserUseCase(): DeleteUserUseCase {
-    const key = 'deleteUserUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new DeleteUserUseCase(this.getUserRepository())
-      );
-    }
-    return this.instances.get(key);
+  deleteUserUseCase() {
+    return userContainer.deleteUserUseCase();
   }
 
-  deactivateUserUseCase(): DeactivateUserUseCase {
-    const key = 'deactivateUserUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new DeactivateUserUseCase(this.getUserRepository())
-      );
-    }
-    return this.instances.get(key);
+  deactivateUserUseCase() {
+    return userContainer.deactivateUserUseCase();
   }
 
-  resetPasswordUseCase(): ResetPasswordUseCase {
-    const key = 'resetPasswordUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new ResetPasswordUseCase(this.getUserRepository())
-      );
-    }
-    return this.instances.get(key);
+  resetPasswordUseCase() {
+    return userContainer.resetPasswordUseCase();
   }
 
-  // Carrier repository
-  getCarrierRepository(): ICarrierRepository {
-    const key = 'carrierRepository';
-    if (!this.instances.has(key)) {
-      this.instances.set(key, new SupabaseCarrierRepository());
-    }
-    return this.instances.get(key);
+  // CARRIER MODULE
+  getCarrierRepository() {
+    return carrierContainer.getCarrierRepository();
   }
 
-  // Carrier use cases
-  getAllCarriersUseCase(): GetAllCarriersUseCase {
-    const key = 'getAllCarriersUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new GetAllCarriersUseCase(this.getCarrierRepository())
-      );
-    }
-    return this.instances.get(key);
+  getAllCarriersUseCase() {
+    return carrierContainer.getAllCarriersUseCase();
   }
 
-  createCarrierUseCase(): CreateCarrierUseCase {
-    const key = 'createCarrierUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new CreateCarrierUseCase(this.getCarrierRepository())
-      );
-    }
-    return this.instances.get(key);
+  createCarrierUseCase() {
+    return carrierContainer.createCarrierUseCase();
   }
 
-  updateCarrierUseCase(): UpdateCarrierUseCase {
-    const key = 'updateCarrierUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new UpdateCarrierUseCase(this.getCarrierRepository())
-      );
-    }
-    return this.instances.get(key);
+  updateCarrierUseCase() {
+    return carrierContainer.updateCarrierUseCase();
   }
 
-  deleteCarrierUseCase(): DeleteCarrierUseCase {
-    const key = 'deleteCarrierUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new DeleteCarrierUseCase(this.getCarrierRepository())
-      );
-    }
-    return this.instances.get(key);
+  deleteCarrierUseCase() {
+    return carrierContainer.deleteCarrierUseCase();
   }
 
-  deactivateCarrierUseCase(): DeactivateCarrierUseCase {
-    const key = 'deactivateCarrierUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new DeactivateCarrierUseCase(this.getCarrierRepository())
-      );
-    }
-    return this.instances.get(key);
+  deactivateCarrierUseCase() {
+    return carrierContainer.deactivateCarrierUseCase();
   }
 
-  // Establishment repository
-  getEstablishmentRepository(): IEstablishmentRepository {
-    const key = 'establishmentRepository';
-    if (!this.instances.has(key)) {
-      this.instances.set(key, new SupabaseEstablishmentRepository());
-    }
-    return this.instances.get(key);
+  // ESTABLISHMENT MODULE
+  getEstablishmentRepository() {
+    return establishmentContainer.getEstablishmentRepository();
   }
 
-  // Establishment use cases
-  getAllEstablishmentsUseCase(): GetAllEstablishmentsUseCase {
-    const key = 'getAllEstablishmentsUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new GetAllEstablishmentsUseCase(this.getEstablishmentRepository())
-      );
-    }
-    return this.instances.get(key);
+  getAllEstablishmentsUseCase() {
+    return establishmentContainer.getAllEstablishmentsUseCase();
   }
 
-  createEstablishmentUseCase(): CreateEstablishmentUseCase {
-    const key = 'createEstablishmentUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new CreateEstablishmentUseCase(this.getEstablishmentRepository())
-      );
-    }
-    return this.instances.get(key);
+  createEstablishmentUseCase() {
+    return establishmentContainer.createEstablishmentUseCase();
   }
 
-  updateEstablishmentUseCase(): UpdateEstablishmentUseCase {
-    const key = 'updateEstablishmentUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new UpdateEstablishmentUseCase(this.getEstablishmentRepository())
-      );
-    }
-    return this.instances.get(key);
+  updateEstablishmentUseCase() {
+    return establishmentContainer.updateEstablishmentUseCase();
   }
 
-  deleteEstablishmentUseCase(): DeleteEstablishmentUseCase {
-    const key = 'deleteEstablishmentUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new DeleteEstablishmentUseCase(this.getEstablishmentRepository())
-      );
-    }
-    return this.instances.get(key);
+  deleteEstablishmentUseCase() {
+    return establishmentContainer.deleteEstablishmentUseCase();
   }
 
-  // Collection Point repository
-  getCollectionPointRepository(): ICollectionPointRepository {
-    const key = 'collectionPointRepository';
-    if (!this.instances.has(key)) {
-      this.instances.set(key, new SupabaseCollectionPointRepository());
-    }
-    return this.instances.get(key);
+  // COLLECTION POINT MODULE
+  getCollectionPointRepository() {
+    return collectionPointContainer.getCollectionPointRepository();
   }
 
-  // Collection Point use cases
-  getCollectionPointsUseCase(): GetCollectionPointsUseCase {
-    const key = 'getCollectionPointsUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new GetCollectionPointsUseCase(this.getCollectionPointRepository())
-      );
-    }
-    return this.instances.get(key);
+  getCollectionPointsUseCase() {
+    return collectionPointContainer.getCollectionPointsUseCase();
   }
 
-  getCollectionPointByIdUseCase(): GetCollectionPointByIdUseCase {
-    const key = 'getCollectionPointByIdUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new GetCollectionPointByIdUseCase(this.getCollectionPointRepository())
-      );
-    }
-    return this.instances.get(key);
+  getCollectionPointByIdUseCase() {
+    return collectionPointContainer.getCollectionPointByIdUseCase();
   }
 
-  createCollectionPointUseCase(): CreateCollectionPointUseCase {
-    const key = 'createCollectionPointUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new CreateCollectionPointUseCase(this.getCollectionPointRepository())
-      );
-    }
-    return this.instances.get(key);
+  createCollectionPointUseCase() {
+    return collectionPointContainer.createCollectionPointUseCase();
   }
 
-  updateCollectionPointUseCase(): UpdateCollectionPointUseCase {
-    const key = 'updateCollectionPointUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new UpdateCollectionPointUseCase(this.getCollectionPointRepository())
-      );
-    }
-    return this.instances.get(key);
+  updateCollectionPointUseCase() {
+    return collectionPointContainer.updateCollectionPointUseCase();
   }
 
-  deleteCollectionPointUseCase(): DeleteCollectionPointUseCase {
-    const key = 'deleteCollectionPointUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new DeleteCollectionPointUseCase(this.getCollectionPointRepository())
-      );
-    }
-    return this.instances.get(key);
+  deleteCollectionPointUseCase() {
+    return collectionPointContainer.deleteCollectionPointUseCase();
   }
 
-  assignCarrierToCollectionPointUseCase(): AssignCarrierToCollectionPointUseCase {
-    const key = 'assignCarrierToCollectionPointUseCase';
-    if (!this.instances.has(key)) {
-      this.instances.set(
-        key,
-        new AssignCarrierToCollectionPointUseCase(this.getCollectionPointRepository())
-      );
-    }
-    return this.instances.get(key);
+  assignCarrierToCollectionPointUseCase() {
+    return collectionPointContainer.assignCarrierToCollectionPointUseCase();
   }
 }
 

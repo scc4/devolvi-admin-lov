@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { UserDTO } from '../../application/dto/UserDTO';
 import { container } from '../../infrastructure/di/container';
+import { userAdapter } from '../../adapters/users/userAdapter';
 
 /**
  * Hook to expose user-related use cases to the presentation layer using DI
@@ -39,9 +40,12 @@ export function useUserCasesWithDI() {
     }
   }, [getAllUsersUseCase, toast]);
 
-  const handleDelete = async (user: UserDTO): Promise<{ success: boolean }> => {
+  const handleDelete = async (user: any): Promise<{ success: boolean }> => {
     try {
-      const result = await deleteUserUseCase.execute(user.id);
+      // We convert from UI model to DTO if needed
+      const userDTO = 'id' in user ? userAdapter.fromUIModel(user) : user;
+      
+      const result = await deleteUserUseCase.execute(userDTO.id);
       if (result.success) {
         toast({
           title: "Usuário excluído",
@@ -67,9 +71,12 @@ export function useUserCasesWithDI() {
     }
   };
 
-  const handleDeactivate = async (user: UserDTO): Promise<{ success: boolean }> => {
+  const handleDeactivate = async (user: any): Promise<{ success: boolean }> => {
     try {
-      const result = await deactivateUserUseCase.execute(user.id);
+      // We convert from UI model to DTO if needed
+      const userDTO = 'id' in user ? userAdapter.fromUIModel(user) : user;
+      
+      const result = await deactivateUserUseCase.execute(userDTO.id);
       if (result.success) {
         toast({
           title: "Usuário inativado",
