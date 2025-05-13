@@ -8,6 +8,6 @@ interface LayoutProps {
   toggleSidebar: () => void;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ children, isSidebarOpen, toggleSidebar }: LayoutProps) {
   return <DashboardLayout>{children}</DashboardLayout>;
 }
