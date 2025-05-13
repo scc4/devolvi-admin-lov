@@ -34,8 +34,18 @@ export function useCollectionPointCasesWithDI(filters?: {
     setLoading(true);
     setError(null);
     try {
+      console.log("Loading collection points with filters:", filters);
       const collectionPointDTOs = await getCollectionPointsUseCase.execute(filters);
-      setCollectionPoints(collectionPointAdapter.toUIModelList(collectionPointDTOs));
+      console.log("Collection points loaded:", collectionPointDTOs);
+      
+      if (!collectionPointDTOs || collectionPointDTOs.length === 0) {
+        console.log("No collection points found");
+      }
+      
+      const uiModels = collectionPointAdapter.toUIModelList(collectionPointDTOs);
+      console.log("Collection points UI models:", uiModels);
+      
+      setCollectionPoints(uiModels);
     } catch (err) {
       console.error("Error loading collection points:", err);
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar pontos de coleta';
@@ -50,6 +60,7 @@ export function useCollectionPointCasesWithDI(filters?: {
 
   // Load collection points on first render and when filters change
   useEffect(() => {
+    console.log("useEffect triggered, loading collection points");
     loadCollectionPoints();
   }, [loadCollectionPoints]);
 
@@ -58,6 +69,7 @@ export function useCollectionPointCasesWithDI(filters?: {
     try {
       // Convert UI model to DTO
       const dto = collectionPointAdapter.fromUIModel(collectionPoint);
+      console.log("Creating collection point with DTO:", dto);
       
       const result = await createCollectionPointUseCase.execute(dto);
 
@@ -85,6 +97,7 @@ export function useCollectionPointCasesWithDI(filters?: {
     try {
       // Convert UI model to DTO
       const dto = collectionPointAdapter.fromUIModel(collectionPoint);
+      console.log("Updating collection point with DTO:", dto);
       
       const result = await updateCollectionPointUseCase.execute(dto);
 
@@ -110,6 +123,7 @@ export function useCollectionPointCasesWithDI(filters?: {
   const handleDelete = async (collectionPointId: string) => {
     setIsDeleting(true);
     try {
+      console.log("Deleting collection point with ID:", collectionPointId);
       const result = await deleteCollectionPointUseCase.execute(collectionPointId);
       
       if (result.success) {
@@ -133,6 +147,7 @@ export function useCollectionPointCasesWithDI(filters?: {
   const handleAssignCarrier = async (collectionPointId: string, carrierId: string | null) => {
     setIsAssigningCarrier(true);
     try {
+      console.log("Assigning carrier to collection point:", { collectionPointId, carrierId });
       const result = await assignCarrierToCollectionPointUseCase.execute(collectionPointId, carrierId);
       
       if (result.success) {

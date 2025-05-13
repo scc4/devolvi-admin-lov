@@ -20,20 +20,30 @@ export class GetCollectionPointsUseCase {
     cityFilter?: string;
   }): Promise<CollectionPointDTO[]> {
     try {
+      console.log("GetCollectionPointsUseCase.execute called with filters:", filters);
       let collectionPoints: CollectionPoint[];
 
       if (filters?.unassigned) {
+        console.log("Fetching unassigned collection points");
         collectionPoints = await this.collectionPointRepository.getUnassigned(filters.cityFilter);
       } else if (filters?.establishmentId) {
+        console.log(`Fetching collection points for establishment: ${filters.establishmentId}`);
         collectionPoints = await this.collectionPointRepository.getByEstablishment(filters.establishmentId);
       } else if (filters?.carrierId) {
+        console.log(`Fetching collection points for carrier: ${filters.carrierId}`);
         collectionPoints = await this.collectionPointRepository.getByCarrier(filters.carrierId);
       } else {
+        console.log("Fetching all collection points");
         collectionPoints = await this.collectionPointRepository.getAll();
       }
 
+      console.log("Retrieved collection points:", collectionPoints);
+
       // Convert domain entities to DTOs
-      return collectionPoints.map(cp => collectionPointAdapter.toDTO(cp));
+      const dtos = collectionPoints.map(cp => collectionPointAdapter.toDTO(cp));
+      console.log("Converted to DTOs:", dtos);
+      
+      return dtos;
     } catch (error) {
       console.error('Error in GetCollectionPointsUseCase:', error);
       throw error instanceof Error ? error : new Error('Unknown error occurred');

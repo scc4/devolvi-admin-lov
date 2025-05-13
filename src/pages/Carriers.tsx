@@ -8,7 +8,7 @@ import { EditCarrierDialog } from "@/components/carriers/EditCarrierDialog";
 import { ConfirmActionDialog } from "@/components/carriers/ConfirmActionDialog";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
-import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
+import { ManageCollectionPointsDialogWithDI } from "@/components/establishments/collection-points/ManageCollectionPointsDialogWithDI";
 import { useCarrierCasesWithDI } from "@/presentation/hooks/useCarrierCasesWithDI";
 import { carrierAdapter } from "@/adapters/carriers/carrierAdapter";
 import type { Carrier } from "@/types/carrier";
@@ -131,7 +131,7 @@ export default function Carriers() {
       )}
 
       {managePointsCarrier && (
-        <ManageCollectionPointsDialog
+        <ManageCollectionPointsDialogWithDI
           open={!!managePointsCarrier}
           onOpenChange={() => setManagePointsCarrier(null)}
           carrierContext={{ carrierId: managePointsCarrier.id }}
