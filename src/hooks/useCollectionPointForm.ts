@@ -33,7 +33,6 @@ export function useCollectionPointForm(
 ) {
   const [form, setForm] = useState<Partial<CollectionPoint> & { address_obj?: AddressFormData | null }>({
     name: "",
-    address: "",
     phone: "",
     is_active: true,
     operating_hours: defaultOperatingHours,

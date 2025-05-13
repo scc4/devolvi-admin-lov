@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import type { CollectionPoint, Address } from "@/types/collection-point";
 import { Json } from "@/integrations/supabase/types";
+import { getFullAddress } from "@/components/establishments/collection-points/utils/addressHelpers";
 
 export function useCollectionPoints(
   establishmentId?: string | null, 
@@ -116,8 +117,12 @@ export function useCollectionPoints(
       // Then create the collection point with the address ID
       const { address_obj: _, ...pointData } = newPoint;
       
-      // Format address string for display from address_obj data
-      const formattedAddress = address ? generateAddressString(address) : "Sem endereço";
+      // Generate address string for display from address_obj data
+      let formattedAddress = "Sem endereço";
+      if (address) {
+        const addressPoint = { address_obj: address } as CollectionPoint;
+        formattedAddress = getFullAddress(addressPoint);
+      }
       
       const pointToInsert = {
         ...pointData,
@@ -219,8 +224,8 @@ export function useCollectionPoints(
 
       // If the address is changing, update the address string
       if (address && Object.values(address).some(v => v !== null && v !== '')) {
-        const formattedAddress = generateAddressString(address);
-        updateData.address = formattedAddress;
+        const addressPoint = { address_obj: address } as CollectionPoint;
+        updateData.address = getFullAddress(addressPoint);
       }
 
       const { data, error } = await supabase
@@ -291,23 +296,6 @@ export function useCollectionPoints(
     }
   });
 
-  // Helper function to generate a complete address string from an Address object
-  const generateAddressString = (address: Partial<Address> | null): string => {
-    if (!address) return 'Sem endereço';
-    
-    const parts = [];
-    
-    if (address.street) parts.push(address.street);
-    if (address.number) parts.push(address.number);
-    if (address.complement) parts.push(address.complement);
-    if (address.district) parts.push(`${address.district}`);
-    if (address.city) parts.push(address.city);
-    if (address.state) parts.push(address.state);
-    if (address.zip_code) parts.push(`CEP: ${address.zip_code}`);
-    
-    return parts.length > 0 ? parts.join(', ') : 'Sem endereço';
-  };
-
   return {
     collectionPoints,
     isLoading,
@@ -317,7 +305,6 @@ export function useCollectionPoints(
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
-    generateAddressString,
     refetch
   };
 }

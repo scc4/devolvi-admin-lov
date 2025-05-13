@@ -2,7 +2,7 @@
 export interface CollectionPoint {
   id: string;
   name: string;
-  address: string;
+  address?: string; // Making this optional as we're moving away from it
   establishment_id: string | null;
   establishment?: {
     name: string;
@@ -23,7 +23,7 @@ export interface CollectionPoint {
 }
 
 export interface Address {
-  id: string;
+  id?: string; // Making id optional to fix type issues with AddressFormData
   street: string | null;
   number: string | null;
   complement: string | null;
@@ -33,8 +33,8 @@ export interface Address {
   zip_code: string | null;
   latitude: number | null;
   longitude: number | null;
-  created_at: string;
-  updated_at: string | null;
+  created_at?: string;
+  updated_at?: string | null;
 }
 
 // For form operations, we need a version of Address where all fields can be partial

@@ -1,4 +1,3 @@
-
 import { CollectionPoint, DayOfWeek, daysOfWeekPtBr } from "@/types/collection-point";
 
 export const formatOperatingHours = (hours: CollectionPoint['operating_hours']) => {
@@ -22,7 +21,7 @@ export const formatOperatingHours = (hours: CollectionPoint['operating_hours']) 
 };
 
 export const formatAddress = (point: CollectionPoint) => {
-  if (!point.address_obj) return point.address || "Não informado";
+  if (!point.address_obj) return "Não informado";
   
   const { street, number, complement, district, city, state, zip_code } = point.address_obj;
   const parts = [];
@@ -35,5 +34,5 @@ export const formatAddress = (point: CollectionPoint) => {
   if (state) parts.push(state);
   if (zip_code) parts.push(`CEP: ${zip_code}`);
   
-  return parts.length > 0 ? parts.join(', ') : point.address || "Não informado";
+  return parts.length > 0 ? parts.join(', ') : "Não informado";
 };
