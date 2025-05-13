@@ -21,8 +21,11 @@ export function useEstablishments() {
     loading,
     error,
     loadEstablishments,
+    handleCreate,
     handleEdit,
     handleDelete,
-    handleCreate
+    isCreating,
+    isUpdating,
+    isDeleting
   };
 }

@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { toast } from "sonner";
-import { EstablishmentDTO } from '../../application/dto/EstablishmentDTO';
 import { container } from '../../infrastructure/di/container';
 import { establishmentAdapter } from '../../adapters/establishments/establishmentAdapter';
 import { EstablishmentWithDetails } from '../../types/establishment';
@@ -16,17 +16,19 @@ export function useEstablishmentCases() {
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   
-  // Get use cases from container
-  const getAllEstablishmentsUseCase = container.getAllEstablishmentsUseCase();
-  const createEstablishmentUseCase = container.createEstablishmentUseCase();
-  const updateEstablishmentUseCase = container.updateEstablishmentUseCase();
-  const deleteEstablishmentUseCase = container.deleteEstablishmentUseCase();
+  // Usar useRef para evitar recreações dos use cases
+  const useCasesRef = useRef({
+    getAllEstablishmentsUseCase: container.getAllEstablishmentsUseCase(),
+    createEstablishmentUseCase: container.createEstablishmentUseCase(),
+    updateEstablishmentUseCase: container.updateEstablishmentUseCase(),
+    deleteEstablishmentUseCase: container.deleteEstablishmentUseCase()
+  });
 
   const loadEstablishments = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const establishmentDTOs = await getAllEstablishmentsUseCase.execute();
+      const establishmentDTOs = await useCasesRef.current.getAllEstablishmentsUseCase.execute();
       setEstablishments(establishmentAdapter.toUIModelList(establishmentDTOs));
     } catch (err) {
       console.error("Error loading establishments:", err);
@@ -38,7 +40,7 @@ export function useEstablishmentCases() {
     } finally {
       setLoading(false);
     }
-  }, [getAllEstablishmentsUseCase]);
+  }, []); // Sem dependências para evitar loops
 
   // Load establishments on first render using useEffect
   useEffect(() => {
@@ -52,7 +54,7 @@ export function useEstablishmentCases() {
         throw new Error('Nome e tipo do estabelecimento são obrigatórios');
       }
       
-      const result = await createEstablishmentUseCase.execute({
+      const result = await useCasesRef.current.createEstablishmentUseCase.execute({
         name: establishment.name,
         type: establishment.type,
         carrierId: establishment.carrier_id
@@ -82,7 +84,7 @@ export function useEstablishmentCases() {
     try {
       const dto = establishmentAdapter.toDomainDTO(establishment);
       
-      const result = await updateEstablishmentUseCase.execute({
+      const result = await useCasesRef.current.updateEstablishmentUseCase.execute({
         id: dto.id,
         name: dto.name,
         type: dto.type,
@@ -110,7 +112,7 @@ export function useEstablishmentCases() {
   const handleDelete = async (establishment: EstablishmentWithDetails) => {
     setIsDeleting(true);
     try {
-      const result = await deleteEstablishmentUseCase.execute(establishment.id);
+      const result = await useCasesRef.current.deleteEstablishmentUseCase.execute(establishment.id);
       
       if (result.success) {
         await loadEstablishments(); // Reload establishments to get updated list

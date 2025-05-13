@@ -6,7 +6,7 @@ import { EstablishmentsSearch } from "@/components/establishments/Establishments
 import { EstablishmentsTable } from "@/components/establishments/EstablishmentsTable";
 import { EstablishmentFormDialog } from "@/components/establishments/EstablishmentFormDialog";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
-import { useEstablishmentCasesWithDI } from "@/presentation/hooks/useEstablishmentCasesWithDI";
+import { useEstablishments } from "@/hooks/useEstablishments";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
@@ -22,7 +22,7 @@ export default function Establishments() {
     handleCreate,
     isCreating,
     isUpdating
-  } = useEstablishmentCasesWithDI();
+  } = useEstablishments();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
