@@ -39,6 +39,7 @@ export const userAdapter = {
 
   /**
    * Convert UI model to DTO
+   * Maps created_at from UserRow to createdAt for UserDTO
    */
   fromUIModel(model: UserRow): UserDTO {
     return {
@@ -48,12 +49,13 @@ export const userAdapter = {
       phone: model.phone,
       role: model.role,
       status: model.status,
-      createdAt: model.created_at
+      createdAt: model.created_at // Este é o ponto crítico de conversão
     };
   },
 
   /**
    * Convert DTO to UI model
+   * Maps createdAt from UserDTO to created_at for UserRow
    */
   toUIModel(dto: UserDTO): UserRow {
     return {
@@ -61,7 +63,7 @@ export const userAdapter = {
       name: dto.name,
       email: dto.email,
       phone: dto.phone,
-      created_at: dto.createdAt,
+      created_at: dto.createdAt, // Este é o ponto crítico de conversão
       role: dto.role,
       status: dto.status
     };

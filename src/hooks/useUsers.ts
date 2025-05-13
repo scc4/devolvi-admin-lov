@@ -10,8 +10,8 @@ export function useUsers() {
     loading,
     error,
     loadUsers,
-    handleDelete: handleDeleteUser,
-    handleDeactivate: handleDeactivateUser,
+    handleDelete: handleDeleteDTO,
+    handleDeactivate: handleDeactivateDTO,
     handleResetPassword
   } = useUserCases();
 
@@ -27,19 +27,15 @@ export function useUsers() {
   };
   
   const handleDelete = async (user: UserRow) => {
-    // Use the adapter to convert from UI model to DTO before passing to useUserCases
+    // Convert UI model to DTO before passing to useUserCases
     const userDTO = userAdapter.fromUIModel(user);
-    await handleDeleteUser(userDTO);
+    return await handleDeleteDTO(userDTO);
   };
 
   const handleDeactivate = async (user: UserRow) => {
-    // Use the adapter to convert from UI model to DTO before passing to useUserCases
+    // Convert UI model to DTO before passing to useUserCases
     const userDTO = userAdapter.fromUIModel(user);
-    await handleDeactivateUser(userDTO);
-  };
-
-  const resetPassword = async (userId: string, password: string) => {
-    return await handleResetPassword(userId, password);
+    return await handleDeactivateDTO(userDTO);
   };
 
   return {
@@ -54,6 +50,6 @@ export function useUsers() {
     deleteUser: handleDelete,  // Alias
     handleDeactivate,
     deactivateUser: handleDeactivate,  // Alias
-    resetPassword
+    resetPassword: handleResetPassword
   };
 }

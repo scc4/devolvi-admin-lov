@@ -1,15 +1,15 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { UserDTO } from '../../application/dto/UserDTO';
 import { container } from '../../infrastructure/di/container';
 import { userAdapter } from '../../adapters/users/userAdapter';
-import { UserRow } from "@/types/user";
 
 /**
  * Hook to expose user-related use cases to the presentation layer using DI
  */
 export function useUserCases() {
-  const [users, setUsers] = useState<UserRow[]>([]);
+  const [users, setUsers] = useState<UserDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -27,7 +27,8 @@ export function useUserCases() {
       console.log("Fetching users with DI approach");
       const userDTOs = await getAllUsersUseCase.execute();
       console.log("Users fetched:", userDTOs);
-      setUsers(userDTOs as unknown as UserRow[]);
+      // Armazena diretamente os DTOs sem casting
+      setUsers(userDTOs);
     } catch (err) {
       console.error("Error loading users:", err);
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar usuários';
@@ -47,12 +48,9 @@ export function useUserCases() {
     loadUsers();
   }, [loadUsers]);
 
-  const handleDelete = async (user: any): Promise<{ success: boolean }> => {
+  const handleDelete = async (user: UserDTO): Promise<{ success: boolean }> => {
     try {
-      // We convert from UI model to DTO if needed
-      const userDTO = 'id' in user ? userAdapter.fromUIModel(user) : user;
-      
-      const result = await deleteUserUseCase.execute(userDTO.id);
+      const result = await deleteUserUseCase.execute(user.id);
       if (result.success) {
         toast({
           title: "Usuário excluído",
@@ -79,12 +77,9 @@ export function useUserCases() {
     }
   };
 
-  const handleDeactivate = async (user: any): Promise<{ success: boolean }> => {
+  const handleDeactivate = async (user: UserDTO): Promise<{ success: boolean }> => {
     try {
-      // We convert from UI model to DTO if needed
-      const userDTO = 'id' in user ? userAdapter.fromUIModel(user) : user;
-      
-      const result = await deactivateUserUseCase.execute(userDTO.id);
+      const result = await deactivateUserUseCase.execute(user.id);
       if (result.success) {
         toast({
           title: "Usuário inativado",
