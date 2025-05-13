@@ -1,7 +1,6 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import type { CollectionPoint, Address } from "@/types/collection-point";
 import { Json } from "@/integrations/supabase/types";
 
@@ -44,14 +43,12 @@ export function useCollectionPoints(
       }
 
       // Convert the operating_hours from Json to the expected type structure
+      // and ensure address_obj is properly set
       return data.map(point => ({
         ...point,
         operating_hours: transformOperatingHours(point.operating_hours as Json),
-        address_obj: point.address // Map address to address_obj to match our updated interface
-      })) as (CollectionPoint & { 
-        establishment: { name: string } | null,
-        address_obj: Address | null
-      })[];
+        address_obj: point.address // Explicitly map address to address_obj
+      })) as CollectionPoint[];
     },
     enabled: true
   });
