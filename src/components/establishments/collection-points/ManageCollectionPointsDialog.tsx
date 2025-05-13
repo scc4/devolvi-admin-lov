@@ -57,10 +57,7 @@ export function ManageCollectionPointsDialog({
             </Tabs>}
 
           {isEstablishmentDialog && establishment?.id && <Tabs defaultValue="collection-points" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="collection-points">Pontos de Coleta</TabsTrigger>
-                
-              </TabsList>
+              
               
               <TabsContent value="collection-points" className="space-y-4">
                 <CollectionPointsTab establishmentId={establishment.id} />
