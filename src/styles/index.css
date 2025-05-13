@@ -3,3 +3,8 @@
 @import './base.css';
 @import './components.css';
 @import './utilities.css';
+
+/* Ensure Sonner toast styling is loaded */
+.sonner-toast {
+  max-width: 350px;
+}

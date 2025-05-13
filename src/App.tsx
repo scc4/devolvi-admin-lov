@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +23,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const ConfirmRegistration = lazy(() => import("./pages/ConfirmRegistration"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
+// Create the query client outside of the component to prevent re-creation on each render
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -52,69 +54,71 @@ const RootRedirect = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<RootRedirect />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/login" element={<Navigate to="/auth" replace />} />
-            <Route 
-              path="/auth/confirm" 
-              element={
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<RootRedirect />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/login" element={<Navigate to="/auth" replace />} />
+              <Route 
+                path="/auth/confirm" 
+                element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <ConfirmRegistration />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/auth/reset-password" 
+                element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <ResetPassword />
+                  </Suspense>
+                } 
+              />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Dashboard />
+                  </Suspense>
+                } />
+                <Route path="/dashboard/users" element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Users />
+                  </Suspense>
+                } />
+                <Route path="/dashboard/carriers" element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Carriers />
+                  </Suspense>
+                } />
+                <Route path="/dashboard/establishments" element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Establishments />
+                  </Suspense>
+                } />
+              </Route>
+              <Route path="/users" element={<Navigate to="/dashboard/users" replace />} />
+              <Route path="*" element={
                 <Suspense fallback={<LoadingFallback />}>
-                  <ConfirmRegistration />
-                </Suspense>
-              } 
-            />
-            <Route 
-              path="/auth/reset-password" 
-              element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <ResetPassword />
-                </Suspense>
-              } 
-            />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Dashboard />
+                  <NotFound />
                 </Suspense>
               } />
-              <Route path="/dashboard/users" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Users />
-                </Suspense>
-              } />
-              <Route path="/dashboard/carriers" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Carriers />
-                </Suspense>
-              } />
-              <Route path="/dashboard/establishments" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <Establishments />
-                </Suspense>
-              } />
-            </Route>
-            <Route path="/users" element={<Navigate to="/dashboard/users" replace />} />
-            <Route path="*" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <NotFound />
-              </Suspense>
-            } />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
 
 export default App;
