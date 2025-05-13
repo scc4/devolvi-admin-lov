@@ -98,7 +98,7 @@ export function CollectionPointAssociationTab({
 
   return (
     <div className="space-y-4">
-      {!skipCarrierHeader && (
+      {!skipCarrierHeader && carrierId && (
         <CollectionPointAssociationHeader 
           carrierId={carrierId}
           establishmentId={establishmentId}

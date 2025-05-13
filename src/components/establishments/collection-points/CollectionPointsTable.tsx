@@ -14,6 +14,7 @@ interface CollectionPointsTableProps {
   onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
   onAction?: (point: CollectionPoint) => void;  // Added for association/disassociation
   actionLabel?: string;  // Added for association/disassociation
+  actionDisabled?: boolean; // Added the missing prop
   onAssociate?: (point: CollectionPoint) => void;
   onDisassociate?: (point: CollectionPoint) => void;
   showAssociateButton?: boolean;
@@ -28,6 +29,7 @@ export function CollectionPointsTable({
   onAssignCarrier,
   onAction,
   actionLabel,
+  actionDisabled = false, // Add default value
   onAssociate,
   onDisassociate,
   showAssociateButton,
@@ -84,6 +86,7 @@ export function CollectionPointsTable({
                   <button
                     onClick={() => (onAssociate ? onAssociate(point) : onAction && onAction(point))}
                     className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90 transition-colors"
+                    disabled={actionDisabled} // Use the prop here
                   >
                     {actionLabel || "Associar"}
                   </button>
@@ -92,6 +95,7 @@ export function CollectionPointsTable({
                   <button
                     onClick={() => (onDisassociate ? onDisassociate(point) : onAction && onAction(point))}
                     className="bg-destructive text-white px-3 py-1 rounded text-sm hover:bg-destructive/90 transition-colors"
+                    disabled={actionDisabled} // Use the prop here
                   >
                     {actionLabel || "Desassociar"}
                   </button>

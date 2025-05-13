@@ -10,7 +10,7 @@ interface UseCollectionPointsQueryProps {
   establishmentId?: string;
   carrierId?: string;
   unassigned?: boolean;
-  cityFilter?: string; // Added this missing prop
+  cityFilter?: string; // This is now properly included in the interface
 }
 
 export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = {}) {
@@ -41,7 +41,7 @@ export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = 
         .select(`
           *,
           establishment:establishments(id, name),
-          carrier:carriers(id, name)
+          carrier:carriers!collection_points_carrier_id_fkey(id, name)
         `)
         .is('deleted_at', null);
       
@@ -76,9 +76,10 @@ export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = 
           [day: string]: { open: string; close: string }[] 
         } | null;
 
+        // Use safe access pattern with type guards to handle potential null carriers
         const carrier = cp.carrier ? {
-          id: cp.carrier.id as string,
-          name: cp.carrier.name as string
+          id: typeof cp.carrier === 'object' ? cp.carrier.id : null,
+          name: typeof cp.carrier === 'object' ? cp.carrier.name : null
         } : null;
 
         return {
