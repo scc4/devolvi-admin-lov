@@ -38,7 +38,8 @@ export function ManageCollectionPointsDialogWithDI({
     ? `Pontos de Coleta - ${establishment.name}` 
     : "Associar Pontos de Coleta";
 
-  const DialogContent = () => {
+  // Create a component to render the correct content based on context
+  const renderContent = () => {
     if (carrierContext?.carrierId) {
       return <CollectionPointAssociationTabWithDI carrierId={carrierContext.carrierId} />;
     }
@@ -60,7 +61,7 @@ export function ManageCollectionPointsDialogWithDI({
               <SheetTitle>{dialogTitle}</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-auto px-4 pb-4">
-              {open && <DialogContent />}
+              {open && renderContent()}
             </div>
           </div>
         </SheetContent>
@@ -76,7 +77,7 @@ export function ManageCollectionPointsDialogWithDI({
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-auto p-6 pt-4">
-          {open && <DialogContent />}
+          {open && renderContent()}
         </div>
       </DialogContent>
     </Dialog>
