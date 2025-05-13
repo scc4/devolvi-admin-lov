@@ -1,10 +1,26 @@
 
-import { type Toast, toast as sonnerToast } from "sonner"
+import { toast as sonnerToast } from "sonner"
 
-export type ToastProps = Toast & {
+// According to sonner's API, we need to define our own Toast type since it's not exported
+export type ToastProps = {
   title?: string
   description?: string
   variant?: "default" | "destructive"
+  // Include other properties from sonner's toast function
+  id?: string | number
+  duration?: number
+  action?: {
+    label: string
+    onClick: () => void
+  }
+  cancel?: {
+    label: string
+    onClick?: () => void
+  }
+  onDismiss?: () => void
+  onAutoClose?: () => void
+  className?: string
+  [key: string]: any
 }
 
 // Use interface to define the returned object structure
