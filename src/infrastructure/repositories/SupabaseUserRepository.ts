@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 export class SupabaseUserRepository implements IUserRepository {
   async getAll(): Promise<User[]> {
     try {
+      console.log("SupabaseUserRepository.getAll: Fetching users from admin-list-users function");
       // Get all users from auth.users via our edge function
       const { data: usersData, error: usersErr } = await supabase.functions.invoke('admin-list-users');
       
@@ -19,8 +20,11 @@ export class SupabaseUserRepository implements IUserRepository {
       }
 
       if (!usersData || !usersData.users) {
+        console.error("Invalid response from admin-list-users function:", usersData);
         throw new Error("Invalid response from admin-list-users function");
       }
+
+      console.log("Users data received:", usersData.users.length, "users");
 
       // Fetch profiles and roles
       let profiles = [];
@@ -29,11 +33,16 @@ export class SupabaseUserRepository implements IUserRepository {
           .from("profiles")
           .select("id, name, created_at, phone");
         
-        if (!pfErr) {
+        if (pfErr) {
+          console.error("Error fetching profiles:", pfErr);
+          // Continue without profiles data
+        } else {
           profiles = profilesData || [];
+          console.log("Profiles fetched:", profiles.length);
         }
       } catch (err) {
         console.error("Exception fetching profiles:", err);
+        // Continue without profiles data
       }
       
       let roleData = [];
@@ -42,11 +51,16 @@ export class SupabaseUserRepository implements IUserRepository {
           .from("user_roles")
           .select("user_id, role");
         
-        if (!rlErr) {
+        if (rlErr) {
+          console.error("Error fetching roles:", rlErr);
+          // Continue without role data
+        } else {
           roleData = rolesData || [];
+          console.log("Roles fetched:", roleData.length);
         }
       } catch (err) {
         console.error("Exception fetching roles:", err);
+        // Continue without role data
       }
 
       // Map to domain entities

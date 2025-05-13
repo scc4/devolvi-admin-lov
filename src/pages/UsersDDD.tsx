@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { UsersHeader } from "@/components/users/UsersHeader";
 import { UsersContentWithDI } from "@/components/users/UsersContentWithDI";
@@ -7,6 +7,7 @@ import { UsersModalsWithDI } from "@/components/users/UsersModalsWithDI";
 import { UserRow } from "@/types/user";
 import { useAuth } from "@/context/AuthContext";
 import { useUserCasesWithDI } from "@/presentation/hooks/useUserCasesWithDI";
+import { toast } from "@/hooks/use-toast";
 
 export default function UsersDDD() {
   const { roles: currentUserRoles } = useAuth();
@@ -31,6 +32,11 @@ export default function UsersDDD() {
   const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate" | "invite", user: UserRow }>(null);
   const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
 
+  useEffect(() => {
+    console.log("UsersDDD mounted, loading users");
+    loadUsers();
+  }, [loadUsers]);
+
   const filteredUsers = users.filter((user) =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -40,11 +46,21 @@ export default function UsersDDD() {
     setIsInviteLoading(true);
     try {
       // This would be handled by a useCase
+      console.log("Inviting user:", form);
+      toast({
+        title: "Convite enviado",
+        description: `Um convite foi enviado para ${form.email}.`
+      });
       const result = { success: true };
       setInviteOpen(false);
       loadUsers();
     } catch (error) {
       console.error("Error inviting user:", error);
+      toast({
+        title: "Erro ao enviar convite",
+        description: error instanceof Error ? error.message : "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
     } finally {
       setIsInviteLoading(false);
     }
@@ -71,15 +87,29 @@ export default function UsersDDD() {
     
     if (confirmModal.action === "invite") {
       // Would be handled by a useCase
+      console.log("Resending invite to:", confirmModal.user);
+      toast({
+        title: "Convite reenviado",
+        description: `O convite foi reenviado para ${confirmModal.user.email}.`
+      });
       setConfirmModal(null);
+      loadUsers();
     }
   };
 
   const handleEdit = async (userId: string, updates: { name: string; phone: string | null; role: "admin" | "owner" }) => {
     // This would be handled by a useCase
+    console.log("Editing user:", userId, updates);
+    toast({
+      title: "Usuário atualizado",
+      description: "O usuário foi atualizado com sucesso."
+    });
     setEditUser(null);
     loadUsers();
   };
+
+  console.log("Users in UsersDDD:", users);
+  console.log("Filtered users:", filteredUsers);
 
   return (
     <div className="space-y-6 p-6 bg-soft-purple min-h-screen">

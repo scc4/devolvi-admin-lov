@@ -64,8 +64,9 @@ serve(async (req) => {
       );
     }
 
-    // Return successful response with users data
     console.log(`Successfully fetched ${data.users.length} users`);
+
+    // Return successful response with users data
     return new Response(
       JSON.stringify({ users: data.users }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

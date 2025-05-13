@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { UserDTO } from '../../application/dto/UserDTO';
 import { container } from '../../infrastructure/di/container';
@@ -24,7 +24,9 @@ export function useUserCasesWithDI() {
     setLoading(true);
     setError(null);
     try {
+      console.log("Fetching users with DI approach");
       const userDTOs = await getAllUsersUseCase.execute();
+      console.log("Users fetched:", userDTOs);
       setUsers(userDTOs);
     } catch (err) {
       console.error("Error loading users:", err);
@@ -39,6 +41,11 @@ export function useUserCasesWithDI() {
       setLoading(false);
     }
   }, [getAllUsersUseCase, toast]);
+
+  // Load users on mount
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleDelete = async (user: any): Promise<{ success: boolean }> => {
     try {
