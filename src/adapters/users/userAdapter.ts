@@ -48,7 +48,7 @@ export const userAdapter = {
       phone: model.phone,
       role: model.role,
       status: model.status,
-      createdAt: model.created_at // Correctly mapping created_at to createdAt
+      createdAt: model.created_at // Now correctly mapping created_at to createdAt
     };
   },
 
