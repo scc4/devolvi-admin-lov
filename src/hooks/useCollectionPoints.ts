@@ -121,6 +121,8 @@ export function useCollectionPoints(
       const pointToInsert = {
         ...pointData,
         address_id: addressId,
+        address: "address", // Placeholder to satisfy the required field
+        name: newPoint.name || "Novo Ponto de Coleta", // Ensure name is provided
         establishment_id: newPoint.establishment_id || null,
         carrier_id: newPoint.carrier_id || null,
         is_active: newPoint.is_active ?? true
@@ -213,6 +215,12 @@ export function useCollectionPoints(
         address_id: addressId,
         carrier_id: pointData.carrier_id || null
       };
+
+      // If the address is changing, update the address string
+      if (address && Object.values(address).some(v => v !== null && v !== '')) {
+        const formattedAddress = generateAddressString(address);
+        updateData.address = formattedAddress;
+      }
 
       const { data, error } = await supabase
         .from('collection_points')

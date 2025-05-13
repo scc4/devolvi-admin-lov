@@ -24,6 +24,7 @@ export function useCollectionPointForm(
     phone: "",
     is_active: true,
     operating_hours: defaultOperatingHours,
+    address_id: null,
     address: {
       street: "",
       number: "",
