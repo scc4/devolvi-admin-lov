@@ -17,10 +17,10 @@ export default function Users() {
     users,
     loading,
     error,
-    loadUsers,
-    handleEdit,
-    handleDelete,
-    handleDeactivate
+    refresh: loadUsers,
+    editUser: handleEdit,
+    deleteUser: handleDelete,
+    deactivateUser: handleDeactivate
   } = useUsers();
   
   const { sendInvite, resendInvite, isLoading: isInviteLoading } = useUserInvite();
@@ -59,6 +59,16 @@ export default function Users() {
     if (confirmModal.action === "invite") handleResendInviteUser(confirmModal.user);
   };
 
+  const handleUserEdit = async (user: UserRow) => {
+    if (user && user.id) {
+      await handleEdit(user.id, { 
+        name: user.name || "", 
+        phone: user.phone || null, 
+        role: (user.role === "admin" || user.role === "owner") ? user.role : "admin" 
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 p-6 bg-soft-purple min-h-screen">
       <Card className="border-none shadow-lg bg-white">
@@ -93,7 +103,7 @@ export default function Users() {
         onConfirmCancel={() => setConfirmModal(null)}
         onResetPasswordChange={(open) => !open && setResetPasswordUser(null)}
         onInvite={handleInviteUser}
-        onEdit={handleEdit}
+        onEdit={handleUserEdit}
         onConfirm={handleConfirmAction}
       />
     </div>

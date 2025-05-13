@@ -58,7 +58,9 @@ export function CollectionPointsTab({
   const handleFormSubmit = async (point: Partial<CollectionPoint>) => {
     try {
       if (selectedPoint) {
-        await updateCollectionPoint(point);
+        // For updates, convert from UI model to DTO before passing to handler
+        const pointDTO = collectionPointAdapter.fromUIModel(point);
+        await updateCollectionPoint(pointDTO);
       } else {
         // Create new point with appropriate context
         const pointData = {
@@ -66,7 +68,9 @@ export function CollectionPointsTab({
           establishment_id: establishmentId || null,
           carrier_id: carrierContext?.carrierId || null,
         };
-        await createCollectionPoint(pointData);
+        // Convert from UI model to DTO before passing to handler
+        const pointDTO = collectionPointAdapter.fromUIModel(pointData);
+        await createCollectionPoint(pointDTO);
       }
       setFormDialogOpen(false);
     } catch (error) {

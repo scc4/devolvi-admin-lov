@@ -1,10 +1,9 @@
+
 import { InviteDialog } from "./InviteDialog";
 import { EditDialog } from "./EditDialog";
 import { ConfirmActionDialog } from "./ConfirmActionDialog";
 import { ResetPasswordDialog } from "./ResetPasswordDialog";
-import { UserDTO } from "@/application/dto/UserDTO";
 import { UserRow } from "@/types/user";
-import { userAdapter } from "@/adapters/users/userAdapter";
 
 interface UsersModalsProps {
   inviteOpen: boolean;
@@ -17,7 +16,7 @@ interface UsersModalsProps {
   onConfirmCancel: () => void;
   onResetPasswordChange: (open: boolean) => void;
   onInvite: (form: { name: string; email: string; phone?: string; role: "admin" | "owner" }) => Promise<void>;
-  onEdit: (userId: string, updates: { name: string; phone: string | null; role: "admin" | "owner" }) => Promise<void>;
+  onEdit: (user: UserRow) => Promise<void>;
   onConfirm: () => void;
 }
 
@@ -53,7 +52,7 @@ export function UsersModals({
             role: editUser.role === "admin" || editUser.role === "owner" ? editUser.role : "admin",
           }}
           onClose={onEditClose}
-          onEdit={onEdit}
+          onEdit={() => onEdit(editUser)}
         />
       )}
       

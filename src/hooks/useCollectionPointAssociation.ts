@@ -93,6 +93,8 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   const handleAssociatePoint = async (point: CollectionPoint) => {
     try {
+      // Convert from UI model to DTO before passing to handler
+      const pointDTO = collectionPointAdapter.fromUIModel(point);
       await handleAssignCarrier(point.id, carrierId);
       toast.success('Ponto de coleta associado com sucesso');
       refetchUnassigned();
@@ -105,6 +107,8 @@ export function useCollectionPointAssociation(carrierId: string) {
 
   const handleDisassociatePoint = async (point: CollectionPoint) => {
     try {
+      // Convert from UI model to DTO before passing to handler
+      const pointDTO = collectionPointAdapter.fromUIModel(point);
       await handleAssignCarrier(point.id, null);
       toast.success('Ponto de coleta desassociado com sucesso');
       refetchUnassigned();

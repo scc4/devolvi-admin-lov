@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EstablishmentsHeader } from "@/components/establishments/EstablishmentsHeader";
@@ -106,7 +107,8 @@ export default function Establishments() {
         <ManageCollectionPointsDialog
           open={collectionPointsDialogOpen}
           onOpenChange={setCollectionPointsDialogOpen}
-          establishment={selectedEstablishment}
+          establishmentId={selectedEstablishment.id}
+          establishmentName={selectedEstablishment.name}
         />
       )}
     </div>
