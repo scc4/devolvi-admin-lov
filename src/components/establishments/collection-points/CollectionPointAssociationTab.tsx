@@ -13,7 +13,7 @@ import type { CollectionPoint } from "@/types/collection-point";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
-  skipCarrierHeader?: boolean; // Nova prop para evitar duplicação do cabeçalho
+  skipCarrierHeader?: boolean;
 }
 
 export function CollectionPointAssociationTab({ 
@@ -74,6 +74,8 @@ export function CollectionPointAssociationTab({
           <CollectionPointAssociationHeader
             carrierName={carrierName}
             carrierCity={carrierCity}
+            onRefresh={handleRefresh}
+            onPrint={handlePrint}
           />
           <div className="grid grid-cols-2 gap-2">
             <Button

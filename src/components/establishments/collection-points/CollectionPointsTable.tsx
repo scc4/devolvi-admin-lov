@@ -12,6 +12,8 @@ interface CollectionPointsTableProps {
   onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
   onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
+  onAction?: (point: CollectionPoint) => void;  // Added for association/disassociation
+  actionLabel?: string;  // Added for association/disassociation
   onAssociate?: (point: CollectionPoint) => void;
   onDisassociate?: (point: CollectionPoint) => void;
   showAssociateButton?: boolean;
@@ -24,6 +26,8 @@ export function CollectionPointsTable({
   onEdit,
   onDelete,
   onAssignCarrier,
+  onAction,
+  actionLabel,
   onAssociate,
   onDisassociate,
   showAssociateButton,
@@ -51,7 +55,7 @@ export function CollectionPointsTable({
   };
 
   // If we're showing association buttons, use the existing card layout
-  if (showAssociateButton || showDisassociateButton) {
+  if (showAssociateButton || showDisassociateButton || actionLabel) {
     return (
       <div className="space-y-4">
         {collectionPoints.map((point) => (
@@ -75,20 +79,20 @@ export function CollectionPointsTable({
                   )}
                 </div>
               </div>
-              {showAssociateButton && (
+              {(showAssociateButton || (actionLabel && onAction)) && (
                 <button
-                  onClick={() => onAssociate?.(point)}
+                  onClick={() => (onAssociate ? onAssociate(point) : onAction && onAction(point))}
                   className="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90 transition-colors"
                 >
-                  Associar
+                  {actionLabel || "Associar"}
                 </button>
               )}
-              {showDisassociateButton && (
+              {(showDisassociateButton || (actionLabel === "Desassociar" && onAction)) && (
                 <button
-                  onClick={() => onDisassociate?.(point)}
+                  onClick={() => (onDisassociate ? onDisassociate(point) : onAction && onAction(point))}
                   className="bg-destructive text-white px-3 py-1 rounded text-sm hover:bg-destructive/90 transition-colors"
                 >
-                  Desassociar
+                  {actionLabel || "Desassociar"}
                 </button>
               )}
             </div>
@@ -97,7 +101,7 @@ export function CollectionPointsTable({
         
         {collectionPoints.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            {showAssociateButton 
+            {(showAssociateButton || actionLabel === "Associar")
               ? "Não há pontos de coleta disponíveis para associação"
               : "Não há pontos de coleta associados"
             }
