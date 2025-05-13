@@ -27,13 +27,15 @@ export function useUsers() {
   };
   
   const handleDelete = async (user: UserRow) => {
-    // Use the adapter to convert from UI model to DTO
-    await handleDeleteUser(userAdapter.fromUIModel(user));
+    // Use the adapter to convert from UI model to DTO before passing to useUserCases
+    const userDTO = userAdapter.fromUIModel(user);
+    await handleDeleteUser(userDTO);
   };
 
   const handleDeactivate = async (user: UserRow) => {
-    // Use the adapter to convert from UI model to DTO
-    await handleDeactivateUser(userAdapter.fromUIModel(user));
+    // Use the adapter to convert from UI model to DTO before passing to useUserCases
+    const userDTO = userAdapter.fromUIModel(user);
+    await handleDeactivateUser(userDTO);
   };
 
   const resetPassword = async (userId: string, password: string) => {
