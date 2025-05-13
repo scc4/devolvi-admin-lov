@@ -48,10 +48,26 @@ export function ManageCollectionPointsDialog({
 
         <div className="flex-1 overflow-auto pt-4">
           {isCarrierDialog && carrier?.id && (
-            <CollectionPointAssociationTab 
-              carrierId={carrier.id} 
-              skipCarrierHeader={true} 
-            />
+            <Tabs defaultValue="associated" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="associated">Pontos Associados</TabsTrigger>
+                <TabsTrigger value="available">Pontos Disponíveis</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="associated" className="space-y-4">
+                <CollectionPointsTab
+                  carrierId={carrier.id}
+                />
+              </TabsContent>
+              
+              <TabsContent value="available" className="space-y-4">
+                <CollectionPointAssociationTab 
+                  carrierId={carrier.id} 
+                  skipCarrierHeader={true}
+                  initialTab="available"
+                />
+              </TabsContent>
+            </Tabs>
           )}
 
           {isEstablishmentDialog && establishment?.id && (

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
 import { useCollectionPointAssociation } from "@/hooks/useCollectionPointAssociation";
@@ -15,12 +15,14 @@ interface CollectionPointAssociationTabProps {
   carrierId?: string;
   establishmentId?: string;
   skipCarrierHeader?: boolean;
+  initialTab?: "available" | "associated";
 }
 
 export function CollectionPointAssociationTab({ 
   carrierId,
   establishmentId,
-  skipCarrierHeader = false 
+  skipCarrierHeader = false,
+  initialTab = "available"
 }: CollectionPointAssociationTabProps) {
   const {
     carrierName,
@@ -38,9 +40,14 @@ export function CollectionPointAssociationTab({
     refetchCarrier
   } = useCollectionPointAssociation(carrierId || '');
 
-  const [activeTab, setActiveTab] = useState<"available" | "associated">("available");
+  const [activeTab, setActiveTab] = useState<"available" | "associated">(initialTab);
   const [isPrinting, setIsPrinting] = useState(false);
   const { isMobile } = useIsMobile();
+
+  // Efeito para atualizar a aba ativa se o initialTab mudar
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   const handlePrint = () => {
     setIsPrinting(true);

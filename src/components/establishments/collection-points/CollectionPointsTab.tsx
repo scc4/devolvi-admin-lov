@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CollectionPointsTabProps {
   establishmentId?: string;
+  carrierId?: string;
   carrierContext?: {
     carrierId?: string;
   };
@@ -18,12 +19,16 @@ interface CollectionPointsTabProps {
 
 export function CollectionPointsTab({
   establishmentId,
+  carrierId,
   carrierContext
 }: CollectionPointsTabProps) {
   console.log("CollectionPointsTab renderizado com:", { 
     establishmentId, 
-    carrierId: carrierContext?.carrierId
+    carrierId,
+    carrierContextId: carrierContext?.carrierId
   });
+  
+  const effectiveCarrierId = carrierId || carrierContext?.carrierId;
   
   const {
     collectionPoints,
@@ -37,7 +42,7 @@ export function CollectionPointsTab({
     isUpdating
   } = useCollectionPointsQuery({
     establishmentId,
-    carrierId: carrierContext?.carrierId
+    carrierId: effectiveCarrierId
   });
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -46,7 +51,7 @@ export function CollectionPointsTab({
   const [showError, setShowError] = useState(Boolean(error));
   
   // Check if we're in carrier context - if so, disable editing/creating
-  const isCarrierContext = Boolean(carrierContext?.carrierId);
+  const isCarrierContext = Boolean(effectiveCarrierId);
   
   const handleOpenCreate = () => {
     setSelectedPoint(undefined);
@@ -75,7 +80,7 @@ export function CollectionPointsTab({
         await createCollectionPoint({
           ...point,
           establishment_id: establishmentId || null,
-          carrier_id: carrierContext?.carrierId || null,
+          carrier_id: effectiveCarrierId || null,
         });
       }
       setFormDialogOpen(false);
@@ -91,12 +96,14 @@ export function CollectionPointsTab({
   };
 
   // Gerar uma chave estável baseada nos IDs
-  const tableKey = `points-table-${establishmentId || ''}-${carrierContext?.carrierId || ''}`;
+  const tableKey = `points-table-${establishmentId || ''}-${effectiveCarrierId || ''}`;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Pontos de Coleta</h2>
+        <h2 className="text-xl font-semibold">
+          {isCarrierContext ? "Pontos de Coleta Associados" : "Pontos de Coleta"}
+        </h2>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
