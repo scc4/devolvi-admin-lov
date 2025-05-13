@@ -23,7 +23,7 @@ export interface CollectionPoint {
 }
 
 export interface Address {
-  id?: string; // Making id optional to fix type issues with AddressFormData
+  id?: string;
   street: string | null;
   number: string | null;
   complement: string | null;

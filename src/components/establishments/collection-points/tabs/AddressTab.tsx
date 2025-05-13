@@ -4,10 +4,10 @@ import { BasicAddressFields } from "./address/BasicAddressFields";
 import { CoordinatesFields } from "./address/CoordinatesFields";
 import { LocationFields } from "./address/LocationFields";
 import { LocationMapPicker } from "./LocationMapPicker";
-import type { CollectionPoint, Address, AddressFormData } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 
 interface AddressTabProps {
-  form: Partial<CollectionPoint> & { address_obj?: AddressFormData | null };
+  form: Partial<CollectionPoint> & { address_obj?: Address | null };
   onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
 }

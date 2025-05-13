@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import { fetchStates, fetchCitiesByState } from "@/services/ibge-api";
 import { maskCEP } from "@/lib/format";
-import type { CollectionPoint, Address, AddressFormData } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 
 export function useAddressForm(
-  form: Partial<CollectionPoint> & { address_obj?: AddressFormData | null },
+  form: Partial<CollectionPoint> & { address_obj?: Address | null },
   onInputChange: (field: keyof Address, value: any) => void
 ) {
   const [states, setStates] = useState<{ value: string; label: string; }[]>([]);

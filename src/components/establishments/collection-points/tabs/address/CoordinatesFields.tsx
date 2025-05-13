@@ -1,10 +1,10 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CollectionPoint, Address, AddressFormData } from "@/types/collection-point";
+import type { CollectionPoint, Address } from "@/types/collection-point";
 
 interface CoordinatesFieldsProps {
-  form: Partial<CollectionPoint> & { address_obj?: AddressFormData | null };
+  form: Partial<CollectionPoint> & { address_obj?: Address | null };
   onInputChange: (field: keyof Address, value: any) => void;
   isLoading?: boolean;
 }

@@ -13,14 +13,14 @@ const defaultOperatingHours = {
 };
 
 // Define a default address for new collection points
-const defaultAddressObj: AddressFormData = {
-  street: "",
-  number: "",
-  complement: "",
-  district: "",
-  zip_code: "",
-  city: "",
-  state: "",
+const defaultAddressObj: Address = {
+  street: null,
+  number: null,
+  complement: null,
+  district: null,
+  zip_code: null,
+  city: null,
+  state: null,
   latitude: null,
   longitude: null
 };
@@ -31,7 +31,7 @@ export function useCollectionPointForm(
     carrierId?: string;
   }
 ) {
-  const [form, setForm] = useState<Partial<CollectionPoint> & { address_obj?: AddressFormData | null }>({
+  const [form, setForm] = useState<Partial<CollectionPoint> & { address_obj?: Address | null }>({
     name: "",
     phone: "",
     is_active: true,
@@ -59,14 +59,14 @@ export function useCollectionPointForm(
   const handleAddressInputChange = (field: keyof Address, value: any) => {
     setForm(prev => {
       // Make sure address_obj is an object
-      const currentAddressObj = prev.address_obj || {} as AddressFormData;
+      const currentAddressObj = prev.address_obj || { ...defaultAddressObj };
       
       return {
         ...prev,
         address_obj: {
           ...currentAddressObj,
           [field]: value
-        } as AddressFormData
+        }
       };
     });
   };
