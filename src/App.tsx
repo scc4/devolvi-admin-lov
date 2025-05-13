@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Establishments from "./pages/Establishments";
 import Users from "./pages/Users";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 function App() {
   const { user, loading } = useAuth();
@@ -26,10 +27,13 @@ function App() {
   }
 
   const ProtectedRoute = ({ redirectTo }: { redirectTo: string }) => {
+    // SidebarProvider has been moved to wrap the entire authenticated area
     return user ? (
-      <DashboardLayout>
-        <Outlet />
-      </DashboardLayout>
+      <SidebarProvider defaultOpen={window.innerWidth > 768}>
+        <DashboardLayout>
+          <Outlet />
+        </DashboardLayout>
+      </SidebarProvider>
     ) : (
       <Navigate to={redirectTo} />
     );

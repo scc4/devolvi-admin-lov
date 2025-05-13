@@ -1,12 +1,12 @@
 
-import { useLocation, Link, useNavigate } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar, SidebarGroupContent, SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LayoutDashboard, Users, Truck, LogOut, Building, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useBreakpoints } from "@/hooks/use-mobile";
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, memo } from "react";
 
 // Mobile-friendly overlay for sidebar
 const MobileOverlay = forwardRef<HTMLDivElement, { onClick: () => void }>(({ onClick }, ref) => {
@@ -21,14 +21,58 @@ const MobileOverlay = forwardRef<HTMLDivElement, { onClick: () => void }>(({ onC
 });
 MobileOverlay.displayName = "MobileOverlay";
 
-export function AppSidebar() {
+// Define menu items outside of component to prevent recreating on each render
+const menuItems = [{
+  title: "Dashboard",
+  url: "/dashboard",
+  icon: LayoutDashboard
+}, {
+  title: "Usuários",
+  url: "/dashboard/users",
+  icon: Users
+}, {
+  title: "Transportadoras",
+  url: "/dashboard/carriers",
+  icon: Truck
+}, {
+  title: "Estabelecimentos",
+  url: "/dashboard/establishments",
+  icon: Building
+}];
+
+// Create individual menu item component for better control
+const MenuItem = memo(({ item, isActive, onClick }: { 
+  item: { title: string, url: string, icon: any },
+  isActive: boolean,
+  onClick: () => void
+}) => {
+  const IconComponent = item.icon;
+  
+  return (
+    <SidebarMenuItem key={item.title}>
+      <SidebarMenuButton 
+        asChild 
+        isActive={isActive} 
+        className={isActive ? "bg-[#e4e7ff] text-[#6366f1]" : "text-[#2a3547] hover:bg-[#f5f6fa]"}
+        onClick={onClick}
+      >
+        <Link to={item.url} className="flex items-center gap-3 px-4 py-3 md:py-2.5 rounded-md transition-colors">
+          <IconComponent className="h-5 w-5" />
+          <span className="font-medium">{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+});
+MenuItem.displayName = "MenuItem";
+
+export const AppSidebar = memo(() => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { profile, logout } = useAuth();
   const { open, setOpen } = useSidebar();
   const { isTouch } = useBreakpoints();
   
-  // Update sidebar state based on screen size
+  // Update sidebar state based on screen size - only when isTouch changes
   useEffect(() => {
     if (isTouch) {
       setOpen(false);
@@ -37,27 +81,8 @@ export function AppSidebar() {
     }
   }, [isTouch, setOpen]);
   
-  const menu = [{
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboard
-  }, {
-    title: "Usuários",
-    url: "/dashboard/users",
-    icon: Users
-  }, {
-    title: "Transportadoras",
-    url: "/dashboard/carriers",
-    icon: Truck
-  }, {
-    title: "Estabelecimentos",
-    url: "/dashboard/establishments",
-    icon: Building
-  }];
-  
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+  const handleLogout = () => {
+    logout();
   };
   
   const closeSidebar = () => {
@@ -92,20 +117,16 @@ export function AppSidebar() {
             <SidebarGroupLabel className="text-xs font-medium text-gray-500 px-4 py-2">MENU PRINCIPAL</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {menu.map(item => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={location.pathname === item.url} 
-                      className={location.pathname === item.url ? "bg-[#e4e7ff] text-[#6366f1]" : "text-[#2a3547] hover:bg-[#f5f6fa]"}
-                      onClick={closeSidebar}
-                    >
-                      <Link to={item.url} className="flex items-center gap-3 px-4 py-3 md:py-2.5 rounded-md transition-colors">
-                        <item.icon className="h-5 w-5" />
-                        <span className="font-medium">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                {menuItems.map(item => (
+                  <MenuItem 
+                    key={item.title}
+                    item={item}
+                    isActive={
+                      location.pathname === item.url || 
+                      (item.url !== "/dashboard" && location.pathname.startsWith(item.url))
+                    }
+                    onClick={closeSidebar}
+                  />
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -146,4 +167,6 @@ export function AppSidebar() {
       )}
     </>
   );
-}
+});
+
+AppSidebar.displayName = "AppSidebar";

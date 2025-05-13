@@ -10,15 +10,13 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="min-h-screen flex w-full bg-[#f5f9ff]">
-        <AppSidebar />
-        <div className="flex-1 pl-[0px] md:pl-[20px] lg:pl-[280px] transition-all">
-          <div className="p-3 md:p-6">
-            {children || <Outlet />}
-          </div>
+    <div className="min-h-screen flex w-full bg-[#f5f9ff]">
+      <AppSidebar />
+      <div className="flex-1 pl-[0px] md:pl-[20px] lg:pl-[280px] transition-all">
+        <div className="p-3 md:p-6">
+          {children || <Outlet />}
         </div>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
