@@ -10,8 +10,8 @@ import ConfirmRegistration from "./pages/ConfirmRegistration";
 import Carriers from "./pages/Carriers";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/layout/DashboardLayout";
-import EstablishmentsWithDI from "./pages/EstablishmentsWithDI";
-import UsersDDD from "./pages/UsersDDD";
+import Establishments from "./pages/Establishments";
+import Users from "./pages/Users";
 
 function App() {
   const { user, loading } = useAuth();
@@ -44,9 +44,9 @@ function App() {
       
       <Route path="/dashboard" element={<ProtectedRoute redirectTo="/login" />}>
         <Route path="" element={<Dashboard />} />
-        <Route path="users" element={<UsersDDD />} /> {/* Using DDD version */}
+        <Route path="users" element={<Users />} /> {/* Using standardized DDD version */}
         <Route path="carriers" element={<Carriers />} />
-        <Route path="establishments" element={<EstablishmentsWithDI />} /> {/* Using DI version */}
+        <Route path="establishments" element={<Establishments />} /> {/* Using standardized DDD version */}
       </Route>
       
       <Route path="*" element={<NotFound />} />

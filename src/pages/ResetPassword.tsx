@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +13,7 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [invalidLink, setInvalidLink] = useState(false);
+  const { toast } = useToast();
 
   // Get the code from the URL (this is what Supabase uses in reset password links)
   const code = searchParams.get('code');
@@ -28,8 +28,9 @@ const ResetPassword = () => {
         variant: "destructive"
       });
     }
-  }, [code]);
+  }, [code, toast]);
 
+  // This would typically come from a dedicated domain service
   const validatePasswords = () => {
     if (password.length < 6) {
       setPasswordError('A senha deve ter pelo menos 6 caracteres');
@@ -43,6 +44,7 @@ const ResetPassword = () => {
     return true;
   };
 
+  // In a proper DDD implementation, this would be a use case
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -51,11 +53,10 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
-      // For Supabase password reset, we need to use the correct method and parameters
       const { error } = await supabase.auth.updateUser({ 
         password: password 
       }, {
-        emailRedirectTo: window.location.origin + '/login'  // Changed from '/auth' to '/login'
+        emailRedirectTo: window.location.origin + '/login' // Changed from '/auth' to '/login'
       });
 
       if (error) throw error;
@@ -78,6 +79,9 @@ const ResetPassword = () => {
       setIsLoading(false);
     }
   };
+
+  // The rest of the component would stay the same
+  // This is a presentation layer component that would use application layer use cases
 
   if (invalidLink) {
     return (

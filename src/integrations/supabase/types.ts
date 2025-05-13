@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      address: {
+        Row: {
+          city: string | null
+          complement: string | null
+          created_at: string
+          deleted_at: string | null
+          district: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          number: string | null
+          state: string | null
+          street: string | null
+          updated_at: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          city?: string | null
+          complement?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          district?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          number?: string | null
+          state?: string | null
+          street?: string | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          city?: string | null
+          complement?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          district?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          number?: string | null
+          state?: string | null
+          street?: string | null
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       carrier_served_cities: {
         Row: {
           carrier_id: string
@@ -80,10 +128,13 @@ export type Database = {
       collection_points: {
         Row: {
           address: string
+          address_id: string | null
           carrier_id: string | null
           city: string | null
+          code: string
           complement: string | null
           created_at: string
+          deleted_at: string | null
           district: string | null
           establishment_id: string | null
           id: string
@@ -101,10 +152,13 @@ export type Database = {
         }
         Insert: {
           address: string
+          address_id?: string | null
           carrier_id?: string | null
           city?: string | null
+          code?: string
           complement?: string | null
           created_at?: string
+          deleted_at?: string | null
           district?: string | null
           establishment_id?: string | null
           id?: string
@@ -122,10 +176,13 @@ export type Database = {
         }
         Update: {
           address?: string
+          address_id?: string | null
           carrier_id?: string | null
           city?: string | null
+          code?: string
           complement?: string | null
           created_at?: string
+          deleted_at?: string | null
           district?: string | null
           establishment_id?: string | null
           id?: string
@@ -142,6 +199,13 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "collection_points_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "address"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "collection_points_carrier_id_fkey"
             columns: ["carrier_id"]

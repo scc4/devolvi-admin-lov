@@ -25,14 +25,21 @@ export function ManageCollectionPointsDialog({
   const { isMobile } = useIsMobile();
   
   // Use our custom cleanup hook
-  useDialogCleanup({ open });
+  useDialogCleanup({ 
+    open,
+    onCleanup: () => {
+      // Any additional cleanup if needed
+      document.body.style.overflow = '';
+    }
+  });
 
   // Determine title based on context
   const dialogTitle = establishment 
     ? `Pontos de Coleta - ${establishment.name}` 
     : "Associar Pontos de Coleta";
 
-  const Content = () => {
+  // Create a component to render the correct content based on context
+  const renderContent = () => {
     if (carrierContext?.carrierId) {
       return <CollectionPointAssociationTab carrierId={carrierContext.carrierId} />;
     }
@@ -54,7 +61,7 @@ export function ManageCollectionPointsDialog({
               <SheetTitle>{dialogTitle}</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-auto px-4 pb-4">
-              <Content />
+              {open && renderContent()}
             </div>
           </div>
         </SheetContent>
@@ -70,7 +77,7 @@ export function ManageCollectionPointsDialog({
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-auto p-6 pt-4">
-          <Content />
+          {open && renderContent()}
         </div>
       </DialogContent>
     </Dialog>

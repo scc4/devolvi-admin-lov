@@ -1,9 +1,10 @@
-
 import { InviteDialog } from "./InviteDialog";
 import { EditDialog } from "./EditDialog";
 import { ConfirmActionDialog } from "./ConfirmActionDialog";
 import { ResetPasswordDialog } from "./ResetPasswordDialog";
+import { UserDTO } from "@/application/dto/UserDTO";
 import { UserRow } from "@/types/user";
+import { userAdapter } from "@/adapters/users/userAdapter";
 
 interface UsersModalsProps {
   inviteOpen: boolean;

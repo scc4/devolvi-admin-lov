@@ -1,4 +1,5 @@
-import { useCollectionPointAssociation } from "@/hooks/useCollectionPointAssociation";
+import { useState, useEffect, useRef } from "react";
+import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,32 +8,124 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createRoot } from 'react-dom/client';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
 
 interface CollectionPointAssociationTabProps {
   carrierId: string;
 }
 
 export function CollectionPointAssociationTab({ carrierId }: CollectionPointAssociationTabProps) {
-  const {
-    carrierName,
-    filterByServedCities,
-    setFilterByServedCities,
-    filteredUnassignedPoints,
-    carrierPoints,
-    isLoadingServedCities,
-    isLoadingUnassigned,
-    isLoadingCarrier,
-    handleAssociate,
-    handleDisassociate,
-    refetchUnassigned,
-    refetchCarrier
-  } = useCollectionPointAssociation(carrierId);
-
+  const [filterByServedCities, setFilterByServedCities] = useState(true);
+  const [carrierName, setCarrierName] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("unassigned");
   const { isMobile } = useIsMobile();
+  const initialLoadDone = useRef({
+    unassigned: false,
+    carrier: false
+  });
+
+  // Fetch carrier details
+  const { isLoading: isLoadingCarrierDetails } = useQuery({
+    queryKey: ['carrier-details', carrierId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('carriers')
+        .select('name, city')
+        .eq('id', carrierId)
+        .single();
+      
+      if (data) {
+        setCarrierName(data.name);
+      }
+      return data;
+    },
+  });
+
+  // Fetch served cities
+  const { data: servedCities = [], isLoading: isLoadingServedCities } = useQuery({
+    queryKey: ['served-cities', carrierId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('carrier_served_cities')
+        .select('city')
+        .eq('carrier_id', carrierId);
+
+      if (error) {
+        toast.error('Erro ao carregar cidades atendidas');
+        throw error;
+      }
+      
+      return data.map(row => row.city);
+    },
+  });
+
+  // Fetch unassigned points
+  const {
+    collectionPoints: unassignedPoints,
+    loading: isLoadingUnassigned,
+    loadCollectionPoints: refetchUnassigned,
+    handleAssignCarrier,
+  } = useCollectionPointCasesWithDI({
+    unassigned: true
+  });
+
+  // Fetch carrier points
+  const {
+    collectionPoints: carrierPoints,
+    loading: isLoadingCarrier,
+    loadCollectionPoints: refetchCarrier,
+  } = useCollectionPointCasesWithDI({
+    carrierId
+  });
+
+  // Filter points based on served cities
+  const filteredUnassignedPoints = filterByServedCities
+    ? unassignedPoints.filter(point => servedCities.includes(point.city || ''))
+    : unassignedPoints;
+
+  // Load the correct data based on active tab
+  useEffect(() => {
+    const loadData = async () => {
+      if (activeTab === "unassigned" && !initialLoadDone.current.unassigned) {
+        await refetchUnassigned();
+        initialLoadDone.current.unassigned = true;
+      } else if (activeTab === "associated" && !initialLoadDone.current.carrier) {
+        await refetchCarrier();
+        initialLoadDone.current.carrier = true;
+      }
+    };
+    
+    loadData();
+  }, [activeTab, refetchUnassigned, refetchCarrier]);
+
+  const handleAssociate = async (point: any) => {
+    try {
+      await handleAssignCarrier(point.id, carrierId);
+      refetchUnassigned();
+      refetchCarrier();
+    } catch (error) {
+      console.error('Error associating collection point:', error);
+    }
+  };
+
+  const handleDisassociate = async (point: any) => {
+    try {
+      await handleAssignCarrier(point.id, null);
+      refetchUnassigned();
+      refetchCarrier();
+    } catch (error) {
+      console.error('Error disassociating collection point:', error);
+    }
+  };
 
   const handleRefresh = () => {
-    refetchUnassigned();
-    refetchCarrier();
+    if (activeTab === "unassigned") {
+      refetchUnassigned();
+    } else {
+      refetchCarrier();
+    }
   };
 
   const handlePrint = () => {
@@ -79,6 +172,9 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
     }
   };
 
+  const isLoading = isLoadingCarrierDetails || isLoadingServedCities || 
+                   (activeTab === "unassigned" ? isLoadingUnassigned : isLoadingCarrier);
+
   return (
     <div className="space-y-6">
       {carrierName && (
@@ -89,7 +185,11 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
         </div>
       )}
       
-      <Tabs defaultValue="unassigned" className="space-y-6">
+      <Tabs 
+        defaultValue="unassigned" 
+        className="space-y-6"
+        onValueChange={setActiveTab}
+      >
         <div className="flex flex-col gap-4">
           <TabsList className="w-full">
             <TabsTrigger value="unassigned" className="flex-1">Pontos Disponíveis</TabsTrigger>
@@ -98,8 +198,17 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
           <CollectionPointAssociationHeader 
             onRefresh={handleRefresh}
             onPrint={handlePrint}
+            isLoading={isLoading}
+            title={activeTab === "unassigned" ? "Pontos Disponíveis" : "Pontos Associados"}
           />
         </div>
+
+        {isLoading && (
+          <div className="py-4">
+            <Progress value={75} className="w-full h-1" />
+            <p className="text-center text-sm text-muted-foreground mt-2">Carregando dados...</p>
+          </div>
+        )}
 
         <TabsContent value="unassigned" className="space-y-4">
           <div className="flex items-center space-x-2 mb-4">
@@ -115,14 +224,10 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
               Exibir apenas pontos em cidades atendidas
             </label>
           </div>
-          {isLoadingServedCities ? (
-            <div className="text-center py-4 text-muted-foreground">
-              Carregando cidades atendidas...
-            </div>
-          ) : (
+          {!isLoading && (
             <CollectionPointsTable
               collectionPoints={filteredUnassignedPoints}
-              isLoading={isLoadingUnassigned}
+              isLoading={false}
               onAssociate={handleAssociate}
               showAssociateButton
             />
@@ -130,12 +235,14 @@ export function CollectionPointAssociationTab({ carrierId }: CollectionPointAsso
         </TabsContent>
 
         <TabsContent value="associated" className="space-y-4">
-          <CollectionPointsTable
-            collectionPoints={carrierPoints}
-            isLoading={isLoadingCarrier}
-            onDisassociate={handleDisassociate}
-            showDisassociateButton
-          />
+          {!isLoading && (
+            <CollectionPointsTable
+              collectionPoints={carrierPoints}
+              isLoading={false}
+              onDisassociate={handleDisassociate}
+              showDisassociateButton
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>

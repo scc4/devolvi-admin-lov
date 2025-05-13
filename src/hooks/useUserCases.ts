@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { UserDTO } from '../../application/dto/UserDTO';
@@ -8,7 +7,7 @@ import { userAdapter } from '../../adapters/users/userAdapter';
 /**
  * Hook to expose user-related use cases to the presentation layer using DI
  */
-export function useUserCasesWithDI() {
+export function useUserCases() {
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

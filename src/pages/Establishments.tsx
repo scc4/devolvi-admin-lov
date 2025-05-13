@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EstablishmentsHeader } from "@/components/establishments/EstablishmentsHeader";
 import { EstablishmentsSearch } from "@/components/establishments/EstablishmentsSearch";
 import { EstablishmentsTable } from "@/components/establishments/EstablishmentsTable";
 import { EstablishmentFormDialog } from "@/components/establishments/EstablishmentFormDialog";
-import { ManageCollectionPointsDialogWithDI } from "@/components/establishments/collection-points/ManageCollectionPointsDialogWithDI";
+import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
 import { useEstablishmentCasesWithDI } from "@/presentation/hooks/useEstablishmentCasesWithDI";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
@@ -104,7 +103,7 @@ export default function Establishments() {
       />
 
       {selectedEstablishment && (
-        <ManageCollectionPointsDialogWithDI
+        <ManageCollectionPointsDialog
           open={collectionPointsDialogOpen}
           onOpenChange={setCollectionPointsDialogOpen}
           establishment={selectedEstablishment}
