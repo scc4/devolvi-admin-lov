@@ -113,10 +113,10 @@ export function useCollectionPointCasesWithDI(filters?: {
   useEffect(() => {
     console.log("useEffect for initial data loading triggered");
     
-    // Fix: Add null check for isFirstLoad before checking for object type
+    // Fix: Handle null, undefined, and all other possible types of isFirstLoad
     if (isFirstLoad !== null && isFirstLoad !== undefined) {
       if (typeof isFirstLoad === 'object' && 'current' in isFirstLoad) {
-        console.log("First load, fetching collection points");
+        console.log("First load (ref object), fetching collection points");
         loadCollectionPoints();
       } else if (isFirstLoad === true) {
         // Handle case where isFirstLoad is a boolean true
