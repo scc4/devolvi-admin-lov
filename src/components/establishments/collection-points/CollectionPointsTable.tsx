@@ -36,7 +36,7 @@ export function CollectionPointsTable({
     return new Map(carriers.map(carrier => [carrier.id, carrier]));
   }, [carriers]);
 
-  // If we're showing association buttons, use the existing card layout
+  // Se estamos mostrando botões de associação, use o layout de card existente
   if (showAssociateButton || showDisassociateButton) {
     return (
       <div className="space-y-4">
@@ -95,7 +95,7 @@ export function CollectionPointsTable({
     );
   }
 
-  // Render either mobile or desktop view based on screen size
+  // Renderiza a visualização móvel ou desktop com base no tamanho da tela
   return isMobile ? (
     <CollectionPointMobileView
       collectionPoints={collectionPoints}
@@ -112,6 +112,7 @@ export function CollectionPointsTable({
       onDelete={onDelete}
       onAssignCarrier={onAssignCarrier}
       carrierMap={carrierMap}
+      showCarrier={true}
     />
   );
 }

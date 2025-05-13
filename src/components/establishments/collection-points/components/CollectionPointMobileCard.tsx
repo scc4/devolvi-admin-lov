@@ -1,7 +1,7 @@
 
 import { Check, X, MapPin, Phone, Pencil, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint } from "@/types/collection-point";
 import { formatAddress } from "../utils/formatters";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
@@ -9,12 +9,18 @@ import { daysOfWeek, daysOfWeekPtBr, DayOfWeek } from "@/types/collection-point"
 import { getSimpleAddress } from "../utils/addressHelpers";
 
 interface CollectionPointMobileCardProps {
-  point: CollectionPoint & { address_obj?: Address | null };
-  onEdit: (point: CollectionPoint & { address_obj?: Address | null }) => void;
+  point: CollectionPoint;
+  onEdit: (point: CollectionPoint) => void;
   onDelete: (pointId: string) => void;
+  carrierName?: string;
 }
 
-export function CollectionPointMobileCard({ point, onEdit, onDelete }: CollectionPointMobileCardProps) {
+export function CollectionPointMobileCard({ 
+  point, 
+  onEdit, 
+  onDelete,
+  carrierName
+}: CollectionPointMobileCardProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const formatOperatingHoursSimple = () => {
@@ -63,6 +69,12 @@ export function CollectionPointMobileCard({ point, onEdit, onDelete }: Collectio
         <MapPin className="h-4 w-4 text-muted-foreground mr-1 mt-0.5" />
         <span className="flex-1">{getSimpleAddress(point)}</span>
       </div>
+
+      {carrierName && (
+        <div className="text-sm font-medium text-muted-foreground">
+          Transportadora: {carrierName}
+        </div>
+      )}
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <div className="flex items-center justify-between pt-2 border-t">

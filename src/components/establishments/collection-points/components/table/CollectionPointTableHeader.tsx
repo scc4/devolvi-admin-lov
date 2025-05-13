@@ -1,21 +1,21 @@
 
-import {
-  TableHeader,
-  TableHead,
-  TableRow,
-} from "@/components/ui/table";
+import { TableHead, TableRow, TableHeader as TableHeaderBase } from "@/components/ui/table";
 
-export function CollectionPointTableHeader() {
+interface CollectionPointTableHeaderProps {
+  showCarrier?: boolean;
+}
+
+export function CollectionPointTableHeader({ showCarrier = true }: CollectionPointTableHeaderProps) {
   return (
-    <TableHeader>
+    <TableHead>
       <TableRow>
-        <TableHead>Nome</TableHead>
-        <TableHead>Endereço</TableHead>
-        <TableHead>Cidade/UF</TableHead>
-        <TableHead>Transportadora</TableHead>
-        <TableHead>Status</TableHead>
-        <TableHead className="text-right">Ações</TableHead>
+        <TableHeaderBase>Nome</TableHeaderBase>
+        <TableHeaderBase>Endereço</TableHeaderBase>
+        <TableHeaderBase>Localização</TableHeaderBase>
+        {showCarrier && <TableHeaderBase>Transportadora</TableHeaderBase>}
+        <TableHeaderBase>Horário</TableHeaderBase>
+        <TableHeaderBase className="text-right">Ações</TableHeaderBase>
       </TableRow>
-    </TableHeader>
+    </TableHead>
   );
 }

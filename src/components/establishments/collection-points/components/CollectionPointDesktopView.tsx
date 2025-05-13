@@ -12,6 +12,7 @@ interface CollectionPointDesktopViewProps {
   onDelete?: (pointId: string) => void;
   onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
   carrierMap?: Map<string, any>;
+  showCarrier?: boolean;
 }
 
 export function CollectionPointDesktopView({
@@ -20,7 +21,8 @@ export function CollectionPointDesktopView({
   onEdit,
   onDelete,
   onAssignCarrier,
-  carrierMap
+  carrierMap,
+  showCarrier = true
 }: CollectionPointDesktopViewProps) {
   if (isLoading) {
     return (
@@ -43,12 +45,12 @@ export function CollectionPointDesktopView({
     <div className="border rounded-md overflow-hidden">
       <Table>
         <TableHeader>
-          <CollectionPointTableHeader showCarrier={!!carrierMap} />
+          <CollectionPointTableHeader showCarrier={showCarrier} />
         </TableHeader>
         <TableBody>
           {collectionPoints.length === 0 ? (
             <tr>
-              <td colSpan={6} className="h-24 text-center text-gray-500">
+              <td colSpan={showCarrier ? 6 : 5} className="h-24 text-center text-gray-500">
                 Nenhum ponto de coleta encontrado
               </td>
             </tr>
@@ -61,7 +63,7 @@ export function CollectionPointDesktopView({
                 onDelete={() => onDelete?.(point.id)}
                 onAssignCarrier={onAssignCarrier ? (carrierId) => onAssignCarrier(point.id, carrierId) : undefined}
                 carrierName={point.carrier_id && carrierMap ? carrierMap.get(point.carrier_id)?.name : undefined}
-                showCarrier={!!carrierMap}
+                showCarrier={showCarrier}
               />
             ))
           )}

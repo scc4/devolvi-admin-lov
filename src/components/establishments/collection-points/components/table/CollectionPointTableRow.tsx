@@ -3,17 +3,18 @@ import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Clock, Edit, Trash2 } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import type { CollectionPoint, Address } from "@/types/collection-point";
+import type { CollectionPoint } from "@/types/collection-point";
 import { checkOpenStatus } from "../../utils/checkOpenStatus";
 import { formatOperatingHours } from "../../utils/formatters";
 import { getSimpleAddress, getLocation } from "../../utils/addressHelpers";
 
 interface CollectionPointTableRowProps {
-  point: CollectionPoint & { address?: Address | null };
-  onEdit?: (point: CollectionPoint & { address?: Address | null }) => void;
+  point: CollectionPoint;
+  onEdit?: (point: CollectionPoint) => void;
   onDelete?: (pointId: string) => void;
-  onAssignCarrier?: (pointId: string, carrierId: string | null) => Promise<void>;
-  carrierMap: Map<string, { name: string }>;
+  onAssignCarrier?: (carrierId: string | null) => Promise<void>;
+  carrierName?: string;
+  showCarrier?: boolean;
 }
 
 export function CollectionPointTableRow({
@@ -21,7 +22,8 @@ export function CollectionPointTableRow({
   onEdit,
   onDelete,
   onAssignCarrier,
-  carrierMap
+  carrierName,
+  showCarrier = true
 }: CollectionPointTableRowProps) {
   const status = checkOpenStatus(point);
 
@@ -30,15 +32,17 @@ export function CollectionPointTableRow({
       <TableCell className="font-medium">{point.name}</TableCell>
       <TableCell>{getSimpleAddress(point)}</TableCell>
       <TableCell>{getLocation(point)}</TableCell>
-      <TableCell>
-        {point.carrier_id ? (
-          <span className="text-sm font-medium">
-            {carrierMap.get(point.carrier_id)?.name || "Carregando..."}
-          </span>
-        ) : (
-          <span className="text-sm text-destructive font-medium">Não associada</span>
-        )}
-      </TableCell>
+      {showCarrier && (
+        <TableCell>
+          {carrierName ? (
+            <span className="text-sm font-medium">
+              {carrierName}
+            </span>
+          ) : (
+            <span className="text-sm text-destructive font-medium">Não associada</span>
+          )}
+        </TableCell>
+      )}
       <TableCell>
         <Popover>
           <PopoverTrigger asChild>
