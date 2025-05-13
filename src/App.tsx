@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Index from "./pages/Index";
@@ -15,11 +15,6 @@ import UsersDDD from "./pages/UsersDDD";
 
 function App() {
   const { user, loading } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
 
   // If still loading auth state, show a loading spinner
   if (loading) {
@@ -32,7 +27,7 @@ function App() {
 
   const ProtectedRoute = ({ redirectTo }: { redirectTo: string }) => {
     return user ? (
-      <DashboardLayout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}>
+      <DashboardLayout>
         <Outlet />
       </DashboardLayout>
     ) : (

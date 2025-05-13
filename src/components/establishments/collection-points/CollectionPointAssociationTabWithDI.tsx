@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCollectionPointCasesWithDI } from "@/presentation/hooks/useCollectionPointCasesWithDI";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
@@ -22,6 +22,10 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
   const [carrierName, setCarrierName] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("unassigned");
   const { isMobile } = useIsMobile();
+  const initialLoadDone = useRef({
+    unassigned: false,
+    carrier: false
+  });
 
   // Fetch carrier details
   const { isLoading: isLoadingCarrierDetails } = useQuery({
@@ -77,19 +81,25 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
     carrierId
   });
 
-  // Ensure we refetch the appropriate data when changing tabs
-  useEffect(() => {
-    if (activeTab === "unassigned") {
-      refetchUnassigned();
-    } else {
-      refetchCarrier();
-    }
-  }, [activeTab, refetchUnassigned, refetchCarrier]);
-
   // Filter points based on served cities
   const filteredUnassignedPoints = filterByServedCities
     ? unassignedPoints.filter(point => servedCities.includes(point.city || ''))
     : unassignedPoints;
+
+  // Load the correct data based on active tab
+  useEffect(() => {
+    const loadData = async () => {
+      if (activeTab === "unassigned" && !initialLoadDone.current.unassigned) {
+        await refetchUnassigned();
+        initialLoadDone.current.unassigned = true;
+      } else if (activeTab === "associated" && !initialLoadDone.current.carrier) {
+        await refetchCarrier();
+        initialLoadDone.current.carrier = true;
+      }
+    };
+    
+    loadData();
+  }, [activeTab, refetchUnassigned, refetchCarrier]);
 
   const handleAssociate = async (point: any) => {
     try {
@@ -190,6 +200,7 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
             onRefresh={handleRefresh}
             onPrint={handlePrint}
             isLoading={isLoading}
+            title={activeTab === "unassigned" ? "Pontos Disponíveis" : "Pontos Associados"}
           />
         </div>
 
@@ -214,14 +225,10 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
               Exibir apenas pontos em cidades atendidas
             </label>
           </div>
-          {isLoadingServedCities ? (
-            <div className="text-center py-4 text-muted-foreground">
-              Carregando cidades atendidas...
-            </div>
-          ) : (
+          {!isLoading && (
             <CollectionPointsTable
               collectionPoints={filteredUnassignedPoints}
-              isLoading={isLoadingUnassigned}
+              isLoading={false}
               onAssociate={handleAssociate}
               showAssociateButton
             />
@@ -229,12 +236,14 @@ export function CollectionPointAssociationTabWithDI({ carrierId }: CollectionPoi
         </TabsContent>
 
         <TabsContent value="associated" className="space-y-4">
-          <CollectionPointsTable
-            collectionPoints={carrierPoints}
-            isLoading={isLoadingCarrier}
-            onDisassociate={handleDisassociate}
-            showDisassociateButton
-          />
+          {!isLoading && (
+            <CollectionPointsTable
+              collectionPoints={carrierPoints}
+              isLoading={false}
+              onDisassociate={handleDisassociate}
+              showDisassociateButton
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>

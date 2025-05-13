@@ -7,18 +7,20 @@ interface CollectionPointAssociationHeaderProps {
   onRefresh: () => void;
   onPrint: () => void;
   isLoading?: boolean;
+  title?: string;
 }
 
 export function CollectionPointAssociationHeader({ 
   onRefresh, 
   onPrint,
-  isLoading = false
+  isLoading = false,
+  title = "Gerenciar Associações"
 }: CollectionPointAssociationHeaderProps) {
   const { isMobile } = useIsMobile();
 
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-lg font-medium">Gerenciar Associações</h2>
+      <h2 className="text-lg font-medium">{title}</h2>
       <div className="flex gap-2">
         <Button
           variant="outline" 

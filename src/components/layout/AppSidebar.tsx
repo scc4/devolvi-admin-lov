@@ -1,14 +1,14 @@
 
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar, SidebarGroupContent } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar, SidebarGroupContent, SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, Users, Truck, LogOut, Building, X } from "lucide-react";
+import { LayoutDashboard, Users, Truck, LogOut, Building, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useBreakpoints } from "@/hooks/use-mobile";
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 
-// Versão mobile-friendly do overlay para o sidebar
+// Mobile-friendly overlay for sidebar
 const MobileOverlay = forwardRef<HTMLDivElement, { onClick: () => void }>(({ onClick }, ref) => {
   return (
     <div 
@@ -24,17 +24,18 @@ MobileOverlay.displayName = "MobileOverlay";
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const {
-    profile,
-    logout
-  } = useAuth();
-  const {
-    open,
-    setOpen
-  } = useSidebar();
-  const {
-    isTouch
-  } = useBreakpoints();
+  const { profile, logout } = useAuth();
+  const { open, setOpen } = useSidebar();
+  const { isTouch } = useBreakpoints();
+  
+  // Update sidebar state based on screen size
+  useEffect(() => {
+    if (isTouch) {
+      setOpen(false);
+    } else {
+      setOpen(true);
+    }
+  }, [isTouch, setOpen]);
   
   const menu = [{
     title: "Dashboard",
@@ -56,7 +57,7 @@ export function AppSidebar() {
   
   const handleLogout = async () => {
     await logout();
-    navigate('/login'); // Using React Router navigation instead of direct window.location change
+    navigate('/login');
   };
   
   const closeSidebar = () => {
@@ -130,6 +131,19 @@ export function AppSidebar() {
           </div>
         </SidebarFooter>
       </Sidebar>
+      
+      {/* Mobile sidebar trigger button - only shown when sidebar is closed */}
+      {isTouch && !open && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="fixed top-3 left-3 z-50 md:hidden"
+          onClick={() => setOpen(true)}
+        >
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Abrir menu</span>
+        </Button>
+      )}
     </>
   );
 }

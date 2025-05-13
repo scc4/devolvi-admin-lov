@@ -22,8 +22,12 @@ export function useCollectionPointCasesWithDI(filters?: {
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isAssigningCarrier, setIsAssigningCarrier] = useState<boolean>(false);
+  
+  // Use refs to avoid infinite loops
   const isFirstLoad = useRef(true);
   const filtersRef = useRef(filters);
+  const loadingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   
   // Get use cases from container
   const getCollectionPointsUseCase = container.getCollectionPointsUseCase();
@@ -36,15 +40,40 @@ export function useCollectionPointCasesWithDI(filters?: {
   useEffect(() => {
     if (JSON.stringify(filtersRef.current) !== JSON.stringify(filters)) {
       filtersRef.current = filters;
+      // If filters change and it's not the first load, trigger a load
+      if (!isFirstLoad.current) {
+        loadCollectionPoints();
+      }
     }
   }, [filters]);
 
   const loadCollectionPoints = useCallback(async () => {
+    // Prevent concurrent requests
+    if (loadingRef.current) {
+      // Cancel any previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    }
+    
+    // Create a new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    
+    // Mark as loading
     setLoading(true);
+    loadingRef.current = true;
     setError(null);
+    
     try {
       console.log("Loading collection points with filters:", filtersRef.current);
       const collectionPointDTOs = await getCollectionPointsUseCase.execute(filtersRef.current);
+      
+      // Check if request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        console.log("Request was aborted, skipping state update");
+        return;
+      }
+      
       console.log("Collection points loaded:", collectionPointDTOs);
       
       if (!collectionPointDTOs || collectionPointDTOs.length === 0) {
@@ -56,6 +85,12 @@ export function useCollectionPointCasesWithDI(filters?: {
       
       setCollectionPoints(uiModels);
     } catch (err) {
+      // Skip error handling if the request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        console.log("Request was aborted, skipping error handling");
+        return;
+      }
+      
       console.error("Error loading collection points:", err);
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar pontos de coleta';
       setError(errorMessage);
@@ -63,9 +98,13 @@ export function useCollectionPointCasesWithDI(filters?: {
         description: errorMessage
       });
     } finally {
-      setLoading(false);
+      // Only update loading state if the request wasn't aborted
+      if (!abortControllerRef.current?.signal.aborted) {
+        setLoading(false);
+        loadingRef.current = false;
+      }
     }
-  }, [getCollectionPointsUseCase]); // Remove filters dependency to avoid infinite loop
+  }, [getCollectionPointsUseCase]); 
 
   // Load collection points only on first mount or when explicitly called
   useEffect(() => {
@@ -75,6 +114,13 @@ export function useCollectionPointCasesWithDI(filters?: {
       isFirstLoad.current = false;
       loadCollectionPoints();
     }
+    
+    // Clean up function to abort any pending requests when component unmounts
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [loadCollectionPoints]);
 
   const handleCreate = async (collectionPoint: Partial<CollectionPointUI>) => {

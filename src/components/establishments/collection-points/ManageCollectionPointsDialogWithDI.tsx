@@ -6,7 +6,6 @@ import { CollectionPointAssociationTabWithDI } from "./CollectionPointAssociatio
 import type { EstablishmentWithDetails } from "@/types/establishment";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
-import { useState, useEffect } from "react";
 
 interface ManageCollectionPointsDialogWithDIProps {
   open: boolean;
@@ -24,30 +23,27 @@ export function ManageCollectionPointsDialogWithDI({
   carrierContext
 }: ManageCollectionPointsDialogWithDIProps) {
   const { isMobile } = useIsMobile();
-  const [dialogKey, setDialogKey] = useState<number>(0);
   
   // Use our custom cleanup hook
-  useDialogCleanup({ open });
-
-  // Reset the component key when dialog opens to force a clean remount
-  useEffect(() => {
-    if (open) {
-      setDialogKey(prevKey => prevKey + 1);
+  useDialogCleanup({ 
+    open,
+    onCleanup: () => {
+      // Any additional cleanup if needed
+      document.body.style.overflow = '';
     }
-  }, [open]);
+  });
 
   // Determine title based on context
   const dialogTitle = establishment 
     ? `Pontos de Coleta - ${establishment.name}` 
     : "Associar Pontos de Coleta";
 
-  const Content = () => {
+  const DialogContent = () => {
     if (carrierContext?.carrierId) {
-      return <CollectionPointAssociationTabWithDI key={`carrier-cp-${dialogKey}`} carrierId={carrierContext.carrierId} />;
+      return <CollectionPointAssociationTabWithDI carrierId={carrierContext.carrierId} />;
     }
     return (
       <CollectionPointsTabWithDI
-        key={`establishment-cp-${dialogKey}`}
         establishmentId={establishment?.id}
         carrierContext={carrierContext}
       />
@@ -64,7 +60,7 @@ export function ManageCollectionPointsDialogWithDI({
               <SheetTitle>{dialogTitle}</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-auto px-4 pb-4">
-              <Content />
+              {open && <DialogContent />}
             </div>
           </div>
         </SheetContent>
@@ -80,7 +76,7 @@ export function ManageCollectionPointsDialogWithDI({
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-auto p-6 pt-4">
-          <Content />
+          {open && <DialogContent />}
         </div>
       </DialogContent>
     </Dialog>
