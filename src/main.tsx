@@ -4,6 +4,10 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './styles/index.css';
 import { AuthProvider } from './context/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Create a client
+const queryClient = new QueryClient();
 
 // Remove the initial loader when the application is loaded
 const removeInitialLoader = () => {
@@ -22,9 +26,11 @@ const renderApp = () => {
   if (!root) return;
   createRoot(root).render(
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   );
   
