@@ -18,17 +18,8 @@ export function useLoadCollectionPoints(getCollectionPointsUseCase: GetCollectio
       setLoading(true);
       setError(null);
       
-      let domainCollectionPoints;
-      
-      if (filters.unassigned) {
-        domainCollectionPoints = await getCollectionPointsUseCase.getUnassigned(filters.cityFilter);
-      } else if (filters.establishmentId) {
-        domainCollectionPoints = await getCollectionPointsUseCase.getByEstablishment(filters.establishmentId);
-      } else if (filters.carrierId) {
-        domainCollectionPoints = await getCollectionPointsUseCase.getByCarrier(filters.carrierId);
-      } else {
-        domainCollectionPoints = await getCollectionPointsUseCase.getAll();
-      }
+      // Use the execute method with filters
+      const domainCollectionPoints = await getCollectionPointsUseCase.execute(filters);
       
       const uiCollectionPoints = domainCollectionPoints.map(point => 
         collectionPointAdapter.toUIModel(point)
