@@ -1,5 +1,6 @@
 
 import { toast as sonnerToast } from "sonner"
+import type { ExternalToast } from "sonner" // Import the exact type from sonner
 
 // According to sonner's API, we need to define our own Toast type since it's not exported
 export type ToastProps = {
@@ -13,9 +14,10 @@ export type ToastProps = {
     label: string
     onClick: () => void
   }
+  // Fix cancel type to match Action interface (onClick is required)
   cancel?: {
     label: string
-    onClick?: () => void
+    onClick: () => void
   }
   onDismiss?: () => void
   onAutoClose?: () => void
@@ -38,7 +40,7 @@ export const useToast = (): UseToastReturn => {
         description,
         className: variant === "destructive" ? "bg-destructive text-destructive-foreground" : undefined,
         ...props,
-      })
+      } as ExternalToast)
     },
     dismiss: sonnerToast.dismiss,
     toasts: [],
@@ -51,5 +53,5 @@ export const toast = ({ title, description, variant, ...props }: ToastProps) => 
     description,
     className: variant === "destructive" ? "bg-destructive text-destructive-foreground" : undefined,
     ...props,
-  })
+  } as ExternalToast)
 }
