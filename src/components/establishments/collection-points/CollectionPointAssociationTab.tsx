@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useCollectionPointsQuery } from "@/hooks/useCollectionPointsQuery";
+import { useCollectionPointCasesWithDI } from "@/presentation/hooks/collectionPoints/useCollectionPointCasesWithDI";
 import { Button } from "@/components/ui/button";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
@@ -32,7 +32,7 @@ export function CollectionPointAssociationTab({
     refetch: refetchUnassigned,
     assignCarrier,
     isAssigningCarrier
-  } = useCollectionPointsQuery({
+  } = useCollectionPointCasesWithDI({
     unassigned: true
   });
   
@@ -42,15 +42,15 @@ export function CollectionPointAssociationTab({
     loading: loadingAssigned,
     error: assignedError,
     refetch: refetchAssigned
-  } = useCollectionPointsQuery({
+  } = useCollectionPointCasesWithDI({
     carrierId
   });
 
-  const handleAssignCarrier = async (pointId: string) => {
+  const handleAssignCarrier = async (point: CollectionPoint) => {
     if (!carrierId) return;
     
     try {
-      await assignCarrier({ collectionPointId: pointId, carrierId });
+      await assignCarrier({ collectionPointId: point.id, carrierId });
       refetchUnassigned();
       refetchAssigned();
     } catch (error) {
@@ -58,9 +58,9 @@ export function CollectionPointAssociationTab({
     }
   };
 
-  const handleRemoveCarrier = async (pointId: string) => {
+  const handleRemoveCarrier = async (point: CollectionPoint) => {
     try {
-      await assignCarrier({ collectionPointId: pointId, carrierId: null });
+      await assignCarrier({ collectionPointId: point.id, carrierId: null });
       refetchUnassigned();
       refetchAssigned();
     } catch (error) {
@@ -72,20 +72,37 @@ export function CollectionPointAssociationTab({
   const [showUnassignedError, setShowUnassignedError] = useState(Boolean(unassignedError));
   const [showAssignedError, setShowAssignedError] = useState(Boolean(assignedError));
 
-  const handleRetryUnassigned = () => {
+  // Fixed event handlers to handle button click events
+  const handleRetryUnassigned = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     setShowUnassignedError(false);
     refetchUnassigned();
   };
 
-  const handleRetryAssigned = () => {
+  const handleRetryAssigned = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     setShowAssignedError(false);
+    refetchAssigned();
+  };
+
+  // Properly wrap the refetch functions to handle click events
+  const handleRefreshUnassigned = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    refetchUnassigned();
+  };
+
+  const handleRefreshAssigned = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     refetchAssigned();
   };
 
   return (
     <div className="space-y-4">
       {!skipCarrierHeader && (
-        <CollectionPointAssociationHeader carrierId={carrierId} establishmentId={establishmentId} />
+        <CollectionPointAssociationHeader 
+          carrierId={carrierId}
+          establishmentId={establishmentId}
+        />
       )}
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -100,7 +117,7 @@ export function CollectionPointAssociationTab({
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={refetchUnassigned}
+              onClick={handleRefreshUnassigned}
               disabled={loadingUnassigned}
             >
               <RefreshCcw className={`h-4 w-4 ${loadingUnassigned ? 'animate-spin' : ''}`} />
@@ -141,7 +158,7 @@ export function CollectionPointAssociationTab({
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={refetchAssigned}
+                onClick={handleRefreshAssigned}
                 disabled={loadingAssigned}
               >
                 <RefreshCcw className={`h-4 w-4 ${loadingAssigned ? 'animate-spin' : ''}`} />

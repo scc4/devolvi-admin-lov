@@ -63,6 +63,12 @@ export default function Establishments() {
     }
   };
 
+  // Properly wrap refetchEstablishments to handle button click
+  const handleRefresh = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    refetchEstablishments();
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-md">
@@ -77,7 +83,7 @@ export default function Establishments() {
               <p className="text-destructive mb-4">Erro ao carregar dados dos estabelecimentos</p>
               <Button 
                 variant="outline" 
-                onClick={refetchEstablishments}
+                onClick={handleRefresh}
                 className="flex items-center gap-2"
               >
                 <RefreshCcw className="h-4 w-4" />

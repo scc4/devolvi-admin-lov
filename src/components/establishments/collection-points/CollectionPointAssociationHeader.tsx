@@ -8,8 +8,10 @@ interface CollectionPointAssociationHeaderProps {
   onPrint?: () => void;
   isLoading?: boolean;
   title?: string;
-  carrierName?: string; // Added prop
-  carrierCity?: string; // Added prop
+  carrierId?: string; // Added carrierId prop
+  carrierName?: string;
+  carrierCity?: string;
+  establishmentId?: string; // Added establishmentId prop
 }
 
 export function CollectionPointAssociationHeader({ 
@@ -17,8 +19,10 @@ export function CollectionPointAssociationHeader({
   onPrint,
   isLoading = false,
   title = "Gerenciar Associações",
-  carrierName, // New prop
-  carrierCity  // New prop
+  carrierId, // Now correctly typed
+  carrierName,
+  carrierCity,
+  establishmentId // Now correctly typed
 }: CollectionPointAssociationHeaderProps) {
   const { isMobile } = useIsMobile();
 

@@ -4,15 +4,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { CollectionPoint } from '@/types/collection-point';
+import type { Json } from '@/integrations/supabase/types';
 
 interface UseCollectionPointsQueryProps {
   establishmentId?: string;
   carrierId?: string;
   unassigned?: boolean;
+  cityFilter?: string; // Added this missing prop
 }
 
 export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = {}) {
-  const { establishmentId, carrierId, unassigned } = props;
+  const { establishmentId, carrierId, unassigned, cityFilter } = props;
   const queryClient = useQueryClient();
   
   // Generate a stable query key based on parameters
@@ -21,8 +23,9 @@ export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = 
     if (establishmentId) key.push(`establishment-${establishmentId}`);
     if (carrierId) key.push(`carrier-${carrierId}`);
     if (unassigned) key.push('unassigned');
+    if (cityFilter) key.push(`city-${cityFilter}`);
     return key;
-  }, [establishmentId, carrierId, unassigned]);
+  }, [establishmentId, carrierId, unassigned, cityFilter]);
   
   // Fetch collection points
   const { 
@@ -54,41 +57,57 @@ export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = 
       if (unassigned) {
         query = query.is('carrier_id', null);
       }
+
+      // Apply city filter if provided
+      if (cityFilter) {
+        const cities = cityFilter.split(',');
+        if (cities.length > 0) {
+          query = query.in('city', cities);
+        }
+      }
       
       const { data, error } = await query.order('name');
       
       if (error) throw error;
       
-      // Map to UI model
-      return data.map(cp => ({
-        id: cp.id,
-        name: cp.name,
-        address: cp.address,
-        establishment_id: cp.establishment_id,
-        establishment: cp.establishment ? {
-          id: cp.establishment.id,
-          name: cp.establishment.name
-        } : null,
-        carrier_id: cp.carrier_id,
-        carrier: cp.carrier ? {
-          id: cp.carrier.id,
-          name: cp.carrier.name
-        } : null,
-        phone: cp.phone,
-        street: cp.street,
-        number: cp.number,
-        complement: cp.complement,
-        district: cp.district,
-        zip_code: cp.zip_code,
-        city: cp.city,
-        state: cp.state,
-        latitude: cp.latitude,
-        longitude: cp.longitude,
-        is_active: cp.is_active,
-        operating_hours: cp.operating_hours,
-        created_at: cp.created_at,
-        updated_at: cp.updated_at
-      })) as CollectionPoint[];
+      // Map to UI model and explicitly cast operating_hours to the expected type
+      return data.map(cp => {
+        const operatingHours = cp.operating_hours as unknown as { 
+          [day: string]: { open: string; close: string }[] 
+        } | null;
+
+        const carrier = cp.carrier ? {
+          id: cp.carrier.id as string,
+          name: cp.carrier.name as string
+        } : null;
+
+        return {
+          id: cp.id,
+          name: cp.name,
+          address: cp.address,
+          establishment_id: cp.establishment_id,
+          establishment: cp.establishment ? {
+            id: cp.establishment.id,
+            name: cp.establishment.name
+          } : null,
+          carrier_id: cp.carrier_id,
+          carrier,
+          phone: cp.phone,
+          street: cp.street,
+          number: cp.number,
+          complement: cp.complement,
+          district: cp.district,
+          zip_code: cp.zip_code,
+          city: cp.city,
+          state: cp.state,
+          latitude: cp.latitude,
+          longitude: cp.longitude,
+          is_active: cp.is_active,
+          operating_hours: operatingHours,
+          created_at: cp.created_at,
+          updated_at: cp.updated_at
+        };
+      }) as CollectionPoint[];
     },
     enabled: !!(establishmentId || carrierId || unassigned)
   });
@@ -119,7 +138,7 @@ export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = 
           latitude: newPoint.latitude,
           longitude: newPoint.longitude,
           is_active: newPoint.is_active ?? true,
-          operating_hours: newPoint.operating_hours
+          operating_hours: newPoint.operating_hours as Json
         })
         .select()
         .single();
@@ -160,7 +179,7 @@ export function useCollectionPointsQuery(props: UseCollectionPointsQueryProps = 
           latitude: point.latitude,
           longitude: point.longitude,
           is_active: point.is_active,
-          operating_hours: point.operating_hours,
+          operating_hours: point.operating_hours as Json,
           updated_at: new Date().toISOString()
         })
         .eq('id', point.id)
