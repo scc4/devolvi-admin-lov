@@ -63,7 +63,7 @@ export function ResetPasswordDialog({
 
       toast({
         title: "Senha alterada com sucesso",
-        description: "A nova senha foi definida para o usuário.",
+        description: "A nova senha foi definida para o usuário."
       })
 
       onOpenChange(false)

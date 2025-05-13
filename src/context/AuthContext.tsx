@@ -157,7 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       toast({
         title: "Conta criada",
-        description: "Verifique seu email para confirmar o registro.",
+        description: "Verifique seu email para confirmar o registro."
       });
     } catch (error: any) {
       console.error("Signup error:", error);

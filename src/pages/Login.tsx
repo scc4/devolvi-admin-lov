@@ -30,7 +30,7 @@ const Login = () => {
       await login(email, password);
       toast({
         title: "Login successful",
-        description: "You have been successfully logged in.",
+        description: "You have been successfully logged in."
       });
       navigate("/dashboard");
     } catch (error: any) {

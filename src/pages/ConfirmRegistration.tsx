@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,7 +47,7 @@ const ConfirmRegistration = () => {
 
       toast({
         title: "Senha definida com sucesso!",
-        description: "Você já pode fazer login no sistema.",
+        description: "Você já pode fazer login no sistema."
       });
 
       // Redirect to login page

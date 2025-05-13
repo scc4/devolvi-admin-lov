@@ -73,7 +73,7 @@ const ResetPassword = () => {
 
       toast({
         title: "Senha alterada com sucesso!",
-        description: "Você já pode fazer login no sistema.",
+        description: "Você já pode fazer login no sistema."
       });
 
       // Redirect to login page
