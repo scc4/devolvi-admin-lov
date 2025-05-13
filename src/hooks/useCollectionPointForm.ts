@@ -73,7 +73,7 @@ export function useCollectionPointForm(
       
       return {
         ...prev,
-        address_obj: updatedAddressObj as Partial<Address>
+        address_obj: updatedAddressObj
       };
     });
   };
