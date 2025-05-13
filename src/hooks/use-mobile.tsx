@@ -1,7 +1,7 @@
 
 import * as React from "react"
 
-// Define breakpoints for responsive design
+// Define breakpoints para o design responsivo
 export const BREAKPOINTS = {
   MOBILE: 480,  // Mobile devices
   TABLET: 768,  // Tablets
@@ -25,15 +25,12 @@ export function useBreakpoints(): Breakpoints {
     width: number | null;
     height: number | null;
   }>({
-    width: typeof window !== 'undefined' ? window.innerWidth : null,
-    height: typeof window !== 'undefined' ? window.innerHeight : null,
+    width: null,
+    height: null
   });
   const [isReady, setIsReady] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    // Skip effect during SSR
-    if (typeof window === 'undefined') return;
-    
     const handleResize = () => {
       setSize({
         width: window.innerWidth,
@@ -72,12 +69,12 @@ export function useBreakpoints(): Breakpoints {
   };
 }
 
-// Hook simplified for compatibility with existing code
+// Hook simplificado para compatibilidade com código existente
 export function useIsMobile() {
   const breakpoints = useBreakpoints();
   
   return {
-    isMobile: breakpoints.isTouch, // Changed to use isTouch for consistency
+    isMobile: breakpoints.width !== null && breakpoints.width < BREAKPOINTS.TABLET,
     isReady: breakpoints.isReady
   };
 }

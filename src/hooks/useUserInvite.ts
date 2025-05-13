@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRow } from "@/types/user";
-import { userAdapter } from "@/adapters/users/userAdapter";
 
 export function useUserInvite() {
   const { toast } = useToast();
@@ -47,6 +46,7 @@ export function useUserInvite() {
 
       if (emailError) {
         console.error("Error sending email:", emailError);
+        // Change 'warning' to 'default'
         toast({ 
           title: "Usuário criado, mas email não enviado", 
           description: "O usuário foi criado mas houve um problema ao enviar o email de convite.",

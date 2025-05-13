@@ -16,22 +16,18 @@ import { Card } from "@/components/ui/card";
 interface CarriersTableProps {
   carriers: (Carrier & { collection_points_count?: number })[];
   loading: boolean;
-  error?: string | null;
-  onRetry?: () => void;
   onEdit: (carrier: Carrier) => void;
   onDelete: (carrier: Carrier) => void;
-  onDeactivate?: (carrier: Carrier) => void;
+  onDeactivate: (carrier: Carrier) => void;
   onManageCollectionPoints: (carrier: Carrier) => void;
 }
 
 export function CarriersTable({
   carriers,
   loading,
-  error,
-  onRetry,
   onEdit,
   onDelete,
-  onDeactivate = () => {},
+  onDeactivate,
   onManageCollectionPoints,
 }: CarriersTableProps) {
   const { isMobile } = useIsMobile();
@@ -74,7 +70,7 @@ export function CarriersTable({
                 
                 <div className="flex justify-between items-center pt-2 border-t">
                   <div className="text-sm bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                    {carrier.collection_points_count} pontos
+                    {carrier.collection_points_count || 0} pontos
                   </div>
                   <CarrierActionsDropdown
                     carrier={carrier}
@@ -92,7 +88,7 @@ export function CarriersTable({
     );
   }
 
-  // Desktop view
+  // Desktop view - mantém a implementação original da tabela
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
@@ -113,22 +109,6 @@ export function CarriersTable({
             <TableRow>
               <TableCell colSpan={8} className="text-center py-4">
                 Carregando...
-              </TableCell>
-            </TableRow>
-          ) : error ? (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center py-4">
-                <div className="space-y-2">
-                  <p className="text-red-500">{error}</p>
-                  {onRetry && (
-                    <button
-                      onClick={onRetry}
-                      className="text-primary hover:underline"
-                    >
-                      Tentar novamente
-                    </button>
-                  )}
-                </div>
               </TableCell>
             </TableRow>
           ) : carriers.length > 0 ? (

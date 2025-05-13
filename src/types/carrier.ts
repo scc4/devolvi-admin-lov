@@ -9,8 +9,4 @@ export interface Carrier {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
-  collection_points_count?: number;
 }
-
-// Alias to maintain compatibility with existing code
-export type CarrierRow = Carrier;

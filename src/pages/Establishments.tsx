@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EstablishmentsHeader } from "@/components/establishments/EstablishmentsHeader";
@@ -6,7 +5,7 @@ import { EstablishmentsSearch } from "@/components/establishments/Establishments
 import { EstablishmentsTable } from "@/components/establishments/EstablishmentsTable";
 import { EstablishmentFormDialog } from "@/components/establishments/EstablishmentFormDialog";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
-import { useEstablishmentsQuery } from "@/hooks/useEstablishmentsQuery";
+import { useEstablishments } from "@/hooks/useEstablishments";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
@@ -16,19 +15,22 @@ export default function Establishments() {
     establishments,
     loading,
     error,
-    searchTerm,
-    setSearchTerm,
-    refetchEstablishments,
-    createEstablishment,
-    updateEstablishment,
-    deleteEstablishment,
-    isCreating,
-    isUpdating
-  } = useEstablishmentsQuery();
+    loadEstablishments,
+    handleEdit,
+    handleDelete,
+    handleCreate
+  } = useEstablishments();
   
+  const [searchTerm, setSearchTerm] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [collectionPointsDialogOpen, setCollectionPointsDialogOpen] = useState(false);
   const [selectedEstablishment, setSelectedEstablishment] = useState<EstablishmentWithDetails | undefined>(undefined);
+
+  const filteredEstablishments = establishments.filter((establishment) =>
+    establishment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    establishment.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    establishment.type?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleOpenCreate = () => {
     setSelectedEstablishment(undefined);
@@ -47,26 +49,14 @@ export default function Establishments() {
 
   const handleFormSubmit = async (data: Partial<EstablishmentWithDetails>) => {
     if (selectedEstablishment) {
-      await updateEstablishment({
+      await handleEdit({
         ...selectedEstablishment,
         ...data
       });
     } else {
-      await createEstablishment(data);
+      await handleCreate(data);
     }
     setEditDialogOpen(false);
-  };
-  
-  const handleDelete = async (establishment: EstablishmentWithDetails) => {
-    if (window.confirm('Tem certeza que deseja excluir este estabelecimento?')) {
-      await deleteEstablishment(establishment.id);
-    }
-  };
-
-  // Properly wrap refetchEstablishments to handle button click
-  const handleRefresh = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    refetchEstablishments();
   };
 
   return (
@@ -83,7 +73,7 @@ export default function Establishments() {
               <p className="text-destructive mb-4">Erro ao carregar dados dos estabelecimentos</p>
               <Button 
                 variant="outline" 
-                onClick={handleRefresh}
+                onClick={loadEstablishments}
                 className="flex items-center gap-2"
               >
                 <RefreshCcw className="h-4 w-4" />
@@ -92,7 +82,7 @@ export default function Establishments() {
             </div>
           ) : (
             <EstablishmentsTable
-              establishments={establishments}
+              establishments={filteredEstablishments}
               loading={loading}
               onEdit={handleOpenEdit}
               onDelete={handleDelete}
@@ -107,7 +97,7 @@ export default function Establishments() {
         onOpenChange={setEditDialogOpen}
         onSubmit={handleFormSubmit}
         initialData={selectedEstablishment}
-        isLoading={isCreating || isUpdating}
+        isLoading={false}
       />
 
       {selectedEstablishment && (

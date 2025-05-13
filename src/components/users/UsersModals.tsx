@@ -16,7 +16,7 @@ interface UsersModalsProps {
   onConfirmCancel: () => void;
   onResetPasswordChange: (open: boolean) => void;
   onInvite: (form: { name: string; email: string; phone?: string; role: "admin" | "owner" }) => Promise<void>;
-  onEdit: (user: UserRow) => Promise<void>;
+  onEdit: (userId: string, updates: { name: string; phone: string | null; role: "admin" | "owner" }) => Promise<void>;
   onConfirm: () => void;
 }
 
@@ -52,7 +52,7 @@ export function UsersModals({
             role: editUser.role === "admin" || editUser.role === "owner" ? editUser.role : "admin",
           }}
           onClose={onEditClose}
-          onEdit={() => onEdit(editUser)}
+          onEdit={onEdit}
         />
       )}
       

@@ -1,214 +1,73 @@
+# Welcome to your Devolvi project
 
-# Devolvi - Sistema de Gestão
+## Project info
 
-![Logo Devolvi](https://lovable.dev/projects/15317c0d-207c-43c9-9d8e-8211438c5256)
+**URL**: https://lovable.dev/projects/15317c0d-207c-43c9-9d8e-8211438c5256
 
-## Visão Geral
+## How can I edit this code?
 
-O Devolvi é um sistema de gestão criado para gerenciar estabelecimentos, transportadoras e pontos de coleta. O sistema utiliza arquitetura limpa e padrões de design modernos para criar uma aplicação escalável e manutenível.
+There are several ways of editing your application.
 
-## Arquitetura da Aplicação
+**Use Lovable**
 
-O projeto segue os princípios de Arquitetura Limpa (Clean Architecture) e Design Orientado a Domínio (DDD), estruturado em camadas:
+Simply visit the [Lovable Project](https://lovable.dev/projects/15317c0d-207c-43c9-9d8e-8211438c5256) and start prompting.
 
-### Camadas da Aplicação
+Changes made via Lovable will be committed automatically to this repo.
 
-1. **Camada de Apresentação (Presentation)**
-   - Interfaces de usuário e componentes React
-   - Hooks de integração com casos de uso
-   - Gerenciamento de estado da UI
+**Use your preferred IDE**
 
-2. **Camada de Aplicação (Application)**
-   - Casos de uso (Use Cases)
-   - DTOs (Data Transfer Objects)
-   - Orquestração de fluxos de negócio
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-3. **Camada de Domínio (Domain)**
-   - Entidades de negócio (Entities)
-   - Objetos de valor (Value Objects)
-   - Interfaces de repositórios (Repository Interfaces)
-   - Regras de negócio independentes de infraestrutura
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-4. **Camada de Infraestrutura (Infrastructure)**
-   - Implementação dos repositórios
-   - Integrações externas
-   - Persistência de dados
-   - Injeção de dependências
-
-### Padrões Implementados
-
-- **Domain-Driven Design (DDD)**: Foco nas regras de negócio através de entidades e objetos de valor
-- **Injeção de Dependências (DI)**: Utilizando containers para gerenciar dependências
-- **Repositório**: Abstração da camada de persistência
-- **Caso de Uso**: Encapsulamento de lógica de negócio específica
-
-## Tecnologias Utilizadas
-
-- **Frontend**:
-  - React + TypeScript
-  - Vite (build tool)
-  - Tailwind CSS (estilização)
-  - shadcn/ui (componentes UI)
-  - React Query (gerenciamento de estado e requisições)
-  - React Router (roteamento)
-
-- **Backend**:
-  - Supabase (Banco de dados PostgreSQL)
-  - Edge Functions (funções serverless)
-  - Autenticação e autorização
-
-## Principais Componentes
-
-### Estabelecimentos (Establishments)
-
-Os estabelecimentos representam locais físicos onde os pontos de coleta podem ser instalados.
-
-- **Componentes Principais**:
-  - `EstablishmentsWithDI`: Página principal de estabelecimentos usando DI
-  - `EstablishmentsTable`: Tabela responsiva para listar estabelecimentos
-  - `EstablishmentFormDialog`: Modal para criar/editar estabelecimentos
-
-### Transportadoras (Carriers)
-
-Transportadoras são empresas responsáveis por fazer a coleta nos pontos de coleta.
-
-- **Componentes Principais**:
-  - `CarriersTable`: Tabela responsiva para listar transportadoras
-  - `EditCarrierDialog`: Modal para edição de transportadoras
-  - `ServedCitiesTab`: Gerenciamento de cidades atendidas pela transportadora
-
-### Pontos de Coleta (Collection Points)
-
-Os pontos de coleta são locais específicos configurados para receber materiais.
-
-- **Componentes Principais**:
-  - `CollectionPointsTabWithDI`: Gerenciamento de pontos de coleta com DI
-  - `CollectionPointAssociationTabWithDI`: Associação de pontos de coleta a transportadoras
-  - `CollectionPointFormDialog`: Formulário para criar/editar pontos de coleta
-
-## Principais Hooks
-
-### Hooks de Gerenciamento de Dados
-
-- `useEstablishmentCasesWithDI`: Gerencia casos de uso para estabelecimentos
-- `useCarrierCasesWithDI`: Gerencia casos de uso para transportadoras
-- `useCollectionPointCasesWithDI`: Gerencia casos de uso para pontos de coleta
-- `useUserCasesWithDI`: Gerencia casos de uso para usuários
-
-### Hooks de UI
-
-- `useIsMobile`: Detecta se o dispositivo é mobile para renderização responsiva
-- `useDialogCleanup`: Gerencia limpeza de estado ao fechar diálogos
-- `useCarrierForm`: Gerencia formulários de transportadoras
-
-## Guia para Novos Desenvolvedores
-
-### Configuração do Ambiente
+Follow these steps:
 
 ```sh
-# Passo 1: Clone o repositório
-git clone <URL_DO_REPOSITÓRIO>
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-# Passo 2: Navegue até o diretório do projeto
-cd devolvi-app
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-# Passo 3: Instale as dependências
-npm install
+# Step 3: Install the necessary dependencies.
+npm i
 
-# Passo 4: Inicie o servidor de desenvolvimento
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-### Estrutura de Diretórios
+**Edit a file directly in GitHub**
 
-```
-src/
-├── application/         # Casos de uso e DTOs
-├── components/          # Componentes React reutilizáveis
-├── context/            # Contextos React
-├── domain/             # Entidades e interfaces do domínio
-├── hooks/              # Hooks personalizados
-├── infrastructure/     # Implementação de repositórios e DI
-├── integrations/       # Integrações com serviços externos
-├── lib/                # Utilitários e funções auxiliares
-├── pages/              # Componentes de páginas
-├── presentation/       # Componentes e hooks de apresentação
-├── services/           # Serviços e APIs
-├── styles/             # Estilos e configuração do Tailwind
-├── types/              # Definições de tipos TypeScript
-└── App.tsx             # Componente raiz da aplicação
-```
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-### Convenções de Código
+**Use GitHub Codespaces**
 
-1. **Nomenclatura**:
-   - Componentes: PascalCase (ex: `CollectionPointsTable`)
-   - Hooks: camelCase com prefixo "use" (ex: `useCarrierForm`)
-   - Arquivos de componentes: PascalCase.tsx
-   - Arquivos de hooks: camelCase.ts
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-2. **Padrões de Componentes**:
-   - Componentes funcionais com TypeScript
-   - Props bem tipadas com interfaces
-   - Separação de responsabilidades
+## What technologies are used for this Devolvi project?
 
-3. **Estilização**:
-   - Tailwind CSS para estilos
-   - Classes utilitárias em vez de CSS personalizado
-   - Componentes shadcn/ui para UI consistente
+This project is built with:
 
-### Como Implementar Novos Recursos
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-1. **Adicionar uma Nova Entidade**:
-   1. Crie a entidade no domínio (`domain/entities/`)
-   2. Defina a interface do repositório (`domain/repositories/`)
-   3. Crie os DTOs necessários (`application/dto/`)
-   4. Implemente os casos de uso (`application/useCases/`)
-   5. Implemente o repositório (`infrastructure/repositories/`)
-   6. Configure a injeção de dependência (`infrastructure/di/`)
-   7. Crie os hooks de apresentação (`presentation/hooks/`)
-   8. Desenvolva os componentes UI (`components/` ou `presentation/components/`)
+## How can I deploy this project?
 
-2. **Modificar um Recurso Existente**:
-   1. Identifique os casos de uso afetados
-   2. Atualize os DTOs se necessário
-   3. Modifique os componentes UI correspondentes
+Simply open [Lovable](https://lovable.dev/projects/15317c0d-207c-43c9-9d8e-8211438c5256) and click on Share -> Publish.
 
-### Boas Práticas
+## Can I connect a custom domain to my Lovable project?
 
-1. **Clean Architecture**:
-   - Mantenha a separação clara entre as camadas
-   - Evite importar de camadas externas para internas
-   - Use interfaces para abstrair dependências
+Yes, you can!
 
-2. **Componentes React**:
-   - Mantenha componentes pequenos e focados
-   - Extraia lógica para hooks personalizados
-   - Use React Query para gerenciamento de estado assíncrono
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-3. **Responsividade**:
-   - Use o hook `useIsMobile` para renderização condicional
-   - Implemente views específicas para mobile quando necessário
-   - Utilize as classes utilitárias do Tailwind para responsividade
-
-4. **Testes**:
-   - Escreva testes para casos de uso
-   - Teste componentes independentemente
-   - Use mocks para dependências externas
-
-## Contribuição
-
-Para contribuir com o projeto:
-
-1. Crie um branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-2. Faça commit das suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-3. Envie para o branch remoto (`git push origin feature/nova-funcionalidade`)
-4. Abra um Pull Request
-
-## Licença
-
-[Especificar licença]
-
-## Contato
-
-[Informações de contato]
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)

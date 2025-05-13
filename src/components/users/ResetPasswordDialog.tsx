@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 import { UserRow } from "@/types/user"
-import { useUsers } from "@/hooks/useUsers"
 
 interface ResetPasswordDialogProps {
   user: UserRow | null
@@ -29,8 +29,6 @@ export function ResetPasswordDialog({
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
-  const { resetPassword } = useUsers();
 
   const validatePassword = () => {
     if (password.length < 6) {
@@ -53,15 +51,15 @@ export function ResetPasswordDialog({
 
     setIsLoading(true)
     try {
-      const result = await resetPassword(user.id, password);
+      const { error } = await supabase.functions.invoke('admin-reset-password', {
+        body: { userId: user.id, password }
+      })
 
-      if (!result.success) {
-        throw new Error(result.error?.message || "Erro ao alterar a senha");
-      }
+      if (error) throw error
 
       toast({
         title: "Senha alterada com sucesso",
-        description: "A nova senha foi definida para o usuário."
+        description: "A nova senha foi definida para o usuário.",
       })
 
       onOpenChange(false)

@@ -9,54 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      address: {
-        Row: {
-          city: string | null
-          complement: string | null
-          created_at: string
-          deleted_at: string | null
-          district: string | null
-          id: string
-          latitude: number | null
-          longitude: number | null
-          number: string | null
-          state: string | null
-          street: string | null
-          updated_at: string | null
-          zip_code: string | null
-        }
-        Insert: {
-          city?: string | null
-          complement?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          district?: string | null
-          id?: string
-          latitude?: number | null
-          longitude?: number | null
-          number?: string | null
-          state?: string | null
-          street?: string | null
-          updated_at?: string | null
-          zip_code?: string | null
-        }
-        Update: {
-          city?: string | null
-          complement?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          district?: string | null
-          id?: string
-          latitude?: number | null
-          longitude?: number | null
-          number?: string | null
-          state?: string | null
-          street?: string | null
-          updated_at?: string | null
-          zip_code?: string | null
-        }
-        Relationships: []
-      }
       carrier_served_cities: {
         Row: {
           carrier_id: string
@@ -132,7 +84,6 @@ export type Database = {
           city: string | null
           complement: string | null
           created_at: string
-          deleted_at: string | null
           district: string | null
           establishment_id: string | null
           id: string
@@ -154,7 +105,6 @@ export type Database = {
           city?: string | null
           complement?: string | null
           created_at?: string
-          deleted_at?: string | null
           district?: string | null
           establishment_id?: string | null
           id?: string
@@ -176,7 +126,6 @@ export type Database = {
           city?: string | null
           complement?: string | null
           created_at?: string
-          deleted_at?: string | null
           district?: string | null
           establishment_id?: string | null
           id?: string
@@ -212,110 +161,6 @@ export type Database = {
             columns: ["carrier_id"]
             isOneToOne: false
             referencedRelation: "carriers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      devolutions: {
-        Row: {
-          authorization_code: string | null
-          collection_point_id: string | null
-          content: string | null
-          created_at: string | null
-          date_status: string | null
-          deleted_at: string | null
-          description: string | null
-          id: string
-          status: string | null
-          tracker: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          authorization_code?: string | null
-          collection_point_id?: string | null
-          content?: string | null
-          created_at?: string | null
-          date_status?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          status?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          authorization_code?: string | null
-          collection_point_id?: string | null
-          content?: string | null
-          created_at?: string | null
-          date_status?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          status?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "devolution_collection_point_id_fkey"
-            columns: ["collection_point_id"]
-            isOneToOne: false
-            referencedRelation: "collection_points"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "devolution_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      devolutions_life_cycle: {
-        Row: {
-          created_at: string | null
-          date_hour: string | null
-          deleted_at: string | null
-          devolution_id: string | null
-          id: string
-          phase: string | null
-          stage: string | null
-          tracker: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          date_hour?: string | null
-          deleted_at?: string | null
-          devolution_id?: string | null
-          id?: string
-          phase?: string | null
-          stage?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          date_hour?: string | null
-          deleted_at?: string | null
-          devolution_id?: string | null
-          id?: string
-          phase?: string | null
-          stage?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "devolution_life_cycle_devolution_id_fkey"
-            columns: ["devolution_id"]
-            isOneToOne: false
-            referencedRelation: "devolutions"
             referencedColumns: ["id"]
           },
         ]
@@ -384,71 +229,6 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          created_at: string | null
-          deleted_at: string | null
-          id: string
-          read: boolean
-          text: string
-          type: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          deleted_at?: string | null
-          id?: string
-          read?: boolean
-          text: string
-          type: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          deleted_at?: string | null
-          id?: string
-          read?: boolean
-          text?: string
-          type?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      phone_temporary_codes: {
-        Row: {
-          code: number
-          email: string
-          expires_at: string
-          id: string
-          phone: string
-        }
-        Insert: {
-          code: number
-          email: string
-          expires_at: string
-          id?: string
-          phone: string
-        }
-        Update: {
-          code?: number
-          email?: string
-          expires_at?: string
-          id?: string
-          phone?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -473,86 +253,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_collection_points: {
-        Row: {
-          collection_point_id: string
-          default: boolean
-          deleted_at: string | null
-          user_id: string
-        }
-        Insert: {
-          collection_point_id: string
-          default?: boolean
-          deleted_at?: string | null
-          user_id: string
-        }
-        Update: {
-          collection_point_id?: string
-          default?: boolean
-          deleted_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_collection_points_collection_point_id_fkey"
-            columns: ["collection_point_id"]
-            isOneToOne: false
-            referencedRelation: "collection_points"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_collection_points_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_email_confirmations: {
-        Row: {
-          confirmed: boolean
-          email: string
-        }
-        Insert: {
-          confirmed?: boolean
-          email: string
-        }
-        Update: {
-          confirmed?: boolean
-          email?: string
-        }
-        Relationships: []
-      }
-      user_permissions: {
-        Row: {
-          notices: boolean
-          reminders: boolean
-          updates: boolean
-          user_id: string
-        }
-        Insert: {
-          notices?: boolean
-          reminders?: boolean
-          updates?: boolean
-          user_id?: string
-        }
-        Update: {
-          notices?: boolean
-          reminders?: boolean
-          updates?: boolean
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_roles: {
         Row: {
           id: string
@@ -568,103 +268,6 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
-        }
-        Relationships: []
-      }
-      user_sessions: {
-        Row: {
-          expires_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          expires_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          expires_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_session_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_temporary_codes: {
-        Row: {
-          code: number
-          expires_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          code: number
-          expires_at: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          code?: number
-          expires_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_temporary_code_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      users: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          deleted_at: string | null
-          email: string | null
-          facebook_id: string | null
-          google_id: string | null
-          id: string
-          name: string | null
-          password: string | null
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          email?: string | null
-          facebook_id?: string | null
-          google_id?: string | null
-          id?: string
-          name?: string | null
-          password?: string | null
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          deleted_at?: string | null
-          email?: string | null
-          facebook_id?: string | null
-          google_id?: string | null
-          id?: string
-          name?: string | null
-          password?: string | null
-          phone?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }

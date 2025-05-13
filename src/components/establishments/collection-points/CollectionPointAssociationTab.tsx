@@ -1,197 +1,142 @@
-
-import { useState } from "react";
-import { useCollectionPointCasesWithDI } from "@/presentation/hooks/collectionPoints/useCollectionPointCasesWithDI";
-import { Button } from "@/components/ui/button";
+import { useCollectionPointAssociation } from "@/hooks/useCollectionPointAssociation";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointAssociationHeader } from "./CollectionPointAssociationHeader";
-import { AlertCircle, RefreshCcw } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { CollectionPoint } from "@/types/collection-point";
+import { CollectionPointsPrintView } from "./CollectionPointsPrintView";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { createRoot } from 'react-dom/client';
 
 interface CollectionPointAssociationTabProps {
-  establishmentId?: string;
-  carrierId?: string;
-  skipCarrierHeader?: boolean;
-  initialTab?: string;
+  carrierId: string;
 }
 
-export function CollectionPointAssociationTab({
-  establishmentId,
-  carrierId,
-  skipCarrierHeader = false,
-  initialTab = "unassigned"
-}: CollectionPointAssociationTabProps) {
-  const [activeTab, setActiveTab] = useState(initialTab);
-  
-  // Query for unassigned points
+export function CollectionPointAssociationTab({ carrierId }: CollectionPointAssociationTabProps) {
   const {
-    collectionPoints: unassignedPoints,
-    loading: loadingUnassigned,
-    error: unassignedError,
-    refetch: refetchUnassigned,
-    assignCarrier,
-    isAssigningCarrier
-  } = useCollectionPointCasesWithDI({
-    unassigned: true
-  });
-  
-  // Query for assigned points (if in carrier context)
-  const {
-    collectionPoints: assignedPoints,
-    loading: loadingAssigned,
-    error: assignedError,
-    refetch: refetchAssigned
-  } = useCollectionPointCasesWithDI({
-    carrierId
-  });
+    carrierName,
+    filterByServedCities,
+    setFilterByServedCities,
+    filteredUnassignedPoints,
+    carrierPoints,
+    isLoadingServedCities,
+    isLoadingUnassigned,
+    isLoadingCarrier,
+    handleAssociate,
+    handleDisassociate,
+    refetchUnassigned,
+    refetchCarrier
+  } = useCollectionPointAssociation(carrierId);
 
-  const handleAssignCarrier = async (point: CollectionPoint) => {
-    if (!carrierId) return;
-    
-    try {
-      await assignCarrier({ collectionPointId: point.id, carrierId });
-      refetchUnassigned();
-      refetchAssigned();
-    } catch (error) {
-      console.error("Error assigning carrier:", error);
-    }
-  };
+  const { isMobile } = useIsMobile();
 
-  const handleRemoveCarrier = async (point: CollectionPoint) => {
-    try {
-      await assignCarrier({ collectionPointId: point.id, carrierId: null });
-      refetchUnassigned();
-      refetchAssigned();
-    } catch (error) {
-      console.error("Error removing carrier:", error);
-    }
-  };
-
-  // Handle errors and retries
-  const [showUnassignedError, setShowUnassignedError] = useState(Boolean(unassignedError));
-  const [showAssignedError, setShowAssignedError] = useState(Boolean(assignedError));
-
-  // Fixed event handlers to handle button click events
-  const handleRetryUnassigned = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setShowUnassignedError(false);
+  const handleRefresh = () => {
     refetchUnassigned();
+    refetchCarrier();
   };
 
-  const handleRetryAssigned = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setShowAssignedError(false);
-    refetchAssigned();
-  };
+  const handlePrint = () => {
+    if (!carrierPoints?.length) {
+      toast.error('Não há pontos de coleta para imprimir');
+      return;
+    }
 
-  // Properly wrap the refetch functions to handle click events
-  const handleRefreshUnassigned = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    refetchUnassigned();
-  };
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Não foi possível abrir a janela de impressão');
+      return;
+    }
 
-  const handleRefreshAssigned = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    refetchAssigned();
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Relatório de Pontos de Coleta</title>
+          <link rel="stylesheet" href="/src/index.css">
+          <style>
+            @media print {
+              body { margin: 0; background: white; }
+              @page { size: portrait; margin: 20mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div id="print-content"></div>
+        </body>
+      </html>
+    `);
+
+    const printContent = printWindow.document.getElementById('print-content');
+    if (printContent && carrierPoints) {
+      const root = createRoot(printContent);
+      root.render(<CollectionPointsPrintView collectionPoints={carrierPoints} />);
+
+      // Wait for styles and images to load
+      printWindow.setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 1000);
+    }
   };
 
   return (
-    <div className="space-y-4">
-      {!skipCarrierHeader && carrierId && (
-        <CollectionPointAssociationHeader 
-          carrierId={carrierId}
-          establishmentId={establishmentId}
-        />
+    <div className="space-y-6">
+      {carrierName && (
+        <div className="bg-muted/50 p-4 rounded-lg">
+          <h2 className="text-xl font-semibold text-primary">
+            Transportadora: {carrierName}
+          </h2>
+        </div>
       )}
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-2">
-          <TabsTrigger value="unassigned">Pontos Disponíveis</TabsTrigger>
-          {carrierId && <TabsTrigger value="assigned">Pontos Associados</TabsTrigger>}
-        </TabsList>
-        
+      <Tabs defaultValue="unassigned" className="space-y-6">
+        <div className="flex flex-col gap-4">
+          <TabsList className="w-full">
+            <TabsTrigger value="unassigned" className="flex-1">Pontos Disponíveis</TabsTrigger>
+            <TabsTrigger value="associated" className="flex-1">Pontos Associados</TabsTrigger>
+          </TabsList>
+          <CollectionPointAssociationHeader 
+            onRefresh={handleRefresh}
+            onPrint={handlePrint}
+          />
+        </div>
+
         <TabsContent value="unassigned" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium">Pontos de Coleta Disponíveis</h2>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefreshUnassigned}
-              disabled={loadingUnassigned}
+          <div className="flex items-center space-x-2 mb-4">
+            <Checkbox
+              id="city-filter"
+              checked={filterByServedCities}
+              onCheckedChange={(checked) => setFilterByServedCities(checked as boolean)}
+            />
+            <label
+              htmlFor="city-filter"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              <RefreshCcw className={`h-4 w-4 ${loadingUnassigned ? 'animate-spin' : ''}`} />
-              <span className="ml-2">Atualizar</span>
-            </Button>
+              Exibir apenas pontos em cidades atendidas
+            </label>
           </div>
-          
-          {showUnassignedError && unassignedError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="flex justify-between items-center">
-                <span>{unassignedError}</span>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleRetryUnassigned}
-                  className="ml-2"
-                >
-                  Tentar novamente
-                </Button>
-              </AlertDescription>
-            </Alert>
+          {isLoadingServedCities ? (
+            <div className="text-center py-4 text-muted-foreground">
+              Carregando cidades atendidas...
+            </div>
+          ) : (
+            <CollectionPointsTable
+              collectionPoints={filteredUnassignedPoints}
+              isLoading={isLoadingUnassigned}
+              onAssociate={handleAssociate}
+              showAssociateButton
+            />
           )}
-          
-          <CollectionPointsTable 
-            collectionPoints={unassignedPoints}
-            isLoading={loadingUnassigned}
-            actionLabel={carrierId ? "Associar" : undefined}
-            onAction={carrierId ? handleAssignCarrier : undefined}
-            actionDisabled={isAssigningCarrier}
+        </TabsContent>
+
+        <TabsContent value="associated" className="space-y-4">
+          <CollectionPointsTable
+            collectionPoints={carrierPoints}
+            isLoading={isLoadingCarrier}
+            onDisassociate={handleDisassociate}
+            showDisassociateButton
           />
         </TabsContent>
-        
-        {carrierId && (
-          <TabsContent value="assigned" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-medium">Pontos de Coleta Associados</h2>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRefreshAssigned}
-                disabled={loadingAssigned}
-              >
-                <RefreshCcw className={`h-4 w-4 ${loadingAssigned ? 'animate-spin' : ''}`} />
-                <span className="ml-2">Atualizar</span>
-              </Button>
-            </div>
-            
-            {showAssignedError && assignedError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="flex justify-between items-center">
-                  <span>{assignedError}</span>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRetryAssigned}
-                    className="ml-2"
-                  >
-                    Tentar novamente
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <CollectionPointsTable 
-              collectionPoints={assignedPoints}
-              isLoading={loadingAssigned}
-              actionLabel="Remover"
-              onAction={handleRemoveCarrier}
-              actionDisabled={isAssigningCarrier}
-            />
-          </TabsContent>
-        )}
       </Tabs>
     </div>
   );

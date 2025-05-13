@@ -1,91 +1,76 @@
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CollectionPointsTab } from "./CollectionPointsTab";
-import type { Carrier } from "@/types/carrier";
-import type { Establishment } from "@/types/establishment";
+import { CollectionPointAssociationTab } from "./CollectionPointAssociationTab";
+import type { EstablishmentWithDetails } from "@/types/establishment";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 
 interface ManageCollectionPointsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  establishment?: Establishment;
-  carrier?: Carrier;
+  establishment?: EstablishmentWithDetails;
+  carrierContext?: {
+    carrierId: string;
+  };
 }
 
 export function ManageCollectionPointsDialog({
   open,
   onOpenChange,
   establishment,
-  carrier
+  carrierContext
 }: ManageCollectionPointsDialogProps) {
-  const [activeTab, setActiveTab] = useState("collection-points");
+  const { isMobile } = useIsMobile();
   
-  // Determine dialog type and content
-  const isCarrierDialog = !!carrier?.id;
-  const isEstablishmentDialog = !!establishment?.id;
-  
-  // Generate title based on context
-  const title = isCarrierDialog 
-    ? `Pontos de Coleta - ${carrier.name}`
-    : isEstablishmentDialog 
-      ? `Pontos de Coleta - ${establishment.name}`
-      : "Pontos de Coleta";
-  
-  const description = isCarrierDialog
-    ? "Gerencie os pontos de coleta associados a esta transportadora."
-    : "Gerencie os pontos de coleta.";
+  // Use our custom cleanup hook
+  useDialogCleanup({ open });
 
-  // Reset tab when dialog opens/closes or dialog type changes
-  useEffect(() => {
-    if (isCarrierDialog) {
-      setActiveTab("associated");
-    } else if (isEstablishmentDialog) {
-      setActiveTab("collection-points");
+  // Determine title based on context
+  const dialogTitle = establishment 
+    ? `Pontos de Coleta - ${establishment.name}` 
+    : "Associar Pontos de Coleta";
+
+  const Content = () => {
+    if (carrierContext?.carrierId) {
+      return <CollectionPointAssociationTab carrierId={carrierContext.carrierId} />;
     }
-  }, [isCarrierDialog, isEstablishmentDialog, open]);
+    return (
+      <CollectionPointsTab
+        establishmentId={establishment?.id}
+        carrierContext={carrierContext}
+      />
+    );
+  };
 
+  // Mobile view uses Sheet
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="h-[90vh] sm:h-[95vh] p-0 pt-6">
+          <div className="h-full flex flex-col">
+            <SheetHeader className="px-4 pb-2">
+              <SheetTitle>{dialogTitle}</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-auto px-4 pb-4">
+              <Content />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop view uses Dialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogTitle className="text-lg font-semibold leading-none tracking-tight">{title}</DialogTitle>
-        <p className="text-sm text-muted-foreground">{description}</p>
-
-        <div className="flex-1 overflow-auto pt-4">
-          {isCarrierDialog && carrier?.id && (
-            <Tabs defaultValue="associated" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="associated">Pontos Associados</TabsTrigger>
-                <TabsTrigger value="available">Pontos Disponíveis</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="associated" className="space-y-4">
-                <CollectionPointsTab carrierId={carrier.id} />
-              </TabsContent>
-              
-              <TabsContent value="available" className="space-y-4">
-                <CollectionPointAssociationTab carrierId={carrier.id} skipCarrierHeader={true} initialTab="unassigned" />
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {isEstablishmentDialog && establishment?.id && (
-            <Tabs defaultValue="collection-points" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 mb-4">
-                <TabsTrigger value="collection-points">Pontos de Coleta</TabsTrigger>
-                <TabsTrigger value="association">Associação</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="collection-points" className="space-y-4">
-                <CollectionPointsTab establishmentId={establishment.id} />
-              </TabsContent>
-              
-              <TabsContent value="association" className="space-y-4">
-                <CollectionPointAssociationTab establishmentId={establishment.id} />
-              </TabsContent>
-            </Tabs>
-          )}
+      <DialogContent className="max-w-[95vw] w-[1200px] h-[95vh] max-h-[95vh] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 py-4 border-b">
+          <DialogTitle>{dialogTitle}</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 overflow-auto p-6 pt-4">
+          <Content />
         </div>
       </DialogContent>
     </Dialog>

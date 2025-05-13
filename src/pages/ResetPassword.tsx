@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { container } from '@/infrastructure/di/container';
-import { supabase } from '@/integrations/supabase/client';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -15,7 +14,6 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [invalidLink, setInvalidLink] = useState(false);
-  const { toast } = useToast();
 
   // Get the code from the URL (this is what Supabase uses in reset password links)
   const code = searchParams.get('code');
@@ -30,10 +28,7 @@ const ResetPassword = () => {
         variant: "destructive"
       });
     }
-  }, [code, toast]);
-
-  // Utilizamos o ResetPasswordUseCase diretamente
-  const resetPasswordUseCase = container.resetPasswordUseCase();
+  }, [code]);
 
   const validatePasswords = () => {
     if (password.length < 6) {
@@ -48,7 +43,6 @@ const ResetPassword = () => {
     return true;
   };
 
-  // Implementamos o caso de uso conforme a abordagem DDD
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -57,27 +51,22 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
-      // Primeiro obtemos o usuário atual do Auth
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error("Não foi possível identificar o usuário atual");
-      }
-      
-      // Chamamos o caso de uso para resetar a senha
-      const result = await resetPasswordUseCase.execute(user.id, password);
-      
-      if (!result.success) {
-        throw result.error || new Error("Erro ao definir senha");
-      }
+      // For Supabase password reset, we need to use the correct method and parameters
+      const { error } = await supabase.auth.updateUser({ 
+        password: password 
+      }, {
+        emailRedirectTo: window.location.origin + '/auth'
+      });
+
+      if (error) throw error;
 
       toast({
         title: "Senha alterada com sucesso!",
-        description: "Você já pode fazer login no sistema."
+        description: "Você já pode fazer login no sistema.",
       });
 
       // Redirect to login page
-      navigate('/login');
+      navigate('/auth');
     } catch (error: any) {
       console.error('Error setting password:', error);
       toast({
@@ -98,7 +87,7 @@ const ResetPassword = () => {
           <p className="text-gray-600">
             O link de redefinição de senha é inválido ou expirou.
           </p>
-          <Button onClick={() => navigate('/login')}>
+          <Button onClick={() => navigate('/auth')}>
             Voltar para login
           </Button>
         </div>

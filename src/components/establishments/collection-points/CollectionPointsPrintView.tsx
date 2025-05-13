@@ -5,13 +5,9 @@ import { cn } from "@/lib/utils";
 
 interface CollectionPointsPrintViewProps {
   collectionPoints: CollectionPoint[];
-  title?: string; // Added title prop
 }
 
-export function CollectionPointsPrintView({ 
-  collectionPoints,
-  title = "Relatório de Pontos de Coleta" // Default title
-}: CollectionPointsPrintViewProps) {
+export function CollectionPointsPrintView({ collectionPoints }: CollectionPointsPrintViewProps) {
   const formatOperatingHours = (point: CollectionPoint) => {
     if (!point.operating_hours) return "Não configurado";
     
@@ -74,7 +70,7 @@ export function CollectionPointsPrintView({
       </style>
       
       <div className="mb-3 border-b pb-2 print:mb-3">
-        <h1 className="text-xl font-bold mb-1 text-primary">{title}</h1>
+        <h1 className="text-xl font-bold mb-1 text-primary">Relatório de Pontos de Coleta</h1>
         <div className="flex justify-between items-end text-xs text-muted-foreground">
           <p>Total de pontos: {collectionPoints.length}</p>
           <p>Gerado em: {formatDateTime(new Date().toISOString())}</p>

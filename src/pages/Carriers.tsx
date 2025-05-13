@@ -1,67 +1,98 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { CarriersSearch } from "@/components/carriers/CarriersSearch";
 import { CarriersHeader } from "@/components/carriers/CarriersHeader";
+import { CarriersSearch } from "@/components/carriers/CarriersSearch";
 import { CarriersTable } from "@/components/carriers/CarriersTable";
+import { useCarriers } from "@/hooks/useCarriers";
 import { EditCarrierDialog } from "@/components/carriers/EditCarrierDialog";
 import { ConfirmActionDialog } from "@/components/carriers/ConfirmActionDialog";
-import { useCarriers } from "@/hooks/useCarriers";
-import { Carrier } from "@/types/carrier";
+import { Button } from "@/components/ui/button";
+import { RefreshCcw } from "lucide-react";
 import { ManageCollectionPointsDialog } from "@/components/establishments/collection-points/ManageCollectionPointsDialog";
+import type { Carrier } from "@/types/carrier";
 
 export default function Carriers() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editCarrier, setEditCarrier] = useState<Carrier | null>(null);
-  const [confirmModal, setConfirmModal] = useState<null | { action: "delete"; carrier: Carrier }>(null);
-  const [collectionPointsOpen, setCollectionPointsOpen] = useState(false);
-  const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null);
-
   const {
     carriers,
     loading,
     error,
-    refresh,
+    loadCarriers,
+    handleCreate,
     handleEdit,
-    handleDelete
+    handleDelete,
+    handleDeactivate,
+    isCreating
   } = useCarriers();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editCarrier, setEditCarrier] = useState<Carrier | null>(null);
+  const [confirmModal, setConfirmModal] = useState<null | { action: "delete" | "deactivate", carrier: Carrier }>(null);
+  const [managePointsCarrier, setManagePointsCarrier] = useState<Carrier | null>(null);
 
   const filteredCarriers = carriers.filter((carrier) =>
     carrier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    carrier.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    carrier.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    carrier.manager?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    carrier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    carrier.phone?.includes(searchTerm)
   );
 
-  const handleConfirmAction = () => {
-    if (!confirmModal) return;
-    if (confirmModal.action === "delete") {
-      handleDelete(confirmModal.carrier.id);
-      setConfirmModal(null);
-    }
+  const handleAddCarrier = () => {
+    setEditCarrier({ id: '', name: '', city: '', manager: '', phone: '', email: '', is_active: true });
   };
 
-  const handleManageCollectionPoints = (carrier: Carrier) => {
-    console.log("Opening collection points dialog for carrier:", carrier);
-    setSelectedCarrier(carrier);
-    setCollectionPointsOpen(true);
+  const handleCarrierSave = async (carrier: Carrier) => {
+    if (!carrier.id) {
+      await handleCreate(carrier);
+    } else {
+      await handleEdit(carrier);
+    }
+    setEditCarrier(null);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmModal) return;
+    
+    if (confirmModal.action === "delete") {
+      await handleDelete(confirmModal.carrier);
+    } else if (confirmModal.action === "deactivate") {
+      await handleDeactivate(confirmModal.carrier);
+    }
+    
+    setConfirmModal(null);
   };
 
   return (
-    <div className="space-y-6 p-6 bg-soft-purple min-h-screen">
-      <Card className="border-none shadow-lg bg-white">
-        <CardHeader className="bg-primary/10 py-4">
-          <CarriersHeader onAdd={() => {}} />
+    <div className="space-y-6">
+      <Card className="border-none shadow-md">
+        <CardHeader>
+          <CarriersHeader onAdd={handleAddCarrier} />
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent>
           <CarriersSearch searchTerm={searchTerm} onSearch={setSearchTerm} />
-          <CarriersTable
-            error={error}
-            loading={loading}
-            carriers={filteredCarriers}
-            onRetry={refresh}
-            onEdit={setEditCarrier}
-            onDelete={(carrier) => setConfirmModal({ action: "delete", carrier })}
-            onManageCollectionPoints={handleManageCollectionPoints}
-          />
+          
+          {error ? (
+            <div className="flex flex-col items-center justify-center p-8 border rounded-md text-center">
+              <p className="text-destructive mb-4">Erro ao carregar dados das transportadoras</p>
+              <Button 
+                variant="outline" 
+                onClick={loadCarriers}
+                className="flex items-center gap-2"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Tentar novamente
+              </Button>
+            </div>
+          ) : (
+            <CarriersTable
+              carriers={filteredCarriers}
+              loading={loading}
+              onEdit={setEditCarrier}
+              onDelete={(carrier) => setConfirmModal({ action: "delete", carrier })}
+              onDeactivate={(carrier) => setConfirmModal({ action: "deactivate", carrier })}
+              onManageCollectionPoints={setManagePointsCarrier}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -69,13 +100,11 @@ export default function Carriers() {
         <EditCarrierDialog
           carrier={editCarrier}
           onClose={() => setEditCarrier(null)}
-          onEdit={async (carrier) => {
-            await handleEdit(carrier);
-            setEditCarrier(null);
-          }}
+          onSave={handleCarrierSave}
+          isSubmitting={isCreating}
         />
       )}
-
+      
       {confirmModal && (
         <ConfirmActionDialog
           open={!!confirmModal}
@@ -86,16 +115,11 @@ export default function Carriers() {
         />
       )}
 
-      {selectedCarrier && (
+      {managePointsCarrier && (
         <ManageCollectionPointsDialog
-          open={collectionPointsOpen}
-          carrier={selectedCarrier}
-          onOpenChange={(open) => {
-            setCollectionPointsOpen(open);
-            if (!open) {
-              setTimeout(() => setSelectedCarrier(null), 300);
-            }
-          }}
+          open={!!managePointsCarrier}
+          onOpenChange={() => setManagePointsCarrier(null)}
+          carrierContext={{ carrierId: managePointsCarrier.id }}
         />
       )}
     </div>

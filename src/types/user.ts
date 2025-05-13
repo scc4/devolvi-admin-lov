@@ -15,7 +15,7 @@ export type UserRow = {
   name: string | null;
   email: string | null;
   phone: string | null;
-  created_at: string; // This corresponds to createdAt in UserDTO
+  created_at: string;
   role: RoleValue;
   status: StatusType;
 };
