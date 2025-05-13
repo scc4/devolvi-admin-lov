@@ -1,20 +1,24 @@
+
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { toast } from "sonner";
-import { CollectionPointDTO } from '../../application/dto/CollectionPointDTO';
 import { container } from '../../infrastructure/di/container';
 import { collectionPointAdapter } from '../../adapters/collectionPoints/collectionPointAdapter';
-import { CollectionPoint as CollectionPointUI } from '../../types/collection-point';
+import { CollectionPoint } from '../../types/collection-point';
+import { toast } from 'sonner';
 
-/**
- * Hook to expose collection point-related use cases to the presentation layer using DI
- */
-export function useCollectionPointCases(filters?: {
+interface UseCollectionPointCasesProps {
   establishmentId?: string;
   carrierId?: string;
   unassigned?: boolean;
   cityFilter?: string;
-}) {
-  const [collectionPoints, setCollectionPoints] = useState<CollectionPointUI[]>([]);
+}
+
+/**
+ * Hook to expose collection point-related use cases to the presentation layer using DI
+ */
+export function useCollectionPointCases(props?: UseCollectionPointCasesProps) {
+  const { establishmentId, carrierId, unassigned, cityFilter } = props || {};
+  
+  const [collectionPoints, setCollectionPoints] = useState<CollectionPoint[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState<boolean>(false);
@@ -22,147 +26,124 @@ export function useCollectionPointCases(filters?: {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [isAssigningCarrier, setIsAssigningCarrier] = useState<boolean>(false);
   
-  // Use refs to avoid infinite loops
-  const isFirstLoad = useRef(true);
-  const filtersRef = useRef(filters);
-  const loadingRef = useRef(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // Use useRef para evitar recreações dos use cases
+  const useCasesRef = useRef({
+    getCollectionPointsUseCase: container.getCollectionPointsUseCase(),
+    createCollectionPointUseCase: container.createCollectionPointUseCase(),
+    updateCollectionPointUseCase: container.updateCollectionPointUseCase(),
+    deleteCollectionPointUseCase: container.deleteCollectionPointUseCase(),
+    assignCarrierToCollectionPointUseCase: container.assignCarrierToCollectionPointUseCase()
+  });
   
-  // Get use cases from container
-  const getCollectionPointsUseCase = container.getCollectionPointsUseCase();
-  const createCollectionPointUseCase = container.createCollectionPointUseCase();
-  const updateCollectionPointUseCase = container.updateCollectionPointUseCase();
-  const deleteCollectionPointUseCase = container.deleteCollectionPointUseCase();
-  const assignCarrierToCollectionPointUseCase = container.assignCarrierToCollectionPointUseCase();
+  // Flag para controlar se o componente está montado
+  const isMounted = useRef(true);
 
-  // Only update the filtersRef when filters actually change
+  // Store filter params in ref to avoid dependency issues
+  const filtersRef = useRef({
+    establishmentId,
+    carrierId,
+    unassigned,
+    cityFilter
+  });
+
+  // Update filter refs when props change
   useEffect(() => {
-    if (JSON.stringify(filtersRef.current) !== JSON.stringify(filters)) {
-      filtersRef.current = filters;
-      // If filters change and it's not the first load, trigger a load
-      if (!isFirstLoad.current) {
-        loadCollectionPoints();
-      }
-    }
-  }, [filters]);
+    filtersRef.current = {
+      establishmentId,
+      carrierId,
+      unassigned,
+      cityFilter
+    };
+  }, [establishmentId, carrierId, unassigned, cityFilter]);
+
+  // Limpar a flag quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const loadCollectionPoints = useCallback(async () => {
-    // Prevent concurrent requests
-    if (loadingRef.current) {
-      // Cancel any previous request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    }
+    if (!isMounted.current) return;
     
-    // Create a new abort controller for this request
-    abortControllerRef.current = new AbortController();
-    
-    // Mark as loading
+    console.log("Loading collection points with filters:", filtersRef.current);
     setLoading(true);
-    loadingRef.current = true;
     setError(null);
     
     try {
-      console.log("Loading collection points with filters:", filtersRef.current);
-      const collectionPointDTOs = await getCollectionPointsUseCase.execute(filtersRef.current);
+      const filters = {
+        establishmentId: filtersRef.current.establishmentId,
+        carrierId: filtersRef.current.carrierId,
+        unassigned: filtersRef.current.unassigned,
+        cityFilter: filtersRef.current.cityFilter
+      };
       
-      // Check if request was aborted
-      if (abortControllerRef.current?.signal.aborted) {
-        console.log("Request was aborted, skipping state update");
-        return;
+      const dtos = await useCasesRef.current.getCollectionPointsUseCase.execute(filters);
+      console.log(`Retrieved ${dtos.length} collection points`);
+      
+      if (isMounted.current) {
+        setCollectionPoints(collectionPointAdapter.toUIModelList(dtos));
       }
-      
-      console.log("Collection points loaded:", collectionPointDTOs);
-      
-      if (!collectionPointDTOs || collectionPointDTOs.length === 0) {
-        console.log("No collection points found");
-      }
-      
-      const uiModels = collectionPointAdapter.toUIModelList(collectionPointDTOs);
-      console.log("Collection points UI models:", uiModels);
-      
-      setCollectionPoints(uiModels);
     } catch (err) {
-      // Skip error handling if the request was aborted
-      if (abortControllerRef.current?.signal.aborted) {
-        console.log("Request was aborted, skipping error handling");
-        return;
-      }
-      
       console.error("Error loading collection points:", err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar pontos de coleta';
-      setError(errorMessage);
-      toast.error("Erro ao carregar pontos de coleta", {
-        description: errorMessage
-      });
+      
+      if (isMounted.current) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar pontos de coleta';
+        setError(errorMessage);
+        toast.error("Erro ao carregar pontos de coleta", {
+          description: errorMessage
+        });
+      }
     } finally {
-      // Only update loading state if the request wasn't aborted
-      if (!abortControllerRef.current?.signal.aborted) {
+      if (isMounted.current) {
         setLoading(false);
-        loadingRef.current = false;
       }
     }
-  }, [getCollectionPointsUseCase]); 
+  }, []); // Sem dependências para evitar loops
 
-  // Load collection points only on first mount or when explicitly called
+  // Load collection points on first render and when filters change
   useEffect(() => {
-    console.log("useEffect triggered, checking if we should load collection points");
-    if (isFirstLoad.current) {
-      console.log("First load, fetching collection points");
-      isFirstLoad.current = false;
-      loadCollectionPoints();
-    }
-    
-    // Clean up function to abort any pending requests when component unmounts
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
+    loadCollectionPoints();
   }, [loadCollectionPoints]);
 
-  const handleCreate = async (collectionPoint: Partial<CollectionPointUI>) => {
+  const handleCreate = async (collectionPoint: any) => {
+    if (!isMounted.current) return;
+    
     setIsCreating(true);
     try {
-      // Convert UI model to DTO
-      const dto = collectionPointAdapter.fromUIModel(collectionPoint);
-      console.log("Creating collection point with DTO:", dto);
+      const result = await useCasesRef.current.createCollectionPointUseCase.execute(collectionPoint);
       
-      const result = await createCollectionPointUseCase.execute(dto);
-
       if (result.success && result.collectionPoint) {
-        await loadCollectionPoints(); // Reload collection points to get updated list
-        toast.success("Ponto de coleta cadastrado com sucesso");
+        await loadCollectionPoints(); // Reload collection points
+        toast.success("Ponto de coleta criado com sucesso");
         return collectionPointAdapter.toUIModel(result.collectionPoint);
       } else {
-        toast.error("Erro ao cadastrar ponto de coleta", {
+        toast.error("Erro ao criar ponto de coleta", {
           description: result.error?.message
         });
         throw result.error;
       }
     } catch (error) {
       console.error("Error creating collection point:", error);
-      toast.error("Erro ao cadastrar ponto de coleta");
+      toast.error("Erro ao criar ponto de coleta");
       throw error;
     } finally {
-      setIsCreating(false);
+      if (isMounted.current) {
+        setIsCreating(false);
+      }
     }
   };
 
-  const handleUpdate = async (collectionPoint: Partial<CollectionPointUI>) => {
+  const handleUpdate = async (collectionPoint: any) => {
+    if (!isMounted.current) return;
+    
     setIsUpdating(true);
     try {
-      // Convert UI model to DTO
-      const dto = collectionPointAdapter.fromUIModel(collectionPoint);
-      console.log("Updating collection point with DTO:", dto);
+      const result = await useCasesRef.current.updateCollectionPointUseCase.execute(collectionPoint);
       
-      const result = await updateCollectionPointUseCase.execute(dto);
-
-      if (result.success && result.collectionPoint) {
-        await loadCollectionPoints(); // Reload collection points to get updated list
+      if (result.success) {
+        await loadCollectionPoints(); // Reload collection points
         toast.success("Ponto de coleta atualizado com sucesso");
-        return collectionPointAdapter.toUIModel(result.collectionPoint);
       } else {
         toast.error("Erro ao atualizar ponto de coleta", {
           description: result.error?.message
@@ -174,18 +155,21 @@ export function useCollectionPointCases(filters?: {
       toast.error("Erro ao atualizar ponto de coleta");
       throw error;
     } finally {
-      setIsUpdating(false);
+      if (isMounted.current) {
+        setIsUpdating(false);
+      }
     }
   };
 
-  const handleDelete = async (collectionPointId: string) => {
+  const handleDelete = async (id: string) => {
+    if (!isMounted.current) return;
+    
     setIsDeleting(true);
     try {
-      console.log("Deleting collection point with ID:", collectionPointId);
-      const result = await deleteCollectionPointUseCase.execute(collectionPointId);
+      const result = await useCasesRef.current.deleteCollectionPointUseCase.execute(id);
       
       if (result.success) {
-        await loadCollectionPoints(); // Reload collection points to get updated list
+        await loadCollectionPoints(); // Reload collection points
         toast.success("Ponto de coleta excluído com sucesso");
       } else {
         toast.error("Erro ao excluir ponto de coleta", {
@@ -198,18 +182,24 @@ export function useCollectionPointCases(filters?: {
       toast.error("Erro ao excluir ponto de coleta");
       throw error;
     } finally {
-      setIsDeleting(false);
+      if (isMounted.current) {
+        setIsDeleting(false);
+      }
     }
   };
 
   const handleAssignCarrier = async (collectionPointId: string, carrierId: string | null) => {
+    if (!isMounted.current) return;
+    
     setIsAssigningCarrier(true);
     try {
-      console.log("Assigning carrier to collection point:", { collectionPointId, carrierId });
-      const result = await assignCarrierToCollectionPointUseCase.execute(collectionPointId, carrierId);
+      const result = await useCasesRef.current.assignCarrierToCollectionPointUseCase.execute({
+        collectionPointId,
+        carrierId
+      });
       
       if (result.success) {
-        await loadCollectionPoints(); // Reload collection points to get updated list
+        await loadCollectionPoints(); // Reload collection points
         toast.success(carrierId 
           ? "Transportadora associada com sucesso" 
           : "Transportadora desassociada com sucesso"
@@ -217,9 +207,11 @@ export function useCollectionPointCases(filters?: {
       } else {
         toast.error(carrierId 
           ? "Erro ao associar transportadora" 
-          : "Erro ao desassociar transportadora", {
-          description: result.error?.message
-        });
+          : "Erro ao desassociar transportadora", 
+          {
+            description: result.error?.message
+          }
+        );
         throw result.error;
       }
     } catch (error) {
@@ -230,7 +222,9 @@ export function useCollectionPointCases(filters?: {
       );
       throw error;
     } finally {
-      setIsAssigningCarrier(false);
+      if (isMounted.current) {
+        setIsAssigningCarrier(false);
+      }
     }
   };
 

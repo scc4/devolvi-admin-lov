@@ -16,7 +16,7 @@ export function useEstablishmentCases() {
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   
-  // Usar useRef para evitar recreações dos use cases
+  // Use useRef para evitar recreações dos use cases
   const useCasesRef = useRef({
     getAllEstablishmentsUseCase: container.getAllEstablishmentsUseCase(),
     createEstablishmentUseCase: container.createEstablishmentUseCase(),
@@ -24,21 +24,43 @@ export function useEstablishmentCases() {
     deleteEstablishmentUseCase: container.deleteEstablishmentUseCase()
   });
 
+  // Flag para controlar se o componente está montado
+  const isMounted = useRef(true);
+
+  // Limpar a flag quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   const loadEstablishments = useCallback(async () => {
+    if (!isMounted.current) return;
+    
+    console.log("Loading establishments...");
     setLoading(true);
     setError(null);
+    
     try {
       const establishmentDTOs = await useCasesRef.current.getAllEstablishmentsUseCase.execute();
-      setEstablishments(establishmentAdapter.toUIModelList(establishmentDTOs));
+      
+      if (isMounted.current) {
+        console.log("Establishments loaded:", establishmentDTOs.length);
+        setEstablishments(establishmentAdapter.toUIModelList(establishmentDTOs));
+      }
     } catch (err) {
       console.error("Error loading establishments:", err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar estabelecimentos';
-      setError(errorMessage);
-      toast.error("Erro ao carregar estabelecimentos", {
-        description: errorMessage
-      });
+      if (isMounted.current) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar estabelecimentos';
+        setError(errorMessage);
+        toast.error("Erro ao carregar estabelecimentos", {
+          description: errorMessage
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
   }, []); // Sem dependências para evitar loops
 
@@ -48,6 +70,8 @@ export function useEstablishmentCases() {
   }, [loadEstablishments]);
 
   const handleCreate = async (establishment: Partial<EstablishmentWithDetails>) => {
+    if (!isMounted.current) return;
+    
     setIsCreating(true);
     try {
       if (!establishment.name || !establishment.type) {
@@ -75,11 +99,15 @@ export function useEstablishmentCases() {
       toast.error("Erro ao cadastrar estabelecimento");
       throw error;
     } finally {
-      setIsCreating(false);
+      if (isMounted.current) {
+        setIsCreating(false);
+      }
     }
   };
 
   const handleEdit = async (establishment: EstablishmentWithDetails) => {
+    if (!isMounted.current) return;
+    
     setIsUpdating(true);
     try {
       const dto = establishmentAdapter.toDomainDTO(establishment);
@@ -105,11 +133,15 @@ export function useEstablishmentCases() {
       toast.error("Erro ao atualizar estabelecimento");
       throw error;
     } finally {
-      setIsUpdating(false);
+      if (isMounted.current) {
+        setIsUpdating(false);
+      }
     }
   };
 
   const handleDelete = async (establishment: EstablishmentWithDetails) => {
+    if (!isMounted.current) return;
+    
     setIsDeleting(true);
     try {
       const result = await useCasesRef.current.deleteEstablishmentUseCase.execute(establishment.id);
@@ -128,7 +160,9 @@ export function useEstablishmentCases() {
       toast.error("Erro ao excluir estabelecimento");
       throw error;
     } finally {
-      setIsDeleting(false);
+      if (isMounted.current) {
+        setIsDeleting(false);
+      }
     }
   };
 

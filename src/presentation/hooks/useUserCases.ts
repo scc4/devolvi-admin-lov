@@ -1,9 +1,8 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { UserDTO } from '../../application/dto/UserDTO';
 import { container } from '../../infrastructure/di/container';
-import { userAdapter } from '../../adapters/users/userAdapter';
 
 /**
  * Hook to expose user-related use cases to the presentation layer using DI
@@ -14,34 +13,58 @@ export function useUserCases() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // Get use cases from container
-  const getAllUsersUseCase = container.getAllUsersUseCase();
-  const deleteUserUseCase = container.deleteUserUseCase();
-  const deactivateUserUseCase = container.deactivateUserUseCase();
-  const resetPasswordUseCase = container.resetPasswordUseCase();
+  // Use useRef to prevent recreation of use cases
+  const useCasesRef = useRef({
+    getAllUsersUseCase: container.getAllUsersUseCase(),
+    deleteUserUseCase: container.deleteUserUseCase(),
+    deactivateUserUseCase: container.deactivateUserUseCase(),
+    resetPasswordUseCase: container.resetPasswordUseCase()
+  });
+  
+  // Flag para controlar se o componente está montado
+  const isMounted = useRef(true);
+
+  // Limpar a flag quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const loadUsers = useCallback(async () => {
+    if (!isMounted.current) return;
+    
+    console.log("Loading users...");
     setLoading(true);
     setError(null);
+    
     try {
       console.log("Fetching users with DI approach");
-      const userDTOs = await getAllUsersUseCase.execute();
-      console.log("Users fetched:", userDTOs);
-      // Armazena diretamente os DTOs sem casting
-      setUsers(userDTOs);
+      const userDTOs = await useCasesRef.current.getAllUsersUseCase.execute();
+      console.log("Users fetched:", userDTOs.length);
+      
+      if (isMounted.current) {
+        // Armazena diretamente os DTOs sem casting
+        setUsers(userDTOs);
+      }
     } catch (err) {
       console.error("Error loading users:", err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar usuários';
-      setError(errorMessage);
-      toast({ 
-        title: "Erro ao carregar usuários", 
-        description: errorMessage, 
-        variant: "destructive" 
-      });
+      
+      if (isMounted.current) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao carregar usuários';
+        setError(errorMessage);
+        toast({ 
+          title: "Erro ao carregar usuários", 
+          description: errorMessage, 
+          variant: "destructive" 
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  }, [getAllUsersUseCase, toast]);
+  }, []); // Sem dependências para evitar loops
 
   // Load users on mount
   useEffect(() => {
@@ -50,7 +73,7 @@ export function useUserCases() {
 
   const handleDelete = async (user: UserDTO): Promise<{ success: boolean }> => {
     try {
-      const result = await deleteUserUseCase.execute(user.id);
+      const result = await useCasesRef.current.deleteUserUseCase.execute(user.id);
       if (result.success) {
         toast({
           title: "Usuário excluído",
@@ -79,7 +102,7 @@ export function useUserCases() {
 
   const handleDeactivate = async (user: UserDTO): Promise<{ success: boolean }> => {
     try {
-      const result = await deactivateUserUseCase.execute(user.id);
+      const result = await useCasesRef.current.deactivateUserUseCase.execute(user.id);
       if (result.success) {
         toast({
           title: "Usuário inativado",
@@ -107,7 +130,7 @@ export function useUserCases() {
   };
 
   const handleResetPassword = async (userId: string, password: string): Promise<{ success: boolean; error?: Error }> => {
-    return await resetPasswordUseCase.execute(userId, password);
+    return await useCasesRef.current.resetPasswordUseCase.execute(userId, password);
   };
 
   return {

@@ -25,6 +25,9 @@ export function useCarriers() {
     handleCreate,
     handleEdit,
     handleDelete,
-    handleDeactivate
+    handleDeactivate,
+    isCreating,
+    isUpdating,
+    isDeleting
   };
 }
