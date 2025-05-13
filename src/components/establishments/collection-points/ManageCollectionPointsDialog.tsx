@@ -65,8 +65,7 @@ export function ManageCollectionPointsDialog({
               
               <TabsContent value="collection-points" className="space-y-4">
                 <CollectionPointsTab 
-                  establishmentId={establishment.id} 
-                  establishmentName={establishment.name} 
+                  establishmentId={establishment.id}
                 />
               </TabsContent>
               

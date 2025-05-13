@@ -107,8 +107,7 @@ export default function Establishments() {
         <ManageCollectionPointsDialog
           open={collectionPointsDialogOpen}
           onOpenChange={setCollectionPointsDialogOpen}
-          establishmentId={selectedEstablishment.id}
-          establishmentName={selectedEstablishment.name}
+          establishment={selectedEstablishment}
         />
       )}
     </div>
