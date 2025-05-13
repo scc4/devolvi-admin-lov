@@ -1,12 +1,14 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useCollectionPointCases } from "@/presentation/hooks/useCollectionPointCases";
 import { CollectionPointsTable } from "./CollectionPointsTable";
 import { CollectionPointFormDialog } from "./CollectionPointFormDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, RefreshCcw } from "lucide-react";
+import { AlertCircle, Plus, RefreshCcw } from "lucide-react";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { collectionPointAdapter } from "@/adapters/collectionPoints/collectionPointAdapter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CollectionPointsTabProps {
   establishmentId?: string;
@@ -37,6 +39,19 @@ export function CollectionPointsTab({
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
   const { isMobile } = useIsMobile();
+  const [showError, setShowError] = useState(false);
+  
+  // Reset error state when filters change
+  useEffect(() => {
+    setShowError(false);
+  }, [establishmentId, carrierContext]);
+  
+  // Show error after loading finishes if there is an error
+  useEffect(() => {
+    if (!loading && error) {
+      setShowError(true);
+    }
+  }, [loading, error]);
   
   const handleOpenCreate = () => {
     setSelectedPoint(undefined);
@@ -58,7 +73,10 @@ export function CollectionPointsTab({
     try {
       if (selectedPoint) {
         // For updates, convert from UI model to DTO before passing to handler
-        const pointDTO = collectionPointAdapter.fromUIModel(point);
+        const pointDTO = collectionPointAdapter.fromUIModel({
+          ...selectedPoint,
+          ...point
+        });
         await updateCollectionPoint(pointDTO);
       } else {
         // Create new point with appropriate context
@@ -77,30 +95,61 @@ export function CollectionPointsTab({
     }
   };
 
-  // Convert DDD collection points to UI format if needed
-  const formattedCollectionPoints = collectionPoints;
+  // Handle retry when error occurs
+  const handleRetry = () => {
+    setShowError(false);
+    refetch(true); // Force refresh
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Pontos de Coleta</h2>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCcw className="h-4 w-4" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => refetch(true)}
+            disabled={loading}
+          >
+            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             {!isMobile && <span className="ml-2">Atualizar</span>}
           </Button>
-          <Button size="sm" onClick={handleOpenCreate} aria-label="Novo Ponto de Coleta">
+          <Button 
+            size="sm" 
+            onClick={handleOpenCreate} 
+            aria-label="Novo Ponto de Coleta"
+            disabled={loading}
+          >
             <Plus className="h-4 w-4" />
             {!isMobile && <span className="ml-2">Novo Ponto de Coleta</span>}
           </Button>
         </div>
       </div>
 
+      {showError && error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex justify-between items-center">
+            <span>{error}</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRetry}
+              className="ml-2"
+            >
+              Tentar novamente
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <CollectionPointsTable
-        collectionPoints={formattedCollectionPoints}
+        collectionPoints={collectionPoints}
         isLoading={loading}
         onEdit={handleOpenEdit}
         onDelete={handleConfirmDelete}
+        key={`points-table-${establishmentId || carrierContext?.carrierId || 'all'}`}
       />
 
       <CollectionPointFormDialog
