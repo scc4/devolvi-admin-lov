@@ -216,50 +216,6 @@ export type Database = {
           },
         ]
       }
-      devolution_life_cycle: {
-        Row: {
-          created_at: string | null
-          date_hour: string | null
-          deleted_at: string | null
-          devolution_id: string | null
-          id: string
-          phase: string | null
-          stage: string | null
-          tracker: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          date_hour?: string | null
-          deleted_at?: string | null
-          devolution_id?: string | null
-          id?: string
-          phase?: string | null
-          stage?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          date_hour?: string | null
-          deleted_at?: string | null
-          devolution_id?: string | null
-          id?: string
-          phase?: string | null
-          stage?: string | null
-          tracker?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "devolution_life_cycle_devolution_id_fkey"
-            columns: ["devolution_id"]
-            isOneToOne: false
-            referencedRelation: "devolutions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       devolutions: {
         Row: {
           authorization_code: string | null
@@ -315,7 +271,51 @@ export type Database = {
             foreignKeyName: "devolution_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "user"
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      devolutions_life_cycle: {
+        Row: {
+          created_at: string | null
+          date_hour: string | null
+          deleted_at: string | null
+          devolution_id: string | null
+          id: string
+          phase: string | null
+          stage: string | null
+          tracker: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date_hour?: string | null
+          deleted_at?: string | null
+          devolution_id?: string | null
+          id?: string
+          phase?: string | null
+          stage?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date_hour?: string | null
+          deleted_at?: string | null
+          devolution_id?: string | null
+          id?: string
+          phase?: string | null
+          stage?: string | null
+          tracker?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devolution_life_cycle_devolution_id_fkey"
+            columns: ["devolution_id"]
+            isOneToOne: false
+            referencedRelation: "devolutions"
             referencedColumns: ["id"]
           },
         ]
@@ -384,7 +384,7 @@ export type Database = {
           },
         ]
       }
-      phone_temporary_code: {
+      phone_temporary_codes: {
         Row: {
           code: number
           email: string
@@ -432,7 +432,95 @@ export type Database = {
         }
         Relationships: []
       }
-      user: {
+      user_email_confirmations: {
+        Row: {
+          confirmed: boolean
+          email: string
+        }
+        Insert: {
+          confirmed?: boolean
+          email: string
+        }
+        Update: {
+          confirmed?: boolean
+          email?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          expires_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_session_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_temporary_codes: {
+        Row: {
+          code: number
+          expires_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: number
+          expires_at: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: number
+          expires_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_temporary_code_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
         Row: {
           avatar_url: string | null
           created_at: string | null
@@ -473,94 +561,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      user_email_confirmation: {
-        Row: {
-          confirmed: boolean
-          email: string
-        }
-        Insert: {
-          confirmed?: boolean
-          email: string
-        }
-        Update: {
-          confirmed?: boolean
-          email?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_session: {
-        Row: {
-          expires_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          expires_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          expires_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_session_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_temporary_code: {
-        Row: {
-          code: number
-          expires_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          code: number
-          expires_at: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          code?: number
-          expires_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_temporary_code_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
