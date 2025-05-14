@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -13,74 +14,33 @@ export function useCollectionPoints(
 ) {
   const queryClient = useQueryClient();
   
+  // Updated to use the Edge Function instead of direct database access
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
     queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned, cityFilter],
     queryFn: async () => {
-      let query = supabase
-        .from('collection_points')
-        .select(`
-          *,
-          establishment:establishments(name),
-          address:address(*)
-        `);
+      // Build query parameters for the edge function
+      const params = new URLSearchParams();
+      if (establishmentId) params.append('establishmentId', establishmentId);
+      if (carrierId) params.append('carrierId', carrierId);
+      if (fetchUnassigned) params.append('fetchUnassigned', 'true');
+      if (cityFilter) params.append('cityFilter', cityFilter);
       
-      if (fetchUnassigned) {
-        query = query.is('carrier_id', null);
-        
-        if (cityFilter) {
-          query = query.eq('address.city', cityFilter);
-        }
-      } else if (establishmentId) {
-        query = query.eq('establishment_id', establishmentId);
-      } else if (carrierId) {
-        query = query.eq('carrier_id', carrierId);
-      }
+      // Call our new edge function with the appropriate parameters
+      const { data, error } = await supabase.functions.invoke('get-collection-points', {
+        method: 'GET',
+        query: params,
+      });
       
-      const { data, error } = await query.order('name');
-
       if (error) {
         toast.error('Erro ao carregar pontos de coleta');
         throw error;
       }
 
-      // Convert the operating_hours from Json to the expected type structure
-      // and ensure address_obj is properly set
-      return data.map(point => ({
-        ...point,
-        operating_hours: transformOperatingHours(point.operating_hours as Json),
-        address_obj: point.address // Explicitly map address to address_obj
-      })) as CollectionPoint[];
+      // The edge function now returns properly formatted data that matches our CollectionPoint interface
+      return data as CollectionPoint[];
     },
     enabled: true
   });
-
-  // Helper function to transform operating hours from Json to expected type
-  const transformOperatingHours = (hours: Json | null): CollectionPoint['operating_hours'] => {
-    if (!hours) return null;
-    
-    // Convert from Json to our expected type format
-    const result: { [day: string]: { open: string; close: string }[] } = {};
-    
-    if (typeof hours === 'object' && hours !== null && !Array.isArray(hours)) {
-      Object.entries(hours).forEach(([day, periods]) => {
-        if (Array.isArray(periods)) {
-          result[day] = periods.map(period => {
-            // Ensure each period has open and close properties
-            if (typeof period === 'object' && period !== null && 'open' in period && 'close' in period) {
-              return {
-                open: String(period.open),
-                close: String(period.close)
-              };
-            }
-            // Default values if structure is unexpected
-            return { open: "09:00", close: "17:00" };
-          });
-        }
-      });
-    }
-    
-    return Object.keys(result).length > 0 ? result : null;
-  };
 
   const createMutation = useMutation({
     mutationFn: async (newPoint: Partial<CollectionPoint> & { address_obj?: Partial<Address> }) => {
