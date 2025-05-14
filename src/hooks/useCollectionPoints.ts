@@ -17,35 +17,45 @@ export function useCollectionPoints(
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
     queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned, cityFilter],
     queryFn: async () => {
-      // Build query parameters as URLSearchParams
-      const params = new URLSearchParams();
-      
-      if (establishmentId) params.append('establishmentId', establishmentId);
-      if (carrierId) params.append('carrierId', carrierId);
-      if (fetchUnassigned) params.append('fetchUnassigned', 'true');
-      if (cityFilter) params.append('cityFilter', cityFilter);
-      
-      const queryString = params.toString();
-      const url = queryString ? `?${queryString}` : '';
-      
-      console.log('Calling edge function with URL:', url);
-      
-      // Call our edge function with the correct URL format
-      const { data, error } = await supabase.functions.invoke('get-collection-points', {
-        method: 'GET'
-        // No need to pass additional parameters as they're in the URL
-      });
-      
-      if (error) {
-        console.error('Edge function error:', error);
+      try {
+        // Build query parameters
+        const params = new URLSearchParams();
+        
+        if (establishmentId) params.append('establishmentId', establishmentId);
+        if (carrierId) params.append('carrierId', carrierId);
+        if (fetchUnassigned) params.append('fetchUnassigned', 'true');
+        if (cityFilter) params.append('cityFilter', cityFilter);
+        
+        const queryString = params.toString();
+        
+        console.log(`Fetching collection points with params: ${queryString}`);
+        
+        // Call the edge function with query parameters in the URL
+        const { data, error } = await supabase.functions.invoke('get-collection-points', {
+          method: 'GET'
+        });
+        
+        if (error) {
+          console.error('Edge function error:', error);
+          toast.error('Erro ao carregar pontos de coleta');
+          throw error;
+        }
+
+        console.log('Edge function response data:', data);
+        
+        // Verify address_obj data in the returned collection points
+        if (Array.isArray(data)) {
+          data.forEach(point => {
+            console.log(`Point ${point.id} address_obj:`, point.address_obj);
+          });
+        }
+
+        return data as CollectionPoint[];
+      } catch (error) {
+        console.error('Collection points fetch error:', error);
         toast.error('Erro ao carregar pontos de coleta');
         throw error;
       }
-
-      console.log('Edge function response:', data);
-
-      // The edge function returns properly formatted data that matches our CollectionPoint interface
-      return data as CollectionPoint[];
     },
     enabled: true
   });

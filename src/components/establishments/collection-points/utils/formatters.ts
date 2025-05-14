@@ -1,3 +1,4 @@
+
 import { CollectionPoint, DayOfWeek, daysOfWeekPtBr } from "@/types/collection-point";
 
 export const formatOperatingHours = (hours: CollectionPoint['operating_hours']) => {
@@ -21,7 +22,12 @@ export const formatOperatingHours = (hours: CollectionPoint['operating_hours']) 
 };
 
 export const formatAddress = (point: CollectionPoint) => {
-  if (!point.address_obj) return "Não informado";
+  if (!point.address_obj) {
+    console.log('Address object missing for point:', point.id);
+    return point.address || "Não informado";
+  }
+  
+  console.log('Formatting address for point:', point.id, point.address_obj);
   
   const { street, number, complement, district, city, state, zip_code } = point.address_obj;
   const parts = [];

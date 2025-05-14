@@ -24,14 +24,14 @@ serve(async (req) => {
 
     console.log("Function called with request URL:", req.url);
     
-    // Get URL parameters
+    // Parse URL parameters
     const url = new URL(req.url);
     const establishmentId = url.searchParams.get('establishmentId');
     const carrierId = url.searchParams.get('carrierId');
     const fetchUnassigned = url.searchParams.get('fetchUnassigned') === 'true';
     const cityFilter = url.searchParams.get('cityFilter');
     
-    console.log("Extracted params:", { establishmentId, carrierId, fetchUnassigned, cityFilter });
+    console.log("Processing request with parameters:", { establishmentId, carrierId, fetchUnassigned, cityFilter });
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
@@ -68,24 +68,31 @@ serve(async (req) => {
       throw error;
     }
     
-    console.log(`Query returned ${data?.length || 0} collection points`);
+    console.log(`Successfully fetched ${data?.length || 0} collection points`);
 
     // Transform the data to match the frontend's expected format
     const transformedData = data.map(point => {
-      // Transform operating hours into the expected format
+      const pointId = point.id;
+      console.log(`Processing point ${pointId}`);
+      
+      // Transform operating hours
       const operatingHours = transformOperatingHours(point.operating_hours);
       
-      // Ensure address_obj is always defined properly
-      const addressObj = point.address || null;
+      // Extract address data
+      const addressData = point.address;
+      console.log(`Address data for point ${pointId}:`, addressData);
       
-      console.log(`Point ${point.id} address data:`, addressObj);
-      
-      return {
+      // Create the transformed point
+      const transformedPoint = {
         ...point,
         operating_hours: operatingHours,
-        address_obj: addressObj // Explicitly set address_obj from the joined address data
+        address_obj: addressData // This is crucial - map the joined address data to address_obj
       };
+      
+      return transformedPoint;
     });
+
+    console.log(`Returning ${transformedData.length} transformed collection points`);
 
     // Return the transformed data
     return new Response(JSON.stringify(transformedData), {
