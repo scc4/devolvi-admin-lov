@@ -37,6 +37,7 @@ function App() {
               <Route path="users" element={<Users />} />
               <Route path="carriers" element={<Carriers />} />
               <Route path="establishments" element={<Establishments />} />
+              <Route path="establishments/pudo" element={<PudoPoints />} />
               <Route path="pudo" element={<PudoPoints />} />
             </Route>
             
