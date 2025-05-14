@@ -13,7 +13,6 @@ interface AddressTabProps {
 }
 
 export function AddressTab({ form, onInputChange, isLoading }: AddressTabProps) {
-  // Pass the entire form
   const { states, availableCities, isLoadingCities, handleCEPChange } = useAddressForm(form, onInputChange);
 
   return (

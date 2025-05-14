@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import type { CollectionPoint } from "@/types/collection-point";
 import { useDialogCleanup } from "@/hooks/useDialogCleanup";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface CollectionPointFormDialogProps {
   open: boolean;
@@ -49,13 +49,12 @@ export function CollectionPointFormDialog({
   // Use our custom cleanup hook
   useDialogCleanup({ open });
   
-  // Reset errors when dialog is closed or opened
-  useDialogCleanup({ 
-    open, 
-    onCleanup: () => {
+  // Reset errors and active tab when dialog is closed or opened
+  useEffect(() => {
+    if (open) {
       setPhoneError(null);
     }
-  });
+  }, [open]);
 
   const handleSubmit = async () => {
     const errors = [];
@@ -89,7 +88,7 @@ export function CollectionPointFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[1200px] h-[95vh] max-h-[95vh] p-0 overflow-hidden flex flex-col">
+      <DialogContent className="max-w-[95vw] w-[1200px] h-[90vh] max-h-[90vh] p-0 overflow-hidden flex flex-col">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
         </DialogHeader>
@@ -107,8 +106,8 @@ export function CollectionPointFormDialog({
               <TabsTrigger value="hours">Horário de Funcionamento</TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-hidden">
-              <TabsContent value="basic" className="h-full overflow-auto">
+            <div className="flex-1 overflow-auto">
+              <TabsContent value="basic" className="mt-0 h-full">
                 <BasicInfoTab
                   form={form}
                   onInputChange={handleInputChange}
@@ -117,7 +116,7 @@ export function CollectionPointFormDialog({
                 />
               </TabsContent>
 
-              <TabsContent value="address" className="h-full overflow-auto">
+              <TabsContent value="address" className="mt-0 h-full">
                 <AddressTab
                   form={form}
                   onInputChange={handleAddressInputChange}
@@ -125,7 +124,7 @@ export function CollectionPointFormDialog({
                 />
               </TabsContent>
 
-              <TabsContent value="hours" className="h-full overflow-auto">
+              <TabsContent value="hours" className="mt-0 h-full">
                 <OperatingHoursTab
                   form={form}
                   onTimeChange={handleTimeChange}

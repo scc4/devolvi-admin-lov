@@ -44,10 +44,10 @@ export function LocationFields({
             onValueChange={(value) => onInputChange('state', value)}
             disabled={isLoading}
           >
-            <SelectTrigger id="state">
+            <SelectTrigger id="state" className="w-full">
               <SelectValue placeholder="Selecione o estado" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper" className="w-full z-50">
               {states.map((state) => (
                 <SelectItem key={state.value} value={state.value}>
                   {state.label}
@@ -64,10 +64,10 @@ export function LocationFields({
             onValueChange={(value) => onInputChange('city', value)}
             disabled={isLoading || !form.address_obj?.state}
           >
-            <SelectTrigger id="city">
+            <SelectTrigger id="city" className="w-full">
               <SelectValue placeholder={form.address_obj?.state ? "Selecione a cidade" : "Selecione um estado primeiro"} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper" className="w-full z-50">
               {availableCities.map((city) => (
                 <SelectItem key={city} value={city}>
                   {city}

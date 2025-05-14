@@ -459,19 +459,19 @@ export type Database = {
       user_collection_points: {
         Row: {
           collection_point_id: string
-          default: boolean
+          current_collection_point: boolean
           deleted_at: string | null
           user_id: string
         }
         Insert: {
           collection_point_id: string
-          default?: boolean
+          current_collection_point?: boolean
           deleted_at?: string | null
           user_id: string
         }
         Update: {
           collection_point_id?: string
-          default?: boolean
+          current_collection_point?: boolean
           deleted_at?: string | null
           user_id?: string
         }
