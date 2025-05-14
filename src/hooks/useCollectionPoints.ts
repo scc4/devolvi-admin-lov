@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -18,26 +17,21 @@ export function useCollectionPoints(
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
     queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned, cityFilter],
     queryFn: async () => {
-      // Build query parameters for the edge function
-      let url = '';
-      const queryParams = [];
+      // Build query parameters as an object
+      const params: Record<string, string> = {};
       
-      if (establishmentId) queryParams.push(`establishmentId=${establishmentId}`);
-      if (carrierId) queryParams.push(`carrierId=${carrierId}`);
-      if (fetchUnassigned) queryParams.push('fetchUnassigned=true');
-      if (cityFilter) queryParams.push(`cityFilter=${encodeURIComponent(cityFilter)}`);
+      if (establishmentId) params.establishmentId = establishmentId;
+      if (carrierId) params.carrierId = carrierId;
+      if (fetchUnassigned) params.fetchUnassigned = 'true';
+      if (cityFilter) params.cityFilter = cityFilter;
       
-      if (queryParams.length > 0) {
-        url = `?${queryParams.join('&')}`;
-      }
+      console.log('Calling edge function with params:', params);
       
-      console.log('Calling edge function with URL:', url);
-      
-      // Call our edge function with the correct URL parameter format
+      // Call our edge function with the correct parameter format
       const { data, error } = await supabase.functions.invoke('get-collection-points', {
         method: 'GET',
-        // Pass the URL with query string properly
-        url: url
+        headers: { 'Content-Type': 'application/json' },
+        body: params
       });
       
       if (error) {
