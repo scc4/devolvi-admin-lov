@@ -7,12 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useBreakpoints } from "@/hooks/use-mobile";
 import { forwardRef } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 // Versão mobile-friendly do overlay para o sidebar
 const MobileOverlay = forwardRef<HTMLDivElement, { onClick: () => void }>(({ onClick }, ref) => {
@@ -54,6 +48,14 @@ export function AppSidebar() {
     title: "Transportadoras",
     url: "/dashboard/carriers",
     icon: Truck
+  }, {
+    title: "Estabelecimentos",
+    url: "/dashboard/establishments",
+    icon: Building
+  }, {
+    title: "Pontos de Coleta",
+    url: "/dashboard/establishments/collection-points",
+    icon: MapPin
   }];
   
   const handleLogout = async () => {
@@ -66,9 +68,6 @@ export function AppSidebar() {
       setOpen(false);
     }
   };
-
-  // Check if the current path is in establishment section
-  const isEstablishmentsSection = location.pathname.includes('/dashboard/establishments');
   
   return (
     <>
@@ -112,39 +111,6 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-
-                {/* Establishments dropdown menu */}
-                <SidebarMenuItem>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuButton
-                        isActive={isEstablishmentsSection}
-                        className={isEstablishmentsSection ? "bg-[#e4e7ff] text-[#6366f1]" : "text-[#2a3547] hover:bg-[#f5f6fa]"}
-                      >
-                        <div className="flex items-center justify-between w-full px-4 py-3 md:py-2.5 rounded-md transition-colors">
-                          <div className="flex items-center gap-3">
-                            <Building className="h-5 w-5" />
-                            <span className="font-medium">Estabelecimentos</span>
-                          </div>
-                        </div>
-                      </SidebarMenuButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 z-[100] bg-white">
-                      <DropdownMenuItem asChild>
-                        <Link to="/dashboard/establishments" className="flex items-center gap-2" onClick={closeSidebar}>
-                          <Building className="h-4 w-4" />
-                          <span>Listar Todos</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/dashboard/establishments/collection-points" className="flex items-center gap-2" onClick={closeSidebar}>
-                          <MapPin className="h-4 w-4" />
-                          <span>Pontos de Coleta</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

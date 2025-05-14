@@ -31,7 +31,14 @@ export function CollectionPointFormDialogV2({
   pudoMode = false
 }: CollectionPointFormDialogV2Props) {
   const [activeTab, setActiveTab] = useState("basic");
-  const { formState, updateFormField } = useCollectionPointFormV2(initialData);
+  const {
+    form,
+    handleInputChange,
+    handleAddressInputChange,
+    handleTimeChange,
+    addTimePeriod,
+    removeTimePeriod
+  } = useCollectionPointFormV2(initialData, carrierContext);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +46,8 @@ export function CollectionPointFormDialogV2({
     try {
       // Ensure PUDO flag is set if in PUDO mode
       const dataToSubmit = {
-        ...formState,
-        pudo: pudoMode ? true : formState.pudo
+        ...form,
+        pudo: pudoMode ? true : form.pudo
       };
       
       await onSubmit(dataToSubmit);
@@ -72,23 +79,25 @@ export function CollectionPointFormDialogV2({
             
             <TabsContent value="basic" className="space-y-4 pt-4">
               <BasicInfoTabV2 
-                formState={formState} 
-                updateFormField={updateFormField}
+                form={form} 
+                onInputChange={handleInputChange}
                 pudoMode={pudoMode}
               />
             </TabsContent>
             
             <TabsContent value="address" className="space-y-4 pt-4">
               <AddressTabV2 
-                formState={formState} 
-                updateFormField={updateFormField} 
+                form={form} 
+                onInputChange={handleAddressInputChange} 
               />
             </TabsContent>
             
             <TabsContent value="hours" className="space-y-4 pt-4">
               <OperatingHoursTabV2 
-                formState={formState} 
-                updateFormField={updateFormField} 
+                form={form} 
+                onTimeChange={handleTimeChange}
+                onAddTimePeriod={addTimePeriod}
+                onRemoveTimePeriod={removeTimePeriod}
               />
             </TabsContent>
           </Tabs>
