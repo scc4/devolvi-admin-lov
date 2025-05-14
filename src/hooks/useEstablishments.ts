@@ -22,19 +22,21 @@ export function useEstablishments() {
         .order('name');
 
       if (error) {
+        console.error("Error fetching establishments:", error);
         setError(error.message);
         throw error;
       }
 
       return data.map(est => ({
         ...est,
-        collection_points_count: est.collection_points.length
+        collection_points_count: est.collection_points?.length || 0
       })) as EstablishmentWithDetails[];
     }
   });
 
   const createMutation = useMutation({
     mutationFn: async (newEstablishment: { name: string; type: 'public' | 'private' }) => {
+      console.log("Creating establishment:", newEstablishment);
       const { data, error } = await supabase
         .from('establishments')
         .insert(newEstablishment)
@@ -59,14 +61,32 @@ export function useEstablishments() {
   });
 
   const editMutation = useMutation({
-    mutationFn: async (updates: EstablishmentWithDetails) => {
+    mutationFn: async (updates: Partial<EstablishmentWithDetails>) => {
+      console.log("Updating establishment:", updates);
+      
+      if (!updates.id) {
+        throw new Error("ID do estabelecimento é obrigatório para atualização");
+      }
+
       const { data, error } = await supabase
         .from('establishments')
-        .upsert(updates)
-        .select()
+        .update({
+          name: updates.name,
+          type: updates.type
+        })
+        .eq('id', updates.id)
+        .select(`
+          *,
+          collection_points(id),
+          carrier:carriers(id, name)
+        `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase update error:", error);
+        throw error;
+      }
+      
       return data;
     },
     onSuccess: () => {
@@ -81,6 +101,7 @@ export function useEstablishments() {
 
   const deleteMutation = useMutation({
     mutationFn: async (establishment: EstablishmentWithDetails) => {
+      console.log("Deleting establishment:", establishment.id);
       const { error } = await supabase
         .from('establishments')
         .delete()
@@ -98,7 +119,7 @@ export function useEstablishments() {
     }
   });
 
-  const handleEdit = async (establishment: EstablishmentWithDetails) => {
+  const handleEdit = async (establishment: Partial<EstablishmentWithDetails>) => {
     await editMutation.mutateAsync(establishment);
   };
 

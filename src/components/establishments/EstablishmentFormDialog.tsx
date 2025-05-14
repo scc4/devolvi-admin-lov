@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
+import { toast } from "sonner";
 
 interface EstablishmentFormDialogProps {
   open: boolean;
@@ -64,10 +65,20 @@ export function EstablishmentFormDialog({
   }, [open]);
 
   const handleSubmit = async () => {
-    await onSubmit({
-      ...form,
-      ...(initialData?.id ? { id: initialData.id } : {})
-    });
+    if (!form.name) {
+      toast.error("O nome do estabelecimento é obrigatório");
+      return;
+    }
+    
+    try {
+      await onSubmit({
+        ...form,
+        ...(initialData?.id ? { id: initialData.id } : {})
+      });
+    } catch (error) {
+      console.error("Error submitting establishment:", error);
+      toast.error("Erro ao salvar estabelecimento. Tente novamente.");
+    }
   };
 
   return (
@@ -90,10 +101,10 @@ export function EstablishmentFormDialog({
             onValueChange={(value: 'public' | 'private') => setForm(prev => ({ ...prev, type: value }))}
             disabled={isLoading}
           >
-            <SelectTrigger>
+            <SelectTrigger className="z-[100]">
               <SelectValue placeholder="Selecione o tipo" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[101]">
               <SelectItem value="public">Público</SelectItem>
               <SelectItem value="private">Privado</SelectItem>
             </SelectContent>
@@ -122,4 +133,3 @@ export function EstablishmentFormDialog({
     </Dialog>
   );
 }
-

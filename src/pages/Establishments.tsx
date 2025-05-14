@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EstablishmentsHeader } from "@/components/establishments/EstablishmentsHeader";
@@ -9,6 +10,7 @@ import { useEstablishments } from "@/hooks/useEstablishments";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
+import { toast } from "sonner";
 
 export default function Establishments() {
   const {
@@ -25,6 +27,7 @@ export default function Establishments() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [collectionPointsDialogOpen, setCollectionPointsDialogOpen] = useState(false);
   const [selectedEstablishment, setSelectedEstablishment] = useState<EstablishmentWithDetails | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredEstablishments = establishments.filter((establishment) =>
     establishment.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,15 +51,27 @@ export default function Establishments() {
   };
 
   const handleFormSubmit = async (data: Partial<EstablishmentWithDetails>) => {
-    if (selectedEstablishment) {
-      await handleEdit({
-        ...selectedEstablishment,
-        ...data
-      });
-    } else {
-      await handleCreate(data);
+    try {
+      setIsSubmitting(true);
+      
+      if (selectedEstablishment) {
+        console.log("Submitting edit:", { ...selectedEstablishment, ...data });
+        await handleEdit({
+          ...data,
+          id: selectedEstablishment.id
+        });
+      } else {
+        console.log("Submitting create:", data);
+        await handleCreate(data);
+      }
+      
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error in form submission:", error);
+      toast.error("Ocorreu um erro ao salvar. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
     }
-    setEditDialogOpen(false);
   };
 
   return (
@@ -97,7 +112,7 @@ export default function Establishments() {
         onOpenChange={setEditDialogOpen}
         onSubmit={handleFormSubmit}
         initialData={selectedEstablishment}
-        isLoading={false}
+        isLoading={isSubmitting}
       />
 
       {selectedEstablishment && (
