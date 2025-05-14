@@ -2,7 +2,7 @@
 export interface CollectionPoint {
   id: string;
   name: string;
-  address?: string; // Making this optional as we're moving away from it
+  address?: string;
   establishment_id: string | null;
   establishment?: {
     name: string;
@@ -11,6 +11,7 @@ export interface CollectionPoint {
   phone: string | null;
   address_id: string | null;
   is_active: boolean | null;
+  pudo?: boolean | null;
   operating_hours: {
     [day: string]: {
       open: string;
