@@ -38,7 +38,7 @@ export function PudoPoints() {
       </div>
 
       <CollectionPointsTabV2 
-        initialFilter={establishmentFilter ? { establishment_id: establishmentFilter } : undefined}
+        establishmentId={establishmentFilter || undefined}
         pudoOnly={true}
       />
     </div>

@@ -13,14 +13,22 @@ interface CollectionPointsTabV2Props {
   carrierContext?: {
     carrierId?: string;
   };
+  initialFilter?: {
+    establishment_id?: string;
+  };
+  pudoOnly?: boolean;
 }
 
 export function CollectionPointsTabV2({ 
   establishmentId,
-  carrierContext
+  carrierContext,
+  initialFilter,
+  pudoOnly = false
 }: CollectionPointsTabV2Props) {
+  const filteredEstablishmentId = initialFilter?.establishment_id || establishmentId;
+  
   const {
-    collectionPoints,
+    collectionPoints: allCollectionPoints,
     isLoading,
     createCollectionPoint,
     updateCollectionPoint,
@@ -29,9 +37,14 @@ export function CollectionPointsTabV2({
     isUpdating,
     refetch
   } = useCollectionPointsV2(
-    establishmentId, 
+    filteredEstablishmentId, 
     carrierContext?.carrierId
   );
+  
+  // Apply PUDO filter if needed
+  const collectionPoints = pudoOnly 
+    ? allCollectionPoints.filter(point => point.pudo === true)
+    : allCollectionPoints;
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<CollectionPoint | undefined>(undefined);
@@ -61,8 +74,10 @@ export function CollectionPointsTabV2({
         // Create new point with appropriate context
         const pointData = {
           ...point,
-          establishment_id: establishmentId || null,
+          establishment_id: filteredEstablishmentId || null,
           carrier_id: carrierContext?.carrierId || null,
+          // Set PUDO flag if in PUDO mode
+          pudo: pudoOnly ? true : point.pudo
         };
         await createCollectionPoint(pointData);
       }
@@ -75,7 +90,7 @@ export function CollectionPointsTabV2({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Pontos de Coleta</h2>
+        <h2 className="text-xl font-semibold">Pontos de Coleta{pudoOnly ? " PUDO" : ""}</h2>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCcw className="h-4 w-4" />
@@ -83,7 +98,7 @@ export function CollectionPointsTabV2({
           </Button>
           <Button size="sm" onClick={handleOpenCreate} aria-label="Novo Ponto de Coleta">
             <Plus className="h-4 w-4" />
-            {!isMobile && <span className="ml-2">Novo Ponto de Coleta</span>}
+            {!isMobile && <span className="ml-2">Novo {pudoOnly ? "PUDO" : "Ponto de Coleta"}</span>}
           </Button>
         </div>
       </div>
@@ -102,6 +117,7 @@ export function CollectionPointsTabV2({
         initialData={selectedPoint}
         isLoading={isCreating || isUpdating}
         carrierContext={carrierContext}
+        pudoMode={pudoOnly}
       />
     </div>
   );

@@ -1,27 +1,24 @@
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicInfoTabV2 } from "./tabs/BasicInfoTabV2";
 import { AddressTabV2 } from "./tabs/AddressTabV2";
 import { OperatingHoursTabV2 } from "./tabs/OperatingHoursTabV2";
-import { toast } from "sonner";
-import type { CollectionPoint, Address } from "@/types/collection-point";
-import { useDialogCleanup } from "@/hooks/useDialogCleanup";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
 import { useCollectionPointFormV2 } from "@/hooks/useCollectionPointFormV2";
+import { Button } from "@/components/ui/button";
+import type { CollectionPoint } from "@/types/collection-point";
 
 interface CollectionPointFormDialogV2Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (point: Partial<CollectionPoint>) => Promise<void>;
+  onSubmit: (data: Partial<CollectionPoint>) => Promise<void>;
   initialData?: CollectionPoint;
   isLoading?: boolean;
   carrierContext?: {
     carrierId?: string;
   };
+  pudoMode?: boolean;
 }
 
 export function CollectionPointFormDialogV2({
@@ -29,129 +26,86 @@ export function CollectionPointFormDialogV2({
   onOpenChange,
   onSubmit,
   initialData,
-  isLoading = false,
-  carrierContext
+  isLoading,
+  carrierContext,
+  pudoMode = false
 }: CollectionPointFormDialogV2Props) {
-  const {
-    form,
-    handleInputChange,
-    handleAddressInputChange,
-    handleTimeChange,
-    addTimePeriod,
-    removeTimePeriod,
-  } = useCollectionPointFormV2(initialData, carrierContext);
-  
   const [activeTab, setActiveTab] = useState("basic");
-  const [phoneError, setPhoneError] = useState<string | null>(null);
-
-  const { isMobile } = useIsMobile();
-
-  // Use our custom cleanup hook
-  useDialogCleanup({ open });
+  const { formState, updateFormField } = useCollectionPointFormV2(initialData);
   
-  // Reset errors and active tab when dialog is closed or opened
-  useEffect(() => {
-    if (open) {
-      setPhoneError(null);
-    }
-  }, [open]);
-
-  const handleSubmit = async () => {
-    const errors = [];
-    setPhoneError(null);
-    
-    if (!form.name?.trim()) {
-      errors.push("Nome");
-    }
-
-    if (errors.length > 0) {
-      toast.error(`Por favor, preencha os campos obrigatórios: ${errors.join(', ')}`);
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
     try {
-      await onSubmit({ ...form });
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error("Erro ao salvar ponto de coleta:", error);
+      // Ensure PUDO flag is set if in PUDO mode
+      const dataToSubmit = {
+        ...formState,
+        pudo: pudoMode ? true : formState.pudo
+      };
       
-      // Verificar se é um erro de telefone duplicado
-      if (error?.message?.includes('duplicate key') && error?.message?.includes('collection_points_phone_unique')) {
-        setPhoneError("Este número de telefone já está em uso por outro ponto de coleta");
-        setActiveTab("basic");
-        toast.error("Número de telefone já cadastrado em outro ponto de coleta");
-      } else {
-        toast.error("Erro ao salvar ponto de coleta");
-      }
+      await onSubmit(dataToSubmit);
+    } catch (error) {
+      console.error("Error submitting form:", error);
     }
   };
-
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[1200px] h-[90vh] max-h-[90vh] p-0 overflow-hidden flex flex-col">
-        <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle>{initialData ? 'Editar' : 'Cadastrar'} Ponto de Coleta</DialogTitle>
+      <DialogContent className="sm:max-w-[650px] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {initialData ? "Editar" : "Novo"} Ponto {pudoMode ? "PUDO" : "de Coleta"}
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 overflow-hidden p-6 pt-4 flex flex-col">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <Tabs 
-            defaultValue="basic" 
-            className="flex-1 flex flex-col overflow-hidden"
-            value={activeTab}
+            value={activeTab} 
             onValueChange={setActiveTab}
+            className="w-full"
           >
-            <TabsList className={`grid w-full ${isMobile ? "grid-cols-1 gap-1" : "grid-cols-3"} mb-4`}>
-              <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
               <TabsTrigger value="address">Endereço</TabsTrigger>
               <TabsTrigger value="hours">Horário de Funcionamento</TabsTrigger>
             </TabsList>
-
-            <div className="flex-1 overflow-auto">
-              <TabsContent value="basic" className="mt-0 h-full">
-                <BasicInfoTabV2
-                  form={form}
-                  onInputChange={handleInputChange}
-                  isLoading={isLoading}
-                  phoneError={phoneError}
-                />
-              </TabsContent>
-
-              <TabsContent value="address" className="mt-0 h-full">
-                <AddressTabV2
-                  form={form}
-                  onInputChange={handleAddressInputChange}
-                  isLoading={isLoading}
-                />
-              </TabsContent>
-
-              <TabsContent value="hours" className="mt-0 h-full">
-                <OperatingHoursTabV2
-                  form={form}
-                  onTimeChange={handleTimeChange}
-                  onAddTimePeriod={addTimePeriod}
-                  onRemoveTimePeriod={removeTimePeriod}
-                  isLoading={isLoading}
-                />
-              </TabsContent>
-            </div>
+            
+            <TabsContent value="basic" className="space-y-4 pt-4">
+              <BasicInfoTabV2 
+                formState={formState} 
+                updateFormField={updateFormField}
+                pudoMode={pudoMode}
+              />
+            </TabsContent>
+            
+            <TabsContent value="address" className="space-y-4 pt-4">
+              <AddressTabV2 
+                formState={formState} 
+                updateFormField={updateFormField} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="hours" className="space-y-4 pt-4">
+              <OperatingHoursTabV2 
+                formState={formState} 
+                updateFormField={updateFormField} 
+              />
+            </TabsContent>
           </Tabs>
-        </div>
-
-        <DialogFooter className="px-6 py-4 border-t">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              'Salvar'
-            )}
-          </Button>
-        </DialogFooter>
+          
+          <div className="flex justify-end space-x-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
