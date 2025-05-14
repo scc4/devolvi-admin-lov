@@ -14,29 +14,41 @@ export function useCollectionPoints(
 ) {
   const queryClient = useQueryClient();
   
-  // Updated to use the Edge Function instead of direct database access
+  // Updated to use the Edge Function with correct parameter passing
   const { data: collectionPoints = [], isLoading, refetch } = useQuery({
     queryKey: ['collection-points', establishmentId, carrierId, fetchUnassigned, cityFilter],
     queryFn: async () => {
       // Build query parameters for the edge function
-      const params = new URLSearchParams();
-      if (establishmentId) params.append('establishmentId', establishmentId);
-      if (carrierId) params.append('carrierId', carrierId);
-      if (fetchUnassigned) params.append('fetchUnassigned', 'true');
-      if (cityFilter) params.append('cityFilter', cityFilter);
+      let url = '';
+      const queryParams = [];
       
-      // Call our new edge function with the appropriate parameters
+      if (establishmentId) queryParams.push(`establishmentId=${establishmentId}`);
+      if (carrierId) queryParams.push(`carrierId=${carrierId}`);
+      if (fetchUnassigned) queryParams.push('fetchUnassigned=true');
+      if (cityFilter) queryParams.push(`cityFilter=${encodeURIComponent(cityFilter)}`);
+      
+      if (queryParams.length > 0) {
+        url = `?${queryParams.join('&')}`;
+      }
+      
+      console.log('Calling edge function with URL:', url);
+      
+      // Call our edge function with the correct URL parameter format
       const { data, error } = await supabase.functions.invoke('get-collection-points', {
         method: 'GET',
-        query: params,
+        // Pass the URL with query string properly
+        url: url
       });
       
       if (error) {
+        console.error('Edge function error:', error);
         toast.error('Erro ao carregar pontos de coleta');
         throw error;
       }
 
-      // The edge function now returns properly formatted data that matches our CollectionPoint interface
+      console.log('Edge function response:', data);
+
+      // The edge function returns properly formatted data that matches our CollectionPoint interface
       return data as CollectionPoint[];
     },
     enabled: true

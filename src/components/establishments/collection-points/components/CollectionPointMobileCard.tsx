@@ -6,7 +6,7 @@ import { formatAddress } from "../utils/formatters";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { daysOfWeek, daysOfWeekPtBr, DayOfWeek } from "@/types/collection-point";
-import { getSimpleAddress } from "../utils/addressHelpers";
+import { getSimpleAddress, getLocation } from "../utils/addressHelpers";
 
 interface CollectionPointMobileCardProps {
   point: CollectionPoint;
