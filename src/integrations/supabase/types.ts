@@ -138,6 +138,7 @@ export type Database = {
           name: string
           operating_hours: Json | null
           phone: string | null
+          pudo: boolean | null
           updated_at: string
         }
         Insert: {
@@ -152,6 +153,7 @@ export type Database = {
           name: string
           operating_hours?: Json | null
           phone?: string | null
+          pudo?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -166,6 +168,7 @@ export type Database = {
           name?: string
           operating_hours?: Json | null
           phone?: string | null
+          pudo?: boolean | null
           updated_at?: string
         }
         Relationships: [
