@@ -2,7 +2,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, useSidebar, SidebarGroupContent } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LayoutDashboard, Users, Truck, LogOut, Building, X, MapPin, Package } from "lucide-react";
+import { LayoutDashboard, Users, Truck, LogOut, Building, X, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useBreakpoints } from "@/hooks/use-mobile";
@@ -140,12 +140,6 @@ export function AppSidebar() {
                         <Link to="/dashboard/establishments/collection-points" className="flex items-center gap-2" onClick={closeSidebar}>
                           <MapPin className="h-4 w-4" />
                           <span>Pontos de Coleta</span>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/dashboard/establishments/pudo" className="flex items-center gap-2" onClick={closeSidebar}>
-                          <Package className="h-4 w-4" />
-                          <span>PUDO</span>
                         </Link>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

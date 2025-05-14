@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 import type { EstablishmentWithDetails } from "@/types/establishment";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export default function Establishments() {
   const {
@@ -23,6 +24,7 @@ export default function Establishments() {
     handleCreate
   } = useEstablishments();
   
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [collectionPointsDialogOpen, setCollectionPointsDialogOpen] = useState(false);
@@ -48,6 +50,11 @@ export default function Establishments() {
   const handleOpenCollectionPoints = (establishment: EstablishmentWithDetails) => {
     setSelectedEstablishment(establishment);
     setCollectionPointsDialogOpen(true);
+  };
+  
+  const handleManagePudo = (establishment: EstablishmentWithDetails) => {
+    // Navigate to PUDO page with establishment filter
+    navigate(`/dashboard/establishments/pudo?establishment=${establishment.id}`);
   };
 
   const handleFormSubmit = async (data: Partial<EstablishmentWithDetails>) => {
@@ -102,6 +109,7 @@ export default function Establishments() {
               onEdit={handleOpenEdit}
               onDelete={handleDelete}
               onManageCollectionPoints={handleOpenCollectionPoints}
+              onManagePudo={handleManagePudo}
             />
           )}
         </CardContent>

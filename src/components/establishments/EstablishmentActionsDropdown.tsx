@@ -1,5 +1,5 @@
 
-import { MoreVertical, Pencil, Trash2, MapPin } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, MapPin, Package } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,13 +16,15 @@ interface EstablishmentActionsDropdownProps {
   onEdit: (establishment: EstablishmentWithDetails) => void;
   onDelete: (establishment: EstablishmentWithDetails) => void;
   onManageCollectionPoints: (establishment: EstablishmentWithDetails) => void;
+  onManagePudo?: (establishment: EstablishmentWithDetails) => void;
 }
 
 export function EstablishmentActionsDropdown({ 
   establishment, 
   onEdit, 
   onDelete,
-  onManageCollectionPoints
+  onManageCollectionPoints,
+  onManagePudo
 }: EstablishmentActionsDropdownProps) {
   return (
     <DropdownMenu>
@@ -41,6 +43,12 @@ export function EstablishmentActionsDropdown({
           <MapPin className="mr-2 h-4 w-4" />
           Pontos de Coleta
         </DropdownMenuItem>
+        {onManagePudo && (
+          <DropdownMenuItem onClick={() => onManagePudo(establishment)}>
+            <Package className="mr-2 h-4 w-4" />
+            PUDO
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           onClick={() => onDelete(establishment)} 

@@ -12,6 +12,7 @@ import { EstablishmentsTableLoading } from "./EstablishmentsTableLoading";
 import { EstablishmentsTableEmpty } from "./EstablishmentsTableEmpty";
 import { EstablishmentTableRow } from "./EstablishmentTableRow";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Package } from "lucide-react";
 
 interface EstablishmentsTableProps {
   establishments: EstablishmentWithDetails[];
@@ -19,6 +20,7 @@ interface EstablishmentsTableProps {
   onEdit: (establishment: EstablishmentWithDetails) => void;
   onDelete: (establishment: EstablishmentWithDetails) => void;
   onManageCollectionPoints: (establishment: EstablishmentWithDetails) => void;
+  onManagePudo?: (establishment: EstablishmentWithDetails) => void;
 }
 
 export function EstablishmentsTable({
@@ -27,6 +29,7 @@ export function EstablishmentsTable({
   onEdit,
   onDelete,
   onManageCollectionPoints,
+  onManagePudo,
 }: EstablishmentsTableProps) {
   const { isMobile } = useIsMobile();
 
@@ -73,6 +76,15 @@ export function EstablishmentsTable({
                   >
                     Pontos
                   </button>
+                  {onManagePudo && (
+                    <button 
+                      onClick={() => onManagePudo(establishment)}
+                      className="text-xs text-primary flex items-center gap-1"
+                    >
+                      <Package className="h-3 w-3" />
+                      PUDO
+                    </button>
+                  )}
                   <button 
                     onClick={() => onDelete(establishment)}
                     className="text-xs text-destructive"
@@ -112,6 +124,7 @@ export function EstablishmentsTable({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onManageCollectionPoints={onManageCollectionPoints}
+                onManagePudo={onManagePudo}
               />
             ))
           )}

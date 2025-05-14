@@ -8,6 +8,7 @@ interface EstablishmentTableRowProps {
   onEdit: (establishment: EstablishmentWithDetails) => void;
   onDelete: (establishment: EstablishmentWithDetails) => void;
   onManageCollectionPoints: (establishment: EstablishmentWithDetails) => void;
+  onManagePudo?: (establishment: EstablishmentWithDetails) => void;
 }
 
 export function EstablishmentTableRow({
@@ -15,6 +16,7 @@ export function EstablishmentTableRow({
   onEdit,
   onDelete,
   onManageCollectionPoints,
+  onManagePudo,
 }: EstablishmentTableRowProps) {
   return (
     <TableRow key={establishment.id}>
@@ -33,6 +35,7 @@ export function EstablishmentTableRow({
             onEdit={onEdit}
             onDelete={onDelete}
             onManageCollectionPoints={onManageCollectionPoints}
+            onManagePudo={onManagePudo}
           />
         </div>
       </TableCell>
