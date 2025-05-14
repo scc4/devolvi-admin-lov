@@ -22,12 +22,16 @@ serve(async (req) => {
     const corsResponse = handleCors(req);
     if (corsResponse) return corsResponse;
 
+    console.log("Function called with request URL:", req.url);
+    
     // Get URL parameters
     const url = new URL(req.url);
     const establishmentId = url.searchParams.get('establishmentId');
     const carrierId = url.searchParams.get('carrierId');
     const fetchUnassigned = url.searchParams.get('fetchUnassigned') === 'true';
     const cityFilter = url.searchParams.get('cityFilter');
+    
+    console.log("Extracted params:", { establishmentId, carrierId, fetchUnassigned, cityFilter });
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
@@ -63,18 +67,23 @@ serve(async (req) => {
       console.error("Error fetching collection points:", error);
       throw error;
     }
+    
+    console.log(`Query returned ${data?.length || 0} collection points`);
 
     // Transform the data to match the frontend's expected format
-    // This is where we properly map the address data to address_obj
     const transformedData = data.map(point => {
       // Transform operating hours into the expected format
       const operatingHours = transformOperatingHours(point.operating_hours);
       
+      // Ensure address_obj is always defined properly
+      const addressObj = point.address || null;
+      
+      console.log(`Point ${point.id} address data:`, addressObj);
+      
       return {
         ...point,
         operating_hours: operatingHours,
-        // Explicitly map address to address_obj to ensure consistency
-        address_obj: point.address
+        address_obj: addressObj // Explicitly set address_obj from the joined address data
       };
     });
 
