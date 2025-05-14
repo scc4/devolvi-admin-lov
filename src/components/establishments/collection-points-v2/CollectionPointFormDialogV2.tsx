@@ -79,8 +79,8 @@ export function CollectionPointFormDialogV2({
             
             <TabsContent value="basic" className="space-y-4 pt-4">
               <BasicInfoTabV2 
-                form={form} 
-                onInputChange={handleInputChange}
+                formState={form} 
+                updateFormField={handleInputChange}
                 pudoMode={pudoMode}
               />
             </TabsContent>
