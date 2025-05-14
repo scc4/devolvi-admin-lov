@@ -1,102 +1,51 @@
 
-import "./App.css";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "sonner";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
-import Login from "@/pages/Login";
-import ResetPassword from "@/pages/ResetPassword";
-import ConfirmRegistration from "@/pages/ConfirmRegistration";
-import Dashboard from "@/pages/Dashboard";
-import Users from "@/pages/Users";
-import Establishments from "@/pages/Establishments";
-import Carriers from "@/pages/Carriers";
-import { AuthProvider } from "@/context/AuthContext";
-import NotFound from "@/pages/NotFound";
-import PudoPoints from "@/pages/PudoPoints";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './context/AuthContext';
+import { Toaster } from './components/ui/sonner';
+import ProtectedRoute from './components/ProtectedRoute';
+import DashboardLayout from './components/layout/DashboardLayout';
 
-const router = createBrowserRouter([
-  {
-    path: "/auth",
-    element: <Auth />,
-    children: [
-      {
-        path: "",
-        element: <Login />,
-      },
-      {
-        path: "reset-password",
-        element: <ResetPassword />,
-      },
-      {
-        path: "confirm-registration",
-        element: <ConfirmRegistration />,
-      }
-    ],
-  },
-  {
-    path: "/",
-    element: (
-      <ProtectedRoute>
-        <Index />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dashboard",
-    element: (
-      <ProtectedRoute>
-        <Dashboard />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dashboard/users",
-    element: (
-      <ProtectedRoute>
-        <Users />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dashboard/establishments",
-    element: (
-      <ProtectedRoute>
-        <Establishments />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dashboard/establishments/pudo",
-    element: (
-      <ProtectedRoute>
-        <PudoPoints />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dashboard/carriers",
-    element: (
-      <ProtectedRoute>
-        <Carriers />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
-]);
+// Pages
+import Index from './pages/Index';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import NotFound from './pages/NotFound';
+import Users from './pages/Users';
+import ConfirmRegistration from './pages/ConfirmRegistration';
+import ResetPassword from './pages/ResetPassword';
+import Carriers from './pages/Carriers';
+import Establishments from './pages/Establishments';
+import PudoPoints from './pages/PudoPoints';
+
+// Create a client for React Query
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-      <Toaster />
-      <SonnerToaster position="top-right" expand={true} richColors />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/confirm-registration" element={<ConfirmRegistration />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="users" element={<Users />} />
+              <Route path="carriers" element={<Carriers />} />
+              <Route path="establishments" element={<Establishments />} />
+              <Route path="pudo" element={<PudoPoints />} />
+            </Route>
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Router>
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -10,7 +10,18 @@ interface BasicAddressFieldsV2Props {
 }
 
 export function BasicAddressFieldsV2({ form, onInputChange, isLoading }: BasicAddressFieldsV2Props) {
-  const address = form.address_obj || {};
+  // Ensure address is never an empty object by providing default values
+  const address: Address = form.address_obj || {
+    street: null,
+    number: null,
+    complement: null,
+    district: null,
+    city: null,
+    state: null,
+    zip_code: null,
+    latitude: null,
+    longitude: null
+  };
 
   return (
     <div className="space-y-4">

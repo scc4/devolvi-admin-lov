@@ -37,7 +37,7 @@ export function useCollectionPointFormV2(
     is_active: true,
     operating_hours: defaultOperatingHours,
     address_id: null,
-    address_obj: defaultAddressObj,
+    address_obj: { ...defaultAddressObj },
     ...(carrierContext?.carrierId ? { carrier_id: carrierContext.carrierId } : {}),
   });
 
@@ -48,7 +48,7 @@ export function useCollectionPointFormV2(
       setForm({
         ...initialData,
         operating_hours: initialData.operating_hours || defaultOperatingHours,
-        address_obj: initialData.address_obj || defaultAddressObj
+        address_obj: initialData.address_obj || { ...defaultAddressObj }
       });
     }
   }, [initialData]);

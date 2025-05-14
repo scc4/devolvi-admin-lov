@@ -27,7 +27,18 @@ export function LocationFieldsV2({
   availableCities,
   handleCEPChange
 }: LocationFieldsV2Props) {
-  const address = form.address_obj || {};
+  // Ensure address is never an empty object by providing default values
+  const address: Address = form.address_obj || {
+    street: null,
+    number: null,
+    complement: null,
+    district: null,
+    city: null,
+    state: null,
+    zip_code: null,
+    latitude: null,
+    longitude: null
+  };
 
   return (
     <div>
