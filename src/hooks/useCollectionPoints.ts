@@ -1,9 +1,7 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import type { CollectionPoint, Address } from "@/types/collection-point";
-import { Json } from "@/integrations/supabase/types";
 import { getFullAddress } from "@/components/establishments/collection-points/utils/addressHelpers";
 
 export function useCollectionPoints(
@@ -27,30 +25,45 @@ export function useCollectionPoints(
         if (cityFilter) params.append('cityFilter', cityFilter);
         
         const queryString = params.toString();
+        const url = queryString ? `get-collection-points?${queryString}` : 'get-collection-points';
         
-        console.log(`Fetching collection points with params: ${queryString}`);
+        console.log(`Fetching collection points with URL: ${url}`);
         
-        // Call the edge function with query parameters in the URL
-        const { data, error } = await supabase.functions.invoke('get-collection-points', {
+        // Call the edge function
+        const response = await supabase.functions.invoke(url, {
           method: 'GET'
         });
         
-        if (error) {
-          console.error('Edge function error:', error);
+        if (response.error) {
+          console.error('Edge function error:', response.error);
           toast.error('Erro ao carregar pontos de coleta');
-          throw error;
+          throw response.error;
         }
 
+        const data = response.data;
         console.log('Edge function response data:', data);
         
-        // Verify address_obj data in the returned collection points
-        if (Array.isArray(data)) {
-          data.forEach(point => {
-            console.log(`Point ${point.id} address_obj:`, point.address_obj);
-          });
+        // Validate the response data
+        if (!Array.isArray(data)) {
+          console.error('Invalid response format, expected array:', data);
+          toast.error('Formato de resposta inválido');
+          return [];
         }
-
-        return data as CollectionPoint[];
+        
+        // Process and validate each collection point
+        const validatedPoints = data.map((point: any) => {
+          // Ensure address_obj is properly set
+          if (!point.address_obj && point.address) {
+            console.warn(`Point ${point.id} missing address_obj but has address string:`, point.address);
+          }
+          
+          // Log address data for debugging
+          console.log(`Point ${point.id} address_obj:`, point.address_obj);
+          
+          return point as CollectionPoint;
+        });
+        
+        return validatedPoints;
       } catch (error) {
         console.error('Collection points fetch error:', error);
         toast.error('Erro ao carregar pontos de coleta');
@@ -60,6 +73,7 @@ export function useCollectionPoints(
     enabled: true
   });
 
+  // Rest of the hook (mutations) remains the same
   const createMutation = useMutation({
     mutationFn: async (newPoint: Partial<CollectionPoint> & { address_obj?: Partial<Address> }) => {
       // First create or find an address

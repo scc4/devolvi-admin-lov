@@ -38,7 +38,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') as string;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Build the query based on parameters
+    // Build and execute the query
     let query = supabase
       .from('collection_points')
       .select(`
@@ -70,24 +70,32 @@ serve(async (req) => {
     
     console.log(`Successfully fetched ${data?.length || 0} collection points`);
 
-    // Transform the data to match the frontend's expected format
+    // Transform the data to properly map address data to address_obj
     const transformedData = data.map(point => {
       const pointId = point.id;
-      console.log(`Processing point ${pointId}`);
-      
-      // Transform operating hours
-      const operatingHours = transformOperatingHours(point.operating_hours);
+      console.log(`Processing point ${pointId}, original data:`, JSON.stringify(point));
       
       // Extract address data
       const addressData = point.address;
       console.log(`Address data for point ${pointId}:`, addressData);
       
-      // Create the transformed point
+      // Create the transformed point with address_obj
       const transformedPoint = {
         ...point,
-        operating_hours: operatingHours,
-        address_obj: addressData // This is crucial - map the joined address data to address_obj
+        address_obj: addressData
       };
+      
+      // Log transformed point to ensure all data is correct
+      console.log(`Transformed point ${pointId}:`, {
+        id: transformedPoint.id,
+        name: transformedPoint.name,
+        address_id: transformedPoint.address_id,
+        address_obj_present: transformedPoint.address_obj ? 'yes' : 'no',
+        address_obj_sample: transformedPoint.address_obj ? {
+          city: transformedPoint.address_obj.city,
+          state: transformedPoint.address_obj.state
+        } : null
+      });
       
       return transformedPoint;
     });
@@ -112,31 +120,3 @@ serve(async (req) => {
     });
   }
 });
-
-// Helper function to transform operating hours from Json to expected type
-function transformOperatingHours(hours: any): any {
-  if (!hours) return null;
-  
-  // Convert from Json to our expected type format
-  const result: { [day: string]: { open: string; close: string }[] } = {};
-  
-  if (typeof hours === 'object' && hours !== null && !Array.isArray(hours)) {
-    Object.entries(hours).forEach(([day, periods]) => {
-      if (Array.isArray(periods)) {
-        result[day] = periods.map(period => {
-          // Ensure each period has open and close properties
-          if (typeof period === 'object' && period !== null && 'open' in period && 'close' in period) {
-            return {
-              open: String(period.open),
-              close: String(period.close)
-            };
-          }
-          // Default values if structure is unexpected
-          return { open: "09:00", close: "17:00" };
-        });
-      }
-    });
-  }
-  
-  return Object.keys(result).length > 0 ? result : null;
-}
